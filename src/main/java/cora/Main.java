@@ -43,7 +43,7 @@ public class Main {
 
   public static void main(String[] args) {
     try {
-      TRS trs = args.length > 0 ? readInput(args[0]) : readInput("test.cora");
+      TRS trs = args.length > 0 ? readInput(args[0]) : readInput("test.trs");
       if (trs == null) return;
 
       System.out.print(trs.toString());
