@@ -29,7 +29,17 @@ public class Orthogonality extends StrategyInherit implements Strategy {
     }
 
 
-
+    private boolean sharedSymbols(Term t, HashSet<FunctionSymbol> fs) {
+        if (t.isConstant()) return false;
+        if (t.isVariable()) return false;
+        if (t.isFunctionalTerm()) {
+            FunctionalTerm ft = (FunctionalTerm) t;
+            if (!fs.add(ft.queryRoot())) return true;
+            for (int i = 1; i <= t.numberImmediateSubterms(); i++)
+                if (sharedSymbols(t.queryImmediateSubterm(i), fs)) return true;
+        }
+        return false;
+    }
 
 
     @Override
@@ -41,5 +51,10 @@ public class Orthogonality extends StrategyInherit implements Strategy {
             if (!left_linear) break;
         }
         System.out.println("The system is left linear:" + left_linear);
+
+        for (int i = 0; i < trs.queryRuleCount(); i++) {
+            HashSet<FunctionSymbol> fs = new HashSet<>();
+            System.out.println(sharedSymbols(trs.queryRule(i).queryLeftSide(), fs));
+        }
     }
 }
