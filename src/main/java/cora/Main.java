@@ -22,6 +22,7 @@ import cora.interfaces.terms.Term;
 import cora.interfaces.rewriting.TRS;
 import cora.parsers.CoraInputReader;
 import cora.parsers.TrsInputReader;
+import cora.provingstrategies.Orthogonality;
 
 public class Main {
   private static String getExtension(String filename) {
@@ -46,6 +47,10 @@ public class Main {
       TRS trs = args.length > 0 ? readInput(args[0]) : readInput("test.trs");
       if (trs == null) return;
 
+      Orthogonality orth = new Orthogonality();
+      orth.apply(trs);
+
+      /**
       System.out.print(trs.toString());
       System.out.print("Input term: ");
       String input = (new BufferedReader(new InputStreamReader(System.in))).readLine();
@@ -53,7 +58,7 @@ public class Main {
       do {
         term = trs.leftmostInnermostReduce(term);
         if (term != null) System.out.println("⇒ " + term.toString());
-      } while (term != null);
+      } while (term != null); **/
     }
     catch (Exception e) {
       System.out.println("Exception: " + e.getMessage());
