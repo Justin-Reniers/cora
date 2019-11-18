@@ -15,7 +15,11 @@
 
 package cora.interfaces.terms;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+
 import cora.interfaces.types.Type;
 
 /**
@@ -153,5 +157,11 @@ public interface Term {
    * Performs an equality check with the given other term.
    */
   boolean equals(Term term);
+
+  /**
+   * This method checks whether <this term> and other term can be unified;
+   * if they can, returns true and updates G; if they can't, returns false.
+   */
+  public boolean unify(Term other, HashSet<Map<Term, Term>> G);
 }
 

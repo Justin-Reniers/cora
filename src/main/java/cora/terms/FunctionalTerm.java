@@ -15,8 +15,8 @@
 
 package cora.terms;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
+
 import cora.exceptions.InappropriatePatternDataError;
 import cora.exceptions.IndexingError;
 import cora.exceptions.NullCallError;
@@ -194,6 +194,22 @@ public class FunctionalTerm extends ApplicativeTermInherit implements Term {
     if (_args.size() != term.numberImmediateSubterms()) return false;
     for (int i = 0; i < _args.size(); i++) {
       if (!_args.get(i).equals(term.queryImmediateSubterm(i+1))) return false;
+    }
+    return true;
+  }
+
+  public boolean unify(Term other, HashSet<Map<Term, Term>> G) {
+    if (other.isFunctionalTerm() && this.equals(other)) G.remove(this);
+    if (other.isFunctionalTerm() && this.queryRoot().equals(other.queryRoot())) {
+      for (int i = 1; i < this.numberImmediateSubterms(); i++) {
+        G.add(Map.of(this.queryImmediateSubterm(i), other.queryImmediateSubterm(i)));
+        //TODO
+      }
+    }
+    if (other.isFunctionalTerm() && !this.queryRoot().equals(other.queryRoot())) return false;
+    if (other.isVariable()) {
+      G.remove(this);
+      G.add(Map.of(other, this));
     }
     return true;
   }

@@ -4,6 +4,8 @@ import cora.interfaces.rewriting.TRS;
 
 public interface Strategy {
 
-    public void apply(TRS trs);
+    enum RESULT {CONFLUENT, NON_CONFLUENT, MAYBE, TIMEOUT}
+
+    RESULT apply(TRS trs);
 
 }

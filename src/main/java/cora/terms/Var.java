@@ -15,7 +15,11 @@
 
 package cora.terms;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+
 import cora.exceptions.InappropriatePatternDataError;
 import cora.exceptions.NullCallError;
 import cora.exceptions.NullInitialisationError;
@@ -158,6 +162,16 @@ public class Var extends LeafTermInherit implements Variable {
   public boolean equals(Term other) {
     if (!other.isVariable()) return false;
     return equals(other.queryVariable());
+  }
+
+  public boolean unify(Term other, HashSet<Map<Term, Term>> G) {
+    if (other.isVariable() && this.equals(other)) G.remove(this);
+    if (other.isFunctionalTerm()) {
+      for (int i = 1; i < other.numberImmediateSubterms(); i++) {
+        if (this.equals(other.queryImmediateSubterm(i))) return false;
+      }
+    }
+    return true;
   }
 
   /** Implements a total ordering on variables using the index. */
