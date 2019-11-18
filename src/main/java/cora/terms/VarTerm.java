@@ -15,8 +15,8 @@
 
 package cora.terms;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
+
 import cora.exceptions.InappropriatePatternDataError;
 import cora.exceptions.IndexingError;
 import cora.exceptions.NullCallError;
@@ -204,6 +204,10 @@ public class VarTerm extends ApplicativeTermInherit implements Term {
       if (!_args.get(i).equals(term.queryImmediateSubterm(i+1))) return false;
     }
     return true;
+  }
+
+  public boolean unify(Term other, HashSet<Map<Term, Term>> G) {
+    return false;
   }
 }
 

@@ -15,7 +15,11 @@
 
 package cora.terms;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+
 import cora.exceptions.InappropriatePatternDataError;
 import cora.exceptions.NullInitialisationError;
 import cora.exceptions.NullCallError;
@@ -119,6 +123,16 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
     if (term == null) return false;
     if (!term.isConstant()) return false;
     return equals(term.queryRoot());
+  }
+
+  public boolean unify(Term other, HashSet<Map<Term, Term>> G) {
+    if (other.isConstant() && !this.equals(other)) return false; // Conflict
+    if (this.equals(other)) G.remove(this); // Delete
+    if (other.isVariable()) { //Swap
+      G.remove(this);
+      G.add(Map.of(other, this));
+    }
+    return true;
   }
 }
 
