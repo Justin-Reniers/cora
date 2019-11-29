@@ -1,17 +1,17 @@
 package cora.provingstrategies;
 
-import cora.exceptions.NullCallError;
 import cora.interfaces.provingstrategies.Strategy;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.*;
-import cora.rewriting.FirstOrderRule;
-import cora.terms.Subst;
 import cora.terms.Var;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
 public class Orthogonality extends StrategyInherit implements Strategy {
+
+    public Orthogonality(List<List<Term>> criticalPairs) {
+        super(criticalPairs);
+    }
 
     /**
      * Checks the left-linearity of a Term. A term is left-linear if variables occur
@@ -32,6 +32,7 @@ public class Orthogonality extends StrategyInherit implements Strategy {
 
     @Override
     public RESULT apply(TRS trs) {
+        System.out.println("Weak Orthogonality");
         boolean left_linear = true;
         for (int i = 0; i < trs.queryRuleCount(); i++) {
             HashSet<Var> used_vars = new HashSet<>();
@@ -39,12 +40,7 @@ public class Orthogonality extends StrategyInherit implements Strategy {
             if (!left_linear) break;
         }
         System.out.println("The system is left linear:" + left_linear);
-
-        for (int i = 0; i < trs.queryRuleCount(); i++)
-            System.out.println(trs.queryRule(i));
-
-        //System.out.println(criticalPairs(trs));
-        if (criticalPairs(trs).isEmpty()) {
+        if (left_linear && criticalPairs.isEmpty()) {
             System.out.println(RESULT.CONFLUENT);
             return RESULT.CONFLUENT;
         }
