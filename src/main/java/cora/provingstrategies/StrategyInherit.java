@@ -19,11 +19,16 @@ public abstract class StrategyInherit {
      * match the complete terms. Else we try to match t2 with a non-variable subterm of t1. No matching results in
      * it returning null, as there is no overlap.
      */
-    private Substitution overlap(Term t1, Term t2) {
+    private Substitution overlap(Term t1, Term t2, boolean same_rule) {
+        if (t1.isFunctionalTerm() && t2.isFunctionalTerm() && t1.queryRoot().equals(t2.queryRoot()) && !same_rule) {
+            System.out.println("Compared terms; \t" + t1 + "\t" + t2);
+            return t1.match(t2);
+        }
         List<Position> positions = t1.queryAllPositions();
         for (Position pos : positions) {
             if (!t1.querySubterm(pos).isVariable()) {
                 try {
+                    System.out.println("Compared terms; \t" + t1.querySubterm(pos).toString() + "\t" + t2);
                     return t1.querySubterm(pos).match(t2);
                 } catch (NullCallError e) {
                     System.out.println(e.getMessage());
@@ -52,7 +57,7 @@ public abstract class StrategyInherit {
     private List<Term> criticalPair(TRS trs, int r1index, int r2index) {
         FirstOrderRule temp = new FirstOrderRule(trs.queryRule(r1index).queryLeftSide(), trs.queryRule(r1index).queryRightSide());
         Substitution fresh_vars = freshVariables(temp);
-        Substitution s = overlap(trs.queryRule(r1index).queryLeftSide().substitute(fresh_vars), trs.queryRule(r2index).queryLeftSide());
+        Substitution s = overlap(trs.queryRule(r1index).queryLeftSide().substitute(fresh_vars), trs.queryRule(r2index).queryLeftSide(), r1index == r2index);
         Term left_r1_og = trs.queryRule(r1index).queryLeftSide();
         if (s != null) {
             Substitution sigma = left_r1_og.match(trs.queryRule(r1index).queryLeftSide());
@@ -63,6 +68,7 @@ public abstract class StrategyInherit {
                 if (left_r1_og.substitute(fresh_vars).substitute(s).querySubterm(pos).equals(trs.queryRule(r2index).queryLeftSide()))
                     right = left_r1_og.substitute(s).replaceSubterm(pos, trs.queryRule(r2index).queryRightSide());
             }
+            System.out.println("pair:\t " + left + "\t" + right);
             if (left.equals(right)) return null;
             List<Term> pair = new ArrayList<>();
             pair.add(left);
@@ -79,11 +85,12 @@ public abstract class StrategyInherit {
         List<List<Term>> pairs = new ArrayList<>();
         for (int i = 0; i < trs.queryRuleCount(); i++) {
             for (int j = 0; j < trs.queryRuleCount(); j++) {
+                System.out.println("\n\nComparing rule " + i + " with rule " + j);
                 List<Term> pair = criticalPair(trs, i, j);
                 if (pair != null) pairs.add(pair);
             }
         }
-        System.out.println(pairs.toString());
+        System.out.println("Critical pairs: " + pairs.toString() + "\n\n");
         return pairs;
     }
 
