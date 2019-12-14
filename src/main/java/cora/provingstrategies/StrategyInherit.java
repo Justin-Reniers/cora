@@ -1,13 +1,17 @@
 package cora.provingstrategies;
 
+import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
 import java.util.List;
 
-public abstract class StrategyInherit {
+public abstract class StrategyInherit implements Runnable {
 
-    public final List<List<Term>> criticalPairs;
+    protected final List<List<Term>> criticalPairs;
+    protected final TRS trs;
 
-    protected StrategyInherit(List<List<Term>> criticalPairs) {
+    StrategyInherit(TRS trs, List<List<Term>> criticalPairs) {
+        this.trs = trs;
         this.criticalPairs = criticalPairs;
     }
+
 }

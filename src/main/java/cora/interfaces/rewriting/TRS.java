@@ -19,6 +19,8 @@ import cora.interfaces.terms.FunctionSymbol;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Position;
 
+import java.util.List;
+
 /**
  * A TRS (term rewriting system) is an abstract rewriting system based on a set of rules.
  * It is key to rewriting, and it is that which we analyse for various properties.
@@ -47,5 +49,11 @@ public interface TRS {
    * if no such position exists, null is returned instead.
    */
   Term leftmostInnermostReduce(Term s);
+
+  /**
+   * Reduces the given term at all possible redex positions, and returns all results in a list;
+   * if no such positions exist returns the empty list.
+   */
+  List<Term> breadthFirstReduce(Term s);
 }
 

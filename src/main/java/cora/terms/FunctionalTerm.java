@@ -198,6 +198,11 @@ public class FunctionalTerm extends ApplicativeTermInherit implements Term {
     return true;
   }
 
+  @Override
+  public int hashCode() {
+    return Objects.hash(_f);
+  }
+
   public boolean unify(Term other, HashSet<Map<Term, Term>> G) {
     if (other.isFunctionalTerm() && this.equals(other)) G.remove(this);
     if (other.isFunctionalTerm() && this.queryRoot().equals(other.queryRoot())) {

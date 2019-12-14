@@ -206,6 +206,11 @@ public class VarTerm extends ApplicativeTermInherit implements Term {
     return true;
   }
 
+  @Override
+  public int hashCode() {
+    return Objects.hash(_x);
+  }
+
   public boolean unify(Term other, HashSet<Map<Term, Term>> G) {
     return false;
   }

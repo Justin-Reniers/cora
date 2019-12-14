@@ -15,10 +15,7 @@
 
 package cora.terms;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import cora.exceptions.InappropriatePatternDataError;
 import cora.exceptions.NullCallError;
@@ -179,6 +176,11 @@ public class Var extends LeafTermInherit implements Variable {
     if (_index < other.queryVariableIndex()) return -1;
     if (_index > other.queryVariableIndex()) return 1;
     return 0;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(_name, _index);
   }
 }
 

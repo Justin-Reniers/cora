@@ -22,6 +22,9 @@ import cora.interfaces.terms.Term;
 import cora.interfaces.rewriting.TRS;
 import cora.parsers.CoraInputReader;
 import cora.parsers.TrsInputReader;
+import cora.provingstrategies.CriticalPairs;
+import cora.provingstrategies.ExhaustiveConvergence;
+import cora.provingstrategies.LocalConfluence;
 import cora.provingstrategies.Orthogonality;
 
 public class Main {
@@ -46,9 +49,14 @@ public class Main {
     try {
       TRS trs = args.length > 0 ? readInput(args[0]) : readInput("test.trs");
       if (trs == null) return;
-
-      Orthogonality orth = new Orthogonality();
-      orth.apply(trs);
+      CriticalPairs cp = new CriticalPairs(trs);
+      System.out.println(cp.getCriticalPairs());
+      Orthogonality orth = new Orthogonality(trs, cp.getCriticalPairs());
+      orth.apply();
+      ExhaustiveConvergence exh = new ExhaustiveConvergence(trs, cp.getCriticalPairs());
+      exh.apply();
+      LocalConfluence lc = new LocalConfluence(trs, cp.getCriticalPairs());
+      lc.apply();
 
       /**
       System.out.print(trs.toString());

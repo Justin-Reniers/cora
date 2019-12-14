@@ -7,14 +7,14 @@ import cora.terms.Var;
 import java.util.HashSet;
 import java.util.List;
 
-public class Orthogonality extends StrategyInherit implements Strategy {
+public class Orthogonality extends StrategyInherit implements Strategy{
 
-    public Orthogonality(List<List<Term>> criticalPairs) {
-        super(criticalPairs);
+    public Orthogonality(TRS trs, List<List<Term>> criticalPairs) {
+        super(trs, criticalPairs);
     }
 
     /**
-     * Checks the left-linearity of a Term. A term is left-linear if variables occur
+     * Checks the left-linearity of a Term. A term is left-linear if variables don't occur
      * more than once in the recursive term.
      */
     private boolean leftLinearTerm(Term t, HashSet<Var> vars) {
@@ -31,7 +31,7 @@ public class Orthogonality extends StrategyInherit implements Strategy {
     }
 
     @Override
-    public RESULT apply(TRS trs) {
+    public RESULT apply() {
         System.out.println("Weak Orthogonality");
         boolean left_linear = true;
         for (int i = 0; i < trs.queryRuleCount(); i++) {
@@ -46,5 +46,10 @@ public class Orthogonality extends StrategyInherit implements Strategy {
         }
         System.out.println(RESULT.MAYBE);
         return RESULT.MAYBE;
+    }
+
+    @Override
+    public void run() {
+
     }
 }
