@@ -94,5 +94,18 @@ public class Subst implements Substitution {
   public void delete(Variable key) {
     _mapping.remove(key);
   }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("{");
+    for (Variable v : _mapping.keySet()) {
+      sb.append("\n\t");
+      sb.append(v.toString());
+      sb.append(" -> ");
+      sb.append(_mapping.get(v));
+    }
+    sb.append("\n}");
+    return sb.toString();
+  }
 }
 

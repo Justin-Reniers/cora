@@ -161,14 +161,10 @@ public class Var extends LeafTermInherit implements Variable {
     return equals(other.queryVariable());
   }
 
-  public boolean unify(Term other, HashSet<Map<Term, Term>> G) {
-    if (other.isVariable() && this.equals(other)) G.remove(this);
-    if (other.isFunctionalTerm()) {
-      for (int i = 1; i < other.numberImmediateSubterms(); i++) {
-        if (this.equals(other.queryImmediateSubterm(i))) return false;
-      }
-    }
-    return true;
+  public Substitution unify(Term other) {
+    //if (other.isVariable() && this.equals(other)) return new Subst();
+    if (other.vars().contains(this)) return null;
+    return new Subst(this, other);
   }
 
   /** Implements a total ordering on variables using the index. */

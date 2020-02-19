@@ -127,14 +127,13 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
     return Objects.hash(_name);
   }
 
-  public boolean unify(Term other, HashSet<Map<Term, Term>> G) {
-    if (other.isConstant() && !this.equals(other)) return false; // Conflict
-    if (this.equals(other)) G.remove(this); // Delete
+  public Substitution unify(Term other) {
+    if (other.isConstant() && !this.equals(other)) return null; // Conflict
+    if (this.equals(other)) return new Subst(); // Delete
     if (other.isVariable()) { //Swap
-      G.remove(this);
-      G.add(Map.of(other, this));
+      return other.unify(this);
     }
-    return true;
+    return null;
   }
 }
 

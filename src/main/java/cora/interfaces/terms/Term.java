@@ -159,9 +159,9 @@ public interface Term {
   boolean equals(Term term);
 
   /**
-   * This method checks whether <this term> and other term can be unified;
-   * if they can, returns true and updates G; if they can't, returns false.
+   * This method checks whether <this term> and other term can be unified; if they can, returns the
+   * substitution for which they can; if it does not, returns null instead.
    */
-  public boolean unify(Term other, HashSet<Map<Term, Term>> G);
+  public Substitution unify(Term other);
 }
 

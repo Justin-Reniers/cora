@@ -211,8 +211,8 @@ public class VarTerm extends ApplicativeTermInherit implements Term {
     return Objects.hash(_x);
   }
 
-  public boolean unify(Term other, HashSet<Map<Term, Term>> G) {
-    return false;
+  public Subst unify(Term other) {
+    return null;
   }
 }
 

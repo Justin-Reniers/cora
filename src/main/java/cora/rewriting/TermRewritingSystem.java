@@ -27,6 +27,8 @@ import cora.interfaces.terms.Position;
 import cora.interfaces.rewriting.Alphabet;
 import cora.interfaces.rewriting.Rule;
 import cora.interfaces.rewriting.TRS;
+import cora.loggers.Logger;
+import cora.provingstrategies.Logging;
 
 /**
  * In the literature, an abstract rewriting system is a pair (A,→), where A is a set of terms and
@@ -129,6 +131,7 @@ public class TermRewritingSystem implements TRS {
       for (int j = 0; j < tmp.size(); j++) {
         Term result = tmp.get(j).apply(sub);
         if (result != null) {
+          Logger.log("Subterm " + sub + " gets replaced with " + result + " by rule " + (j+1));
           //System.out.println("Subterm " + sub + " gets replaced with " + result);
           reductions.add(s.replaceSubterm(pos, result));
         }
