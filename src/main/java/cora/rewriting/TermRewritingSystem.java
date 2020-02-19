@@ -122,17 +122,13 @@ public class TermRewritingSystem implements TRS {
   public List<Term> breadthFirstReduce(Term s) {
     List<Term> reductions = new ArrayList<>();
     List<Position> positions = s.queryAllPositions();
-    //System.out.println(positions);
     for (int i = 0; i < positions.size(); i++) {
       Position pos = positions.get(i);
-      //System.out.println("position is: \t" + pos);
       Term sub = s.querySubterm(pos);
       List<Rule> tmp = new ArrayList<Rule>(_rules);
       for (int j = 0; j < tmp.size(); j++) {
         Term result = tmp.get(j).apply(sub);
         if (result != null) {
-          Logger.log("Subterm " + sub + " gets replaced with " + result + " by rule " + (j+1));
-          //System.out.println("Subterm " + sub + " gets replaced with " + result);
           reductions.add(s.replaceSubterm(pos, result));
         }
       }

@@ -1,7 +1,5 @@
 package cora.provingstrategies;
 
-import com.google.common.collect.Lists;
-import cora.exceptions.NullCallError;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Position;
 import cora.interfaces.terms.Substitution;
@@ -11,14 +9,13 @@ import cora.rewriting.FirstOrderRule;
 import cora.terms.Subst;
 import cora.terms.Var;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class CriticalPairs {
 
-    public final List<List<Term>> criticalPairs;
+    private final List<CriticalPair> criticalPairs;
 
     public CriticalPairs(TRS trs) {
         this.criticalPairs = this.criticalPairs(trs);
@@ -29,18 +26,15 @@ public class CriticalPairs {
      * match the complete terms. Else we try to match t2 with a non-variable subterm of t1. No matching results in
      * it returning null, as there is no overlap.
      */
-    private List<Substitution> overlap(Term t1, Term t2, boolean same_rule) {
-        System.out.println("Matching the terms " + t1 + " and " + t2);
+    private List<Substitution> overlap(Term t1, Term t2) {
         List<Substitution> substitutions = new ArrayList<>();
-        if (t1.isFunctionalTerm() && t2.isFunctionalTerm() && t1.queryRoot().equals(t2.queryRoot()) && !same_rule) {
-            Substitution s = t1.match(t2);
-            if (s != null) substitutions.add(s);
-        }
         List<Position> positions = t1.queryAllPositions();
         for (Position pos : positions) {
             if (!t1.querySubterm(pos).isVariable()) {
-                Substitution s = t1.querySubterm(pos).match(t2);
-                if (s != null) substitutions.add(t1.querySubterm(pos).match(t2));
+                Substitution s = t1.querySubterm(pos).unify(t2);
+                if (s != null) {
+                    substitutions.add(t1.querySubterm(pos).unify(t2));
+                }
             }
         }
         return substitutions;
@@ -61,29 +55,26 @@ public class CriticalPairs {
     }
 
     /**
-     * Attempts to find a critical pair between the two rules of trs at rule index 1 and rule index 2. Pairs are
-     * found by matching the left term of rule 2 with a non-variable subterm of t1 or t1 in whole. If no matching
-     * is found or whenever a critical pair is trivial null is returned.
+     * Finds all the critical pairs for the two given rules. Leaves out trivial critical pairs (l = r),
+     * since these don't influence the results of the proving strategies.
      */
-    private List<List<Term>> criticalPair(TRS trs, int r1index, int r2index) {
-        List<List<Term>> pairs = new ArrayList<>();
+    private List<CriticalPair> criticalPair(TRS trs, int r1index, int r2index) {
+        List<CriticalPair> pairs = new ArrayList<>();
         FirstOrderRule temp = new FirstOrderRule(trs.queryRule(r1index).queryLeftSide(), trs.queryRule(r1index).queryRightSide());
         Substitution fresh_vars = freshVariables(temp);
-        List<Substitution> substitutions = overlap(trs.queryRule(r1index).queryLeftSide().substitute(fresh_vars), trs.queryRule(r2index).queryLeftSide(), r1index == r2index);
-        Term left_r1_og = trs.queryRule(r1index).queryLeftSide();
+        List<Substitution> substitutions = overlap(trs.queryRule(r1index).queryLeftSide().substitute(fresh_vars), trs.queryRule(r2index).queryLeftSide());
         for (Substitution s : substitutions) {
-            Substitution sigma = left_r1_og.match(trs.queryRule(r1index).queryLeftSide());//.substitute(fresh_vars));
-            Term left = trs.queryRule(r1index).queryRightSide().substitute(fresh_vars).substitute(s).substitute(sigma);
-            List<Position> positions = trs.queryRule(r1index).queryLeftSide().queryAllPositions();
-            Term right = null;
-            for (Position pos : positions) {
-                if (left_r1_og.substitute(fresh_vars).substitute(s).querySubterm(pos).equals(trs.queryRule(r2index).queryLeftSide())) {
-                    right = left_r1_og.substitute(fresh_vars).substitute(s).replaceSubterm(pos, trs.queryRule(r2index).queryRightSide());
-                }
+            Term t1 = (trs.queryRule(r1index).queryLeftSide().substitute(fresh_vars).substitute(s));
+            Term t2 = (trs.queryRule(r2index).queryLeftSide()).substitute(s);
+            Term left = null;
+            Term right = trs.queryRule(r1index).queryRightSide().substitute(fresh_vars).substitute(s);
+            for (Position pos : t1.queryAllPositions()) {
+                if (t1.querySubterm(pos).equals(t2))
+                    left = t1.replaceSubterm(pos, trs.queryRule(r2index).queryRightSide().substitute(s));
             }
-            if (right == null || left.equals(right)) continue;
-            List<Term> pair = Lists.newArrayList(right, left);
-            pairs.add(pair);
+            if (left != null && !left.equals(right)) {
+                pairs.add(new CriticalPair(left, right));
+            }
         }
         return pairs;
     }
@@ -91,11 +82,11 @@ public class CriticalPairs {
     /**
      * Finds a list of all the non-trivial critical pairs (t is not equivalent to s).
      */
-    private List<List<Term>> criticalPairs(TRS trs) {
-        List<List<Term>> pairs = new ArrayList<>();
+    private List<CriticalPair> criticalPairs(TRS trs) {
+        List<CriticalPair> pairs = new ArrayList<>();
         for (int i = 0; i < trs.queryRuleCount(); i++) {
             for (int j = 0; j < trs.queryRuleCount(); j++) {
-                List<List<Term>> rule_pairs = criticalPair(trs, i, j);
+                List<CriticalPair> rule_pairs = criticalPair(trs, i, j);
                 pairs.addAll(rule_pairs);
             }
         }
@@ -105,7 +96,7 @@ public class CriticalPairs {
     /**
      * Returns a new list instance of criticalPairs to ensure private criticalPairs is never altered.
      */
-    public List<List<Term>> getCriticalPairs() {
+    public List<CriticalPair> getCriticalPairs() {
         return Collections.unmodifiableList(criticalPairs);
     }
 }

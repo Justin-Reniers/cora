@@ -29,4 +29,9 @@ public class CriticalPair {
     public Term getRight() {
         return right;
     }
+
+    @Override
+    public String toString() {
+        return "[" + left.toString() + ", " + right.toString() + "]";
+    }
 }

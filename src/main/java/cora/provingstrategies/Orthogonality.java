@@ -3,13 +3,15 @@ package cora.provingstrategies;
 import cora.interfaces.provingstrategies.Strategy;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.*;
+import cora.loggers.Logger;
 import cora.terms.Var;
+
 import java.util.HashSet;
 import java.util.List;
 
 public class Orthogonality extends StrategyInherit implements Strategy{
 
-    public Orthogonality(TRS trs, List<List<Term>> criticalPairs) {
+    public Orthogonality(TRS trs, List<CriticalPair> criticalPairs) {
         super(trs, criticalPairs);
     }
 
@@ -32,19 +34,21 @@ public class Orthogonality extends StrategyInherit implements Strategy{
 
     @Override
     public RESULT apply() {
-        System.out.println("Weak Orthogonality");
+        Logger.log("Weak Orthogonality");
         boolean left_linear = true;
         for (int i = 0; i < trs.queryRuleCount(); i++) {
             HashSet<Var> used_vars = new HashSet<>();
-            left_linear = left_linear && leftLinearTerm(trs.queryRule(i).queryLeftSide(), used_vars);
-            if (!left_linear) break;
+            if (!leftLinearTerm(trs.queryRule(i).queryLeftSide(), used_vars)) {
+                left_linear = false;
+                break;
+            }
         }
-        System.out.println("The system is left linear:" + left_linear);
+        Logger.log("The system is left linear:" + left_linear);
         if (left_linear && criticalPairs.isEmpty()) {
-            System.out.println(RESULT.CONFLUENT);
+            Logger.log(RESULT.CONFLUENT.toString() + "\n");
             return RESULT.CONFLUENT;
         }
-        System.out.println(RESULT.MAYBE);
+        Logger.log(RESULT.MAYBE.toString() + "\n");
         return RESULT.MAYBE;
     }
 
