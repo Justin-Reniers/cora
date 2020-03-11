@@ -198,25 +198,37 @@ public class FunctionalTerm extends ApplicativeTermInherit implements Term {
     return true;
   }
 
+  public Substitution unify(Term other) {
+    if (other.isVariable()) {
+      if (this.vars().contains(other.queryVariable())) return null;
+      return other.unify(this);
+    }
+    if (_f.equals(other.queryRoot())) {
+      Subst sigma = new Subst();
+      for (int i = 0; i < _args.size(); i++) {
+        Substitution sigma_i = _args.get(i).substitute(sigma).unify(other.queryImmediateSubterm(i+1));
+        if (sigma_i == null) return null;
+        for (var x : sigma_i.domain()) {
+          var sigma_i_x = sigma_i.get(x).substitute(sigma);
+          if (!sigma.extend(x, sigma_i_x) && sigma.get(x) != null && !sigma.get(x).equals(sigma_i_x)) return null;
+          other = other.substitute(sigma);
+          for (Variable v : new HashSet<>(sigma.domain())) {
+            if (sigma.getReplacement(v).vars().contains(x)) {
+              Term replacement = sigma.getReplacement(v);
+              sigma.delete(v);
+              sigma.extend(v, replacement.substitute(new Subst(x, sigma_i_x)));
+            }
+          }
+        }
+      }
+      return sigma;
+    }
+    return null;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(_f);
-  }
-
-  public boolean unify(Term other, HashSet<Map<Term, Term>> G) {
-    if (other.isFunctionalTerm() && this.equals(other)) G.remove(this);
-    if (other.isFunctionalTerm() && this.queryRoot().equals(other.queryRoot())) {
-      for (int i = 1; i < this.numberImmediateSubterms(); i++) {
-        G.add(Map.of(this.queryImmediateSubterm(i), other.queryImmediateSubterm(i)));
-        //TODO
-      }
-    }
-    if (other.isFunctionalTerm() && !this.queryRoot().equals(other.queryRoot())) return false;
-    if (other.isVariable()) {
-      G.remove(this);
-      G.add(Map.of(other, this));
-    }
-    return true;
   }
 }
 
