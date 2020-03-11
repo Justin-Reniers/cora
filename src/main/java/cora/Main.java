@@ -15,17 +15,38 @@
 
 package cora;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import cora.exceptions.ParserException;
-import cora.interfaces.terms.Term;
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+import cora.interfaces.provingstrategies.Result;
 import cora.interfaces.rewriting.TRS;
+import cora.loggers.ConsoleLogger;
+import cora.loggers.Logger;
 import cora.parsers.CoraInputReader;
 import cora.parsers.TrsInputReader;
-import cora.provingstrategies.CriticalPairs;
-import cora.provingstrategies.ExhaustiveConvergence;
 import cora.provingstrategies.LocalConfluence;
+import cora.provingstrategies.LocalConfluenceExtended;
 import cora.provingstrategies.Orthogonality;
+import cora.provingstrategies.StrategyInherit;
+
+import java.util.ArrayList;
+import java.util.List;
+
+class CliArgs {
+  @Parameter
+  private List<String> parameters = new ArrayList<>();
+
+  @Parameter(names = { "-i", "--input", "--trs"}, description = "Input file", required = true)
+  String inputFilePath;
+
+  @Parameter(names = {"-t", "--technique"}, description = "Strategy used")
+  String strategy = "lce";
+
+  @Parameter(names = {"--timeout"}, description = "Timeout in seconds")
+  int timeout = 5;
+
+  @Parameter(names = {"--terminating"}, description = "All systems are terminating")
+  boolean terminating = false;
+}
 
 public class Main {
   private static String getExtension(String filename) {
@@ -45,31 +66,45 @@ public class Main {
     throw new Exception("Unknown file extension: " + extension + ".");
   }
 
+  private static StrategyInherit getStrategy(CliArgs args) throws Exception {
+    TRS trs = readInput(args.inputFilePath);
+    switch (args.strategy) {
+      case "orthogonal":
+        return new Orthogonality(trs);
+      case "lc":
+        return new LocalConfluence(trs, args.terminating);
+      case "lce":
+        return new LocalConfluenceExtended(trs, args.terminating);
+      default:
+        throw new Exception("Unknown strategy: " + args.strategy);
+    }
+  }
+
   public static void main(String[] args) {
     try {
-      TRS trs = args.length > 0 ? readInput(args[0]) : readInput("test.trs");
-      if (trs == null) return;
-      CriticalPairs cp = new CriticalPairs(trs);
-      System.out.println(cp.getCriticalPairs());
-      Orthogonality orth = new Orthogonality(trs, cp.getCriticalPairs());
-      orth.apply();
-      ExhaustiveConvergence exh = new ExhaustiveConvergence(trs, cp.getCriticalPairs());
-      exh.apply();
-      LocalConfluence lc = new LocalConfluence(trs, cp.getCriticalPairs());
-      lc.apply();
+      if (args.length == 0) args = new String[] {"-i", "test.trs"};
 
-      /**
-      System.out.print(trs.toString());
-      System.out.print("Input term: ");
-      String input = (new BufferedReader(new InputStreamReader(System.in))).readLine();
-      Term term = CoraInputReader.readTermFromString(input, trs, null);
-      do {
-        term = trs.leftmostInnermostReduce(term);
-        if (term != null) System.out.println("⇒ " + term.toString());
-      } while (term != null); **/
-    }
-    catch (Exception e) {
-      System.out.println("Exception: " + e.getMessage());
+      TRS trs = readInput("test.trs");
+
+      CliArgs cliArgs = new CliArgs();
+      JCommander.newBuilder().addObject(cliArgs).build().parse(args);
+
+      new Logger(new ConsoleLogger());
+      /*
+      StrategyInherit strat = getStrategy(cliArgs);
+      Result result = strat.apply(cliArgs.timeout);
+      Logger.log("Result type: " + result.getResult());
+      Logger.log("Time taken: " + result.getTime() + "ms");
+      Logger.finalized();
+*/
+      System.out.println("Try just method");
+      LocalConfluence lc = new LocalConfluence(trs, false);
+      Result res = lc.apply();
+      System.out.println(res.getResult());
+      System.exit(0);
+
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 }
