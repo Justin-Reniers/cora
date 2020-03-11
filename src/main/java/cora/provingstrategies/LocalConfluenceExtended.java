@@ -4,22 +4,31 @@ import cora.interfaces.provingstrategies.Result;
 import cora.interfaces.provingstrategies.Strategy;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
-import cora.loggers.Logger;
 
 import java.util.*;
 
-public class LocalConfluence extends StrategyInherit implements Strategy{
+
+public class LocalConfluenceExtended extends StrategyInherit implements Strategy{
 
     private boolean terminating;
 
-    public LocalConfluence(TRS trs, boolean terminating) {
+    public LocalConfluenceExtended(TRS trs, boolean terminating) {
         super(trs);
         this.terminating = terminating;
     }
 
+    protected List<CriticalPair> cartesian(Term unreduced, List<Term> reduced) {
+        List<CriticalPair> reductions = new ArrayList<>();
+        for (Term t : reduced) {
+            reductions.add(new CriticalPair(unreduced, t));
+        }
+        return reductions;
+    }
 
-    public CriticalPair localConvergence(CriticalPair pair) {
+    private CriticalPair localConvergence(CriticalPair pair) {
         Queue<CriticalPair> q = new LinkedList<>();
+        HashSet<CriticalPair> previous_pairs = new HashSet<>();
+        previous_pairs.add(pair);
         q.add(pair);
         while (!q.isEmpty()) {
             CriticalPair terms = q.poll();
@@ -32,34 +41,27 @@ public class LocalConfluence extends StrategyInherit implements Strategy{
             cartesian.addAll(reduce_left);
             for (CriticalPair new_pair : cartesian) {
                 if (new_pair.getLeft().equals(new_pair.getRight())) return new_pair;
+                if (previous_pairs.add(new_pair)) {
+                    q.add(new_pair);
+                }
             }
         }
         return new CriticalPair(null, null);
     }
 
-    private List<CriticalPair> cartesian(Term unreduced, List<Term> reduced) {
-        List<CriticalPair> reductions = new ArrayList<>();
-        for (Term t : reduced) {
-            reductions.add(new CriticalPair(unreduced, t));
-        }
-        return reductions;
-    }
-
     @Override
     public Result apply() {
-        Logger.log("Local Convergence");
         boolean converges = true;
-        for (CriticalPair pair : super.criticalPairs) {
-            CriticalPair local_convergence = localConvergence(pair);
+        for (CriticalPair pair : this.criticalPairs) {
+            CriticalPair local_convergence = this.localConvergence(pair);
             if (local_convergence.getLeft() == null || local_convergence.getRight() == null) converges = false;
         }
-        Logger.log("Here");
         if (converges) {
-            if (terminating)
+            if (terminating) {
                 return new ResultInherit(Result.RESULT.CONFLUENT);
+            }
             return new ResultInherit(Result.RESULT.LOCALLY_CONFLUENT);
         }
         return new ResultInherit(Result.RESULT.NON_CONFLUENT);
     }
-
 }
