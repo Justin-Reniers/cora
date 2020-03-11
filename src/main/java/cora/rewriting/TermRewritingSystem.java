@@ -17,7 +17,6 @@ package cora.rewriting;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.TreeMap;
 import java.util.Collections;
 import cora.exceptions.IndexingError;
 import cora.exceptions.NullInitialisationError;
@@ -27,8 +26,6 @@ import cora.interfaces.terms.Position;
 import cora.interfaces.rewriting.Alphabet;
 import cora.interfaces.rewriting.Rule;
 import cora.interfaces.rewriting.TRS;
-import cora.loggers.Logger;
-import cora.provingstrategies.Logging;
 
 /**
  * In the literature, an abstract rewriting system is a pair (A,→), where A is a set of terms and

@@ -3,3 +3,16 @@
 build
 gradle
 documentation
+reduced.txt
+
+1034.txt
+
+test.trs
+
+build.gradle
+
+META-INF/MANIFEST.MF
+
+out/artifacts/cora_main_jar/cora.main.jar
+
+out/artifacts/cora_main_jar/cora.main.zip

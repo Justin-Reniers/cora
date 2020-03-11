@@ -7,7 +7,7 @@ public class Logger {
     private static ILogger il;
 
     public Logger(ILogger il) {
-        this.il = il;
+        Logger.il = il;
     }
 
     public static void log(String s) {
