@@ -1,0 +1,8 @@
+(RULES
+  main -> loop(input)
+  loop(x) -> loop1(x) [x < 150]
+  loop(x) -> return(x) [~(x < 150)]
+  loop1(x) -> loop2(1) [x = 0]
+  loop1(x) -> loop2(x) [~(x=0)]
+  loop2(x) -> loop(x*2)
+)

@@ -116,17 +116,20 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
     return "constant " + _name + " is not instantiated by " + other.toString() + ".";
   }
 
+  /** This method verifies equality to another Term. */
   public boolean equals(Term term) {
     if (term == null) return false;
     if (!term.isConstant()) return false;
     return equals(term.queryRoot());
   }
 
+  /** Hashcode for Varterms based on the Variable */
   @Override
   public int hashCode() {
     return Objects.hash(_name);
   }
 
+  /** Applies the unification algorithm between Variable and another term */
   public Substitution unify(Term other) {
     if (other.isConstant() && !this.equals(other)) return null; // Conflict
     if (this.equals(other)) return new Subst(); // Delete

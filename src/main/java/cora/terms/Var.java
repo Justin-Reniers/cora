@@ -161,8 +161,8 @@ public class Var extends LeafTermInherit implements Variable {
     return equals(other.queryVariable());
   }
 
+  /** Applies the unification algorithm between Variable and another term */
   public Substitution unify(Term other) {
-    //if (other.isVariable() && this.equals(other)) return new Subst();
     if (other.vars().contains(this)) return null;
     return new Subst(this, other);
   }
@@ -174,6 +174,7 @@ public class Var extends LeafTermInherit implements Variable {
     return 0;
   }
 
+  /** Creates a Hashcode for Variable based on its name and index */
   @Override
   public int hashCode() {
     return Objects.hash(_name, _index);

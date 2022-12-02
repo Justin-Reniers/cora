@@ -198,6 +198,9 @@ public class FunctionalTerm extends ApplicativeTermInherit implements Term {
     return true;
   }
 
+  /**
+   *
+   */
   public Substitution unify(Term other) {
     if (other.isVariable()) {
       if (this.vars().contains(other.queryVariable())) return null;
@@ -226,9 +229,10 @@ public class FunctionalTerm extends ApplicativeTermInherit implements Term {
     return null;
   }
 
+  /** Hashcode for FunctionalTerm based on its root symbol and its arguments */
   @Override
   public int hashCode() {
-    return Objects.hash(_f);
+    return Objects.hash(_f, _args);
   }
 }
 

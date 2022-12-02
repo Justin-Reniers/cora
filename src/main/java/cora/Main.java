@@ -32,18 +32,37 @@ import java.util.ArrayList;
 import java.util.List;
 
 class CliArgs {
+  /**
+   * Class that creates commandline argument specifics like flags
+   */
+
+  /**
+   * List of all parameters.
+   */
   @Parameter
   private List<String> parameters = new ArrayList<>();
 
+  /**
+   * Parameter for the path of the input file of a TRS
+   */
   @Parameter(names = { "-i", "--input", "--trs"}, description = "Input file", required = true)
   String inputFilePath;
 
+  /**
+   * Parameter for the technique or strategy to be applied to the TRS
+   */
   @Parameter(names = {"-t", "--technique"}, description = "Strategy used")
-  String strategy = "lce";
+  String strategy = "orthogonal";
 
+  /**
+   * Maximum timeout in seconds before the program stops trying given strategy on given TRS
+   */
   @Parameter(names = {"--timeout"}, description = "Timeout in seconds")
   int timeout = 5;
 
+  /**
+   * Flag telling whether TRS is terminating or not
+   */
   @Parameter(names = {"--terminating"}, description = "All systems are terminating")
   boolean terminating = false;
 }
@@ -80,27 +99,23 @@ public class Main {
     }
   }
 
+  /**
+   *
+   * @param args
+   */
   public static void main(String[] args) {
     try {
-      if (args.length == 0) args = new String[] {"-i", "test.trs"};
-
-      TRS trs = readInput("test.trs");
+      if (args.length == 0) args = new String[] {"-i", "test.trs", "-t", "lce"};
 
       CliArgs cliArgs = new CliArgs();
       JCommander.newBuilder().addObject(cliArgs).build().parse(args);
 
       new Logger(new ConsoleLogger());
-      /*
       StrategyInherit strat = getStrategy(cliArgs);
       Result result = strat.apply(cliArgs.timeout);
       Logger.log("Result type: " + result.getResult());
       Logger.log("Time taken: " + result.getTime() + "ms");
       Logger.finalized();
-*/
-      System.out.println("Try just method");
-      LocalConfluence lc = new LocalConfluence(trs, false);
-      Result res = lc.apply();
-      System.out.println(res.getResult());
       System.exit(0);
 
     } catch (Exception e) {
