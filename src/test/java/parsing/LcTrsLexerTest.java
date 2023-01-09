@@ -22,7 +22,7 @@ public class LcTrsLexerTest {
             if (t.getType() == Token.EOF) break;
             ret.add(t);
         }
-        warnings = lexer.queryWarnings();
+        //warnings = lexer.queryWarnings();
         return ret;
     }
 

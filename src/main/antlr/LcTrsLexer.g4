@@ -22,6 +22,7 @@ import LexerFragments;
 
 @header {
 package cora.parsers;
+}
 
 /* Lexer */
 
