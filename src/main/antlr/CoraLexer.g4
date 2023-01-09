@@ -15,6 +15,7 @@
 
 /** This is a grammar for the default Cora input format. */
 lexer grammar CoraLexer;
+import LexerFragments;
 
 @header {
 package cora.parsers;
@@ -42,25 +43,6 @@ import java.util.ArrayList;
 }
 
 /* Lexer */
-
-fragment IDCHAR     : ~[ \t\n\r{}()[\]",:/*] ;
-fragment IDPART     : IDCHAR | '/'+ IDCHAR | '*'+ IDCHAR ;
-
-fragment A          : 'a' | 'A' ;
-fragment C          : 'c' | 'C' ;
-fragment D          : 'd' | 'D' ;
-fragment E          : 'e' | 'E' ;
-fragment H          : 'h' | 'H' ;
-fragment I          : 'i' | 'I' ;
-fragment L          : 'l' | 'L' ;
-fragment N          : 'n' | 'N' ;
-fragment O          : 'o' | 'O' ;
-fragment P          : 'p' | 'P' ;
-fragment S          : 's' | 'S' ;
-fragment R          : 'r' | 'R' ;
-fragment T          : 't' | 'T' ;
-fragment U          : 'u' | 'U' ;
-fragment Y          : 'y' | 'Y' ;
 
 WHITESPACE          : [ \t\r\n]+ -> skip ;
 

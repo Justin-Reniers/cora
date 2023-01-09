@@ -24,9 +24,21 @@ options {
   tokenVocab = LcTrsLexer;
 }
 
+trs                 : varlist? siglist? ruleslist EOF
+                    | rewritinginduction EOF
+                    ;
+
+varlist             : VARDECSTART IDENTIFIER* BRACKETCLOSE ;
+
+siglist             : SIGSTART fundec* BRACKETCLOSE ;
+
+ruleslist           : RULESDECSTART trsrule* BRACKETCLOSE ;
+
 typeorarity         : IDENTIFIER | IDENTIFIER* ARROW IDENTIFIER ;
 
 fundec              : BRACKETOPEN IDENTIFIER typeorarity BRACKETCLOSE ;
+
+trsrule             : term ARROW term logicalconstraint? ;
 
 term                : IDENTIFIER
                     | IDENTIFIER BRACKETOPEN BRACKETCLOSE
@@ -37,19 +49,15 @@ termlist            : term
                     | term COMMA termlist
                     ;
 
-trsrule             : term ARROW term logicalconstraint?;
+logicalconstraint   : SQUAREOPEN logicalterm SQUARECLOSE ;
 
-trs                 : varlist? siglist? ruleslist EOF ;
-
-varlist             : VARSDECSTART IDENTIFIER* BRACKETCLOSE ;
-
-siglist             : SIGSTART fundec* BRACKETCLOSE ;
-
-ruleslist           : RULESDECSTART trsrule* BRACKETCLOSE ;
-
-logicalconstraint   : SQUAREOPEN logicalterm SQUARECLOSE;
-
-logicalterm         :
+logicalterm         : term
+                    | NEGATION logicalterm
+                    | logicalterm CONJUNCTION logicalterm
+                    | logicalterm DISJUNCTION logicalterm
+                    |<assoc=right> logicalterm CONDITIONAL logicalterm
+                    | logicalterm BICONDITIONAL logicalterm
+                    ;
 
 rewritinginduction  : SIMPLIFICATION
                     | EXPANSION
@@ -60,5 +68,6 @@ rewritinginduction  : SIMPLIFICATION
                     | CONSTRUCTOR
                     | DISPROVE
                     | COMPLETENESS
+                    | CLEAR
                     ;
 

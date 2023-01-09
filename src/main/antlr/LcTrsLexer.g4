@@ -18,10 +18,10 @@
  * competitions, limited to unsorted and sorted first-order TRSs (.trs and .mstrs files).
  */
 lexer grammar LcTrsLexer;
+import LexerFragments;
 
 @header {
 package cora.parsers;
-}
 
 /* Lexer */
 
@@ -33,44 +33,31 @@ EQUALITY            : '=' '=' ;
 
 COMMA               : ',' ;
 
-fragment A          : ('A' | 'a');
-fragment B          : ('B' | 'b');
-fragment C          : ('C' | 'c');
-fragment D          : ('D' | 'd');
-fragment E          : ('E' | 'e');
-fragment F          : ('F' | 'f');
-fragment G          : ('G' | 'g');
-fragment H          : ('H' | 'h');
-fragment I          : ('I' | 'i');
-fragment J          : ('J' | 'j');
-fragment K          : ('K' | 'k');
-fragment L          : ('L' | 'l');
-fragment M          : ('M' | 'm');
-fragment N          : ('N' | 'n');
-fragment O          : ('O' | 'o');
-fragment P          : ('P' | 'p');
-fragment Q          : ('Q' | 'q');
-fragment R          : ('R' | 'r');
-fragment S          : ('S' | 's');
-fragment T          : ('T' | 't');
-fragment U          : ('U' | 'u');
-fragment V          : ('V' | 'v');
-fragment W          : ('W' | 'w');
-fragment X          : ('X' | 'x');
-fragment Y          : ('Y' | 'y');
-fragment Z          : ('Z' | 'z');
+/* Logical Operators */
 
-SIMPLIFICATION      : S I M P L I F I C A T I O N;
+NEGATION            : '~' ;
 
-EXPANSION           : E X P A N S I O N;
+CONJUNCTION         : '/' '\\' ;
 
-DELETION            : D E L E T I O N;
+DISJUNCTION         : '\\' '/' ;
+
+CONDITIONAL         : '-' '-' '>' ;
+
+BICONDITIONAL       : '<' '-' '-' '>' ;
+
+/* Rewriting Induction Rules */
+
+SIMPLIFICATION      : S I M P L I F Y;
+
+EXPANSION           : E X P A N D;
+
+DELETION            : D E L E T E;
 
 POSTULATE           : P O S T U L A T E;
 
-GENERALIZATION      : G E N E R A L I Z A T I O N;
+GENERALIZATION      : G E N E R A L I Z E;
 
-GQDELETION          : G Q D E L E T I O N;
+GQDELETION          : G Q D E L E T E;
 
 CONSTRUCTOR         : C O N S T R U C T O R;
 
@@ -78,11 +65,9 @@ DISPROVE            : D I S P R O V E;
 
 COMPLETENESS        : C O M P L E T E N E S S;
 
-// identifiers may not contain -> or ==, which we handle using lookaheads
-IDENTIFIER          : ( (~ ([ \t\n\r\\()"|,-] | '=') ) |
-                        ('-' {_input.LA(1) != '>'}?) |
-                        ('=' {_input.LA(1) != '='}?)
-                      )+ ;
+CLEAR               : C L E A R;
+
+IDENTIFIER          : IDPART+ '/'* | IDPART+ '*'+ | '/'+ | '*'+ ;
 
 BRACEOPEN           : '{' ;
 
@@ -95,5 +80,11 @@ BRACKETCLOSE        : ')' ;
 SQUAREOPEN          : '[' ;
 
 SQUARECLOSE         : ']' ;
+
+VARSDECSTART        : '(' 'V' 'A' 'R' ;
+
+SIGSTART            : '(' 'S' 'I' 'G' ;
+
+RULESDECSTART       : '(' 'R' 'U' 'L' 'E' 'S' ;
 
 
