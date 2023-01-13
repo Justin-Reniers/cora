@@ -67,5 +67,25 @@ public class FirstOrderRule extends RuleInherit implements Rule {
     if (subst == null) return null;
     return _right.substitute(subst);
   }
+
+  public FirstOrderRule(Term left, Term right, Term constraint) {
+    super(left, right);
+    if (!left.isFirstOrder() || !right.isFirstOrder()) {
+      throw new IllegalRuleError("FirstOrderRule", "terms in rule [" + left.toString() + " → " +
+              right.toString() + "] {" + constraint.toString()+ "} are not first-order." );
+    }
+    Environment lvars = left.vars();
+    Environment rvars = right.vars();
+    Environment cvars = constraint.vars();
+    for (Variable x : rvars) {
+      if (!lvars.contains(x)) {
+        throw new IllegalRuleError("FirstOrderRule", "");
+      }
+    }
+    //TODO constraint vars checking
+    if (!left.isFunctionalTerm()) {
+      throw new IllegalRuleError("FirstOrderRule", "");
+    }
+  }
 }
 
