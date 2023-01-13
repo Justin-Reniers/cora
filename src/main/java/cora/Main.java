@@ -22,6 +22,7 @@ import cora.interfaces.rewriting.TRS;
 import cora.loggers.ConsoleLogger;
 import cora.loggers.Logger;
 import cora.parsers.CoraInputReader;
+import cora.parsers.LcTrsInputReader;
 import cora.parsers.TrsInputReader;
 import cora.provingstrategies.LocalConfluence;
 import cora.provingstrategies.LocalConfluenceExtended;
@@ -81,6 +82,9 @@ public class Main {
     }
     if (extension.equals("cora")) {
       return CoraInputReader.readProgramFromFile(file);
+    }
+    if (extension.equals("lctrs")) {
+      return LcTrsInputReader.readLcTrsFromFile(file);
     }
     throw new Exception("Unknown file extension: " + extension + ".");
   }
