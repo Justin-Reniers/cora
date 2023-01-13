@@ -17,6 +17,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeMap;
 
 import cora.exceptions.ParserException;
@@ -205,6 +206,12 @@ public class TrsReadingTest {
     public Rule queryRule(int index) { return null; }
     public Position leftmostInnermostRedexPosition(Term s) { return null; }
     public Term leftmostInnermostReduce(Term s) { return null; }
+
+    @Override
+    public List<Term> breadthFirstReduce(Term s) {
+      return null;
+    }
+
     public FunctionSymbol lookupSymbol(String name) { return _symbols.get(name); }
   }
 
@@ -290,6 +297,7 @@ public class TrsReadingTest {
     TRS trs = TrsInputReader.readTrsFromString(str);
   }
 
+  @Test
   public void readTermInTrs() throws ParserException {
     String str = "(VAR x ys xs)\n" +
                  "(SIG (nil 0) (cons 2) (append 2) (0 0) (s 1))\n" +

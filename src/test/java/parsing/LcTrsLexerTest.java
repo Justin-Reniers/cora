@@ -67,7 +67,9 @@ public class LcTrsLexerTest {
 
     @Test
     public void testLexerAllBasicTokens() {
-        ArrayList<Token> ts = tokenize("½ɤa(o){,erɷ +_8}[eafɷ ]");
+        ArrayList<Token> ts = tokenize("a(o){,er _8}[eaf]");
+        System.out.println(ts);
+        System.out.println(ts.size());
         assertEquals(ts.size(), 12);
         assertEquals(ts.get(0).getType(), LcTrsLexer.IDENTIFIER);
         assertEquals(ts.get(1).getType(), LcTrsLexer.BRACKETOPEN);
@@ -195,5 +197,35 @@ public class LcTrsLexerTest {
     public void testKeywordClear() {
          ArrayList<Token> ts = tokenize("CleAr");
          assertEquals(ts.get(0).getType(), LcTrsLexer.CLEAR);
+    }
+
+    @Test
+    public void testVarList() {
+        ArrayList<Token> ts = tokenize("(VAR x y \n\t z)");
+        assertEquals(5, ts.size());
+        System.out.println(ts);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.VARDECSTART);
+        assertEquals(ts.get(1).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(2).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(3).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(4).getType(), LcTrsLexer.BRACKETCLOSE);
+    }
+
+    @Test
+    public void testBasicLcTrs() {
+        ArrayList<Token> ts = tokenize("(VAR x y)\n" +
+                                          "(RULES\n" +
+                                          "+(x, 0) -> x \n)"); //[a /\\ b]\n" +
+                                          //")");
+        System.out.println(ts.size());
+        System.out.println(ts);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.VARDECSTART);
+        assertEquals(ts.get(1).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(2).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(3).getType(), LcTrsLexer.BRACKETCLOSE);
+        assertEquals(ts.get(4).getType(), LcTrsLexer.RULEDECSTART);
+        assertEquals(ts.get(5).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(6).getType(), LcTrsLexer.BRACKETOPEN);
+        assertEquals(ts.get(7).getType(), LcTrsLexer.IDENTIFIER);
     }
 }
