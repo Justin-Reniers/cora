@@ -32,7 +32,7 @@ varlist             : VARDECSTART IDENTIFIER* BRACKETCLOSE ;
 
 siglist             : SIGSTART fundec* BRACKETCLOSE ;
 
-ruleslist           : RULESDECSTART trsrule* BRACKETCLOSE ;
+ruleslist           : RULEDECSTART trsrule* BRACKETCLOSE ;
 
 typeorarity         : IDENTIFIER | IDENTIFIER* ARROW IDENTIFIER ;
 

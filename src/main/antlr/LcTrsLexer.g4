@@ -34,6 +34,8 @@ EQUALITY            : '=' '=' ;
 
 COMMA               : ',' ;
 
+
+
 /* Logical Operators */
 
 NEGATION            : '~' ;
@@ -45,6 +47,24 @@ DISJUNCTION         : '\\' '/' ;
 CONDITIONAL         : '-' '-' '>' ;
 
 BICONDITIONAL       : '<' '-' '-' '>' ;
+
+BRACEOPEN           : '{' ;
+
+BRACECLOSE          : '}' ;
+
+BRACKETOPEN         : '(' ;
+
+BRACKETCLOSE        : ')' ;
+
+SQUAREOPEN          : '[' ;
+
+SQUARECLOSE         : ']' ;
+
+VARDECSTART         : '(' 'V' 'A' 'R' ;
+
+SIGSTART            : '(' 'S' 'I' 'G' ;
+
+RULEDECSTART       : '(' 'R' 'U' 'L' 'E' 'S' ;
 
 /* Rewriting Induction Rules */
 
@@ -68,24 +88,7 @@ COMPLETENESS        : C O M P L E T E N E S S;
 
 CLEAR               : C L E A R;
 
-IDENTIFIER          : IDPART+ '/'* | IDPART+ '*'+ | '/'+ | '*'+ ;
-
-BRACEOPEN           : '{' ;
-
-BRACECLOSE          : '}' ;
-
-BRACKETOPEN         : '(' ;
-
-BRACKETCLOSE        : ')' ;
-
-SQUAREOPEN          : '[' ;
-
-SQUARECLOSE         : ']' ;
-
-VARSDECSTART        : '(' 'V' 'A' 'R' ;
-
-SIGSTART            : '(' 'S' 'I' 'G' ;
-
-RULESDECSTART       : '(' 'R' 'U' 'L' 'E' 'S' ;
-
-
+IDENTIFIER          : ( (~ ([[ \t\n\r\\()"|{}\],] | '=') ) |
+                        ('-' {_input.LA(1) != '>'}?) |
+                        ('=' {_input.LA(1) != '='}?)
+                      )+ ;
