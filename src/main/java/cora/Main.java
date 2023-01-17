@@ -17,7 +17,6 @@ package cora;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import cora.interfaces.provingstrategies.Result;
 import cora.interfaces.rewriting.TRS;
 import cora.loggers.ConsoleLogger;
 import cora.loggers.Logger;
@@ -27,6 +26,9 @@ import cora.provingstrategies.LocalConfluence;
 import cora.provingstrategies.LocalConfluenceExtended;
 import cora.provingstrategies.Orthogonality;
 import cora.provingstrategies.StrategyInherit;
+import hci.InputPresenter;
+import hci.InputModel;
+import hci.InputView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -96,15 +98,19 @@ public class Main {
       Logger.log("Result type: " + result.getResult());
       Logger.log("Time taken: " + result.getTime() + "ms");
       Logger.finalized();
-*/
+
       System.out.println("Try just method");
       LocalConfluence lc = new LocalConfluence(trs, false);
       Result res = lc.apply();
       System.out.println(res.getResult());
       System.exit(0);
+      */
 
     } catch (Exception e) {
       e.printStackTrace();
     }
+
+    InputPresenter ic = new InputPresenter(new InputView("LcTrs equivalence proof assistant"), new InputModel());
+    ic.run();
   }
 }
