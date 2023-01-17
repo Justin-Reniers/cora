@@ -2,9 +2,7 @@ package hci;
 
 import hci.interfaces.UserInputView;
 
-import java.awt.*;
 import javax.swing.*;
-import java.awt.event.*;
 import java.io.File;
 
 public class InputView extends JFrame implements UserInputView {
@@ -13,7 +11,7 @@ public class InputView extends JFrame implements UserInputView {
     private JLabel userInputLabel;
     private JTextField userInput;
     private JMenuBar menuBar;
-    private JMenu menu;
+    private JMenu fileMenu, lcTrsMenu;
     private JMenuItem loadFile;
 
     public InputView(String title) {
@@ -39,11 +37,17 @@ public class InputView extends JFrame implements UserInputView {
     }
 
     private void initMenu() {
-        menuBar = new JMenuBar();
-        menu = new JMenu("File");
+        fileMenu = new JMenu("File");
         loadFile = new JMenuItem("Open");
-        menu.add(loadFile);
-        menuBar.add(menu);
+        fileMenu.add(loadFile);
+        //TODO add more File menu options (if necessary)
+
+        lcTrsMenu = new JMenu("LcTrs");
+        //TODO add more LcTrs menu options (like state saving)
+
+        menuBar = new JMenuBar();
+        menuBar.add(fileMenu);
+        menuBar.add(lcTrsMenu);
     }
 
     private void initUserInputBoxes() {
