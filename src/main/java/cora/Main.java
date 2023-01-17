@@ -28,7 +28,9 @@ import cora.provingstrategies.LocalConfluence;
 import cora.provingstrategies.LocalConfluenceExtended;
 import cora.provingstrategies.Orthogonality;
 import cora.provingstrategies.StrategyInherit;
-import cora.smt.EquivalenceProof;
+import hci.InputPresenter;
+import hci.InputModel;
+import hci.InputView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -116,11 +118,25 @@ public class Main {
       JCommander.newBuilder().addObject(cliArgs).build().parse(args);
 
       new Logger(new ConsoleLogger());
-      //equivalenceProofDemo(args[1]);
+      /*
+      StrategyInherit strat = getStrategy(cliArgs);
+      Result result = strat.apply(cliArgs.timeout);
+      Logger.log("Result type: " + result.getResult());
+      Logger.log("Time taken: " + result.getTime() + "ms");
+      Logger.finalized();
+
+      System.out.println("Try just method");
+      LocalConfluence lc = new LocalConfluence(trs, false);
+      Result res = lc.apply();
+      System.out.println(res.getResult());
       System.exit(0);
+      */
 
     } catch (Exception e) {
       e.printStackTrace();
     }
+
+    InputPresenter ic = new InputPresenter(new InputView("LcTrs equivalence proof assistant"), new InputModel());
+    ic.run();
   }
 }
