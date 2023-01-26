@@ -1,3 +1,4 @@
+import cora.parsers.TrsInputReader;
 import org.antlr.v4.runtime.Parser;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -27,6 +28,37 @@ import cora.parsers.LcTrsParser;
 
 public class LcTrsReadingTest {
     @Test
+    public void testBasicSignature() throws ParserException{
+        String str = "(VAR x ys xs)\n" +
+                "(SIG (nil 0) (cons 2) (append 2) (0 0) (s 1))\n" +
+                "(RULES\n" +
+                "  append(nil, ys) -> ys\n" +
+                "  append(cons(x, xs), ys) -> cons(x, append(xs, ys))\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(str);
+
+        assertEquals(lcTrs.lookupSymbol("~").queryType().toString(), "Bool → Bool");
+        assertEquals(lcTrs.lookupSymbol("/\\").queryType().toString(), "Bool → Bool → Bool");
+        assertEquals(lcTrs.lookupSymbol("\\/").queryType().toString(), "Bool → Bool → Bool");
+        assertEquals(lcTrs.lookupSymbol("-->").queryType().toString(), "Bool → Bool → Bool");
+        assertEquals(lcTrs.lookupSymbol("<-->").queryType().toString(), "Bool → Bool → Bool");
+
+        //assertEquals(lcTrs.lookupSymbol("-").queryType().toString(), "Int → Int");
+        assertEquals(lcTrs.lookupSymbol("*").queryType().toString(), "Int → Int → Int");
+        assertEquals(lcTrs.lookupSymbol("/").queryType().toString(), "Int → Int → Int");
+        assertEquals(lcTrs.lookupSymbol("%").queryType().toString(), "Int → Int → Int");
+        assertEquals(lcTrs.lookupSymbol("+").queryType().toString(), "Int → Int → Int");
+        assertEquals(lcTrs.lookupSymbol("-").queryType().toString(), "Int → Int → Int");
+
+        assertEquals(lcTrs.lookupSymbol("<").queryType().toString(), "Int → Int → Bool");
+        assertEquals(lcTrs.lookupSymbol("<=").queryType().toString(), "Int → Int → Bool");
+        assertEquals(lcTrs.lookupSymbol(">").queryType().toString(), "Int → Int → Bool");
+        assertEquals(lcTrs.lookupSymbol(">=").queryType().toString(), "Int → Int → Bool");
+        assertEquals(lcTrs.lookupSymbol("==").queryType().toString(), "Int → Int → Bool");
+        assertEquals(lcTrs.lookupSymbol("!=").queryType().toString(), "Int → Int → Bool");
+    }
+
+    @Test
     public void testReadArityInTypeOrArity() throws ParserException {
         ErrorCollector collector = new ErrorCollector();
         LcTrsInputReader reader = new LcTrsInputReader();
@@ -40,14 +72,13 @@ public class LcTrsReadingTest {
 
     @Test
     public void readSimpleUnsortedLcTrs() throws ParserException {
-        TRS lcTrs = LcTrsInputReader.readLcTrsFromString("(VAR x y )\n" +
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString("(VAR x y)\n" +
                                                             "(RULES\n" +
-                                                            "+(x, 0) -> x [a /\\ b]\n" +
-                                                            "/(x, y) -> x/y [y0]\n" +
+                                                            "plus(x, 0) -> x [a /\\ b]\n" +
+                                                            "div(x, y) -> div(x, y) [y0]\n" +
                                                             ")");
-        assertEquals(lcTrs.lookupSymbol("0").queryType(), new Sort("o"));
-        assertEquals(lcTrs.lookupSymbol("+").queryType().toString(), ("o → o → o"));
-        assertEquals(lcTrs.lookupSymbol("/").queryType().toString(), ("o → o → o"));
+        assertEquals(lcTrs.lookupSymbol("plus").queryType().toString(), ("o → o → o"));
+        assertEquals(lcTrs.lookupSymbol("div").queryType().toString(), ("o → o → o"));
         assertNull(lcTrs.lookupSymbol("x"));
         assertNull(lcTrs.lookupSymbol("y"));
     }
@@ -56,18 +87,18 @@ public class LcTrsReadingTest {
     public void readTermInLcTrs() throws ParserException {
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString("(VAR x y)\n" +
                                                             "(RULES\n" +
-                                                            "+(x, 0) -> x \n)");
-        Term lt = LcTrsInputReader.readTermFromString("a /\\ b", lcTrs);
+                                                            "plus(x, 0) -> x \n)");
+        Term lt = LcTrsInputReader.readLogicalTermFromString("a /\\ b", lcTrs);
         assertEquals(lt.toString(), "a /\\ b");
     }
 
     @Test
     public void readRuleInLcTrs() throws ParserException {
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString("(RULES\n" +
-                                                            "+(x, 0) -> x [a /\\ b]\n" +
+                                                            "plus(x, 0) -> x [a /\\ b]\n" +
                                                             ")");
-        Term a = LcTrsInputReader.readTermFromString("+(x, 0)", lcTrs);
-        assertEquals(a.toString(), "+(x, 0)");
+        Term a = LcTrsInputReader.readTermFromString("plus(x, 0)", lcTrs);
+        assertEquals(a.toString(), "plus(x, 0)");
     }
 
     @Test
