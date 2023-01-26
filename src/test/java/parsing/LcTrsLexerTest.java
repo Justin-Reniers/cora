@@ -68,8 +68,6 @@ public class LcTrsLexerTest {
     @Test
     public void testLexerAllBasicTokens() {
         ArrayList<Token> ts = tokenize("a(o){,er _8}[eaf]");
-        System.out.println(ts);
-        System.out.println(ts.size());
         assertEquals(ts.size(), 12);
         assertEquals(ts.get(0).getType(), LcTrsLexer.IDENTIFIER);
         assertEquals(ts.get(1).getType(), LcTrsLexer.BRACKETOPEN);
@@ -90,8 +88,8 @@ public class LcTrsLexerTest {
         ArrayList<Token> ts = tokenize("-> - > x --> y");
         assertEquals(ts.size(), 6);
         assertEquals(ts.get(0).getType(), LcTrsLexer.ARROW);
-        assertEquals(ts.get(1).getType(), LcTrsLexer.IDENTIFIER);
-        assertEquals(ts.get(2).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(1).getType(), LcTrsLexer.MINUS);
+        assertEquals(ts.get(2).getType(), LcTrsLexer.GT);
         assertEquals(ts.get(3).getType(), LcTrsLexer.IDENTIFIER);
         assertEquals(ts.get(4).getType(), LcTrsLexer.CONDITIONAL);
         assertEquals(ts.get(5).getType(), LcTrsLexer.IDENTIFIER);
@@ -137,6 +135,76 @@ public class LcTrsLexerTest {
          ArrayList<Token> ts = tokenize("<-->");
          assertEquals(ts.size(), 1);
          assertEquals(ts.get(0).getType(), LcTrsLexer.BICONDITIONAL);
+    }
+
+    @Test
+    public void testLexerMultiplication() {
+        ArrayList<Token> ts = tokenize("*");
+        assertEquals(ts.size(), 1);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.MULT);
+    }
+
+    @Test
+    public void testLexerDivision() {
+        ArrayList<Token> ts = tokenize("/");
+        assertEquals(ts.size(), 1);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.DIV);
+    }
+
+    @Test
+    public void testLexerModulo() {
+        ArrayList<Token> ts = tokenize("%");
+        assertEquals(ts.size(), 1);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.MOD);
+    }
+
+    @Test
+    public void testLexerPlus() {
+        ArrayList<Token> ts = tokenize("+");
+        assertEquals(ts.size(), 1);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.PLUS);
+    }
+
+    @Test
+    public void testLexerMinus() {
+        ArrayList<Token> ts = tokenize("-");
+        assertEquals(ts.size(), 1);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.MINUS);
+    }
+
+    @Test
+    public void testLexerLessThan() {
+        ArrayList<Token> ts = tokenize("<");
+        assertEquals(ts.size(), 1);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.LT);
+    }
+
+    @Test
+    public void testLexerLessThanOrEqual() {
+        ArrayList<Token> ts = tokenize("<=");
+        assertEquals(ts.size(), 1);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.LTEQ);
+    }
+
+    @Test
+    public void testLexerGreaterThan() {
+        ArrayList<Token> ts = tokenize(">");
+        assertEquals(ts.size(), 1);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.GT);
+    }
+
+    @Test
+    public void testLexerGreaterThanOrEqual() {
+        ArrayList<Token> ts = tokenize(">=");
+        assertEquals(ts.size(), 1);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.GTEQ);
+    }
+
+    @Test
+    public void testLexerNotEqual() {
+        ArrayList<Token> ts = tokenize("!=");
+        assertEquals(ts.size(), 1);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.NEQ);
     }
 
     @Test
@@ -202,30 +270,66 @@ public class LcTrsLexerTest {
     @Test
     public void testVarList() {
         ArrayList<Token> ts = tokenize("(VAR x y \n\t z)");
-        assertEquals(5, ts.size());
-        System.out.println(ts);
-        assertEquals(ts.get(0).getType(), LcTrsLexer.VARDECSTART);
-        assertEquals(ts.get(1).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(6, ts.size());
+        assertEquals(ts.get(0).getType(), LcTrsLexer.BRACKETOPEN);
+        assertEquals(ts.get(1).getType(), LcTrsLexer.VARDECSTART);
         assertEquals(ts.get(2).getType(), LcTrsLexer.IDENTIFIER);
         assertEquals(ts.get(3).getType(), LcTrsLexer.IDENTIFIER);
-        assertEquals(ts.get(4).getType(), LcTrsLexer.BRACKETCLOSE);
+        assertEquals(ts.get(4).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(5).getType(), LcTrsLexer.BRACKETCLOSE);
     }
 
     @Test
     public void testBasicLcTrs() {
         ArrayList<Token> ts = tokenize("(VAR x y)\n" +
                                           "(RULES\n" +
-                                          "+(x, 0) -> x \n)"); //[a /\\ b]\n" +
-                                          //")");
-        System.out.println(ts.size());
-        System.out.println(ts);
-        assertEquals(ts.get(0).getType(), LcTrsLexer.VARDECSTART);
-        assertEquals(ts.get(1).getType(), LcTrsLexer.IDENTIFIER);
+                                          "plus(x, 0) -> x \n)");
+        assertEquals(ts.size(), 16);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.BRACKETOPEN);
+        assertEquals(ts.get(1).getType(), LcTrsLexer.VARDECSTART);
         assertEquals(ts.get(2).getType(), LcTrsLexer.IDENTIFIER);
-        assertEquals(ts.get(3).getType(), LcTrsLexer.BRACKETCLOSE);
-        assertEquals(ts.get(4).getType(), LcTrsLexer.RULEDECSTART);
-        assertEquals(ts.get(5).getType(), LcTrsLexer.IDENTIFIER);
-        assertEquals(ts.get(6).getType(), LcTrsLexer.BRACKETOPEN);
+        assertEquals(ts.get(3).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(4).getType(), LcTrsLexer.BRACKETCLOSE);
+        assertEquals(ts.get(5).getType(), LcTrsLexer.BRACKETOPEN);
+        assertEquals(ts.get(6).getType(), LcTrsLexer.RULEDECSTART);
         assertEquals(ts.get(7).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(8).getType(), LcTrsLexer.BRACKETOPEN);
+        assertEquals(ts.get(9).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(10).getType(), LcTrsLexer.COMMA);
+        assertEquals(ts.get(11).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(12).getType(), LcTrsLexer.BRACKETCLOSE);
+        assertEquals(ts.get(13).getType(), LcTrsLexer.ARROW);
+        assertEquals(ts.get(14).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(15).getType(), LcTrsLexer.BRACKETCLOSE);
+    }
+
+    @Test
+    public void testBasicLcTrsWithLogicalConstraint() {
+        ArrayList<Token> ts = tokenize("(VAR x y)\n" +
+                                          "(RULES\n" +
+                                          "plus(x, 0) -> x [a /\\ b]\n" +
+                                          ")");
+        assertEquals(ts.size(), 21);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.BRACKETOPEN);
+        assertEquals(ts.get(1).getType(), LcTrsLexer.VARDECSTART);
+        assertEquals(ts.get(2).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(3).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(4).getType(), LcTrsLexer.BRACKETCLOSE);
+        assertEquals(ts.get(5).getType(), LcTrsLexer.BRACKETOPEN);
+        assertEquals(ts.get(6).getType(), LcTrsLexer.RULEDECSTART);
+        assertEquals(ts.get(7).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(8).getType(), LcTrsLexer.BRACKETOPEN);
+        assertEquals(ts.get(9).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(10).getType(), LcTrsLexer.COMMA);
+        assertEquals(ts.get(11).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(12).getType(), LcTrsLexer.BRACKETCLOSE);
+        assertEquals(ts.get(13).getType(), LcTrsLexer.ARROW);
+        assertEquals(ts.get(14).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(15).getType(), LcTrsLexer.SQUAREOPEN);
+        assertEquals(ts.get(16).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(17).getType(), LcTrsLexer.CONJUNCTION);
+        assertEquals(ts.get(18).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(19).getType(), LcTrsLexer.SQUARECLOSE);
+        assertEquals(ts.get(20).getType(), LcTrsLexer.BRACKETCLOSE);
     }
 }
