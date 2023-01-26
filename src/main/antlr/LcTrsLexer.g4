@@ -48,6 +48,32 @@ CONDITIONAL         : '-' '-' '>' ;
 
 BICONDITIONAL       : '<' '-' '-' '>' ;
 
+/* Arithmetic Operators */
+
+MULT                : '*' ;
+
+DIV                 : '/' ;
+
+MOD                 : '%' ;
+
+PLUS                : '+' ;
+
+MINUS               : '-' ;
+
+/* Arithmetic Comparison Operators */
+
+LT                  : '<' ;
+
+LTEQ                : '<' '=' ;
+
+GT                  : '>' ;
+
+GTEQ                : '>' '=' ;
+
+NEQ                 : '!' '=' ;
+
+/* Braces and Brackets */
+
 BRACEOPEN           : '{' ;
 
 BRACECLOSE          : '}' ;
@@ -60,35 +86,39 @@ SQUAREOPEN          : '[' ;
 
 SQUARECLOSE         : ']' ;
 
-VARDECSTART         : '(' 'V' 'A' 'R' ;
+/* TRS Components */
 
-SIGSTART            : '(' 'S' 'I' 'G' ;
+VARDECSTART         : 'V' 'A' 'R' ;
 
-RULEDECSTART       : '(' 'R' 'U' 'L' 'E' 'S' ;
+SIGSTART            : 'S' 'I' 'G' ;
+
+RULEDECSTART       : 'R' 'U' 'L' 'E' 'S' ;
 
 /* Rewriting Induction Rules */
 
-SIMPLIFICATION      : S I M P L I F Y;
+SIMPLIFICATION      : S I M P L I F Y ;
 
-EXPANSION           : E X P A N D;
+EXPANSION           : E X P A N D ;
 
-DELETION            : D E L E T E;
+DELETION            : D E L E T E ;
 
-POSTULATE           : P O S T U L A T E;
+POSTULATE           : P O S T U L A T E ;
 
-GENERALIZATION      : G E N E R A L I Z E;
+GENERALIZATION      : G E N E R A L I Z E ;
 
-GQDELETION          : G Q D E L E T E;
+GQDELETION          : G Q D E L E T E ;
 
-CONSTRUCTOR         : C O N S T R U C T O R;
+CONSTRUCTOR         : C O N S T R U C T O R ;
 
-DISPROVE            : D I S P R O V E;
+DISPROVE            : D I S P R O V E ;
 
-COMPLETENESS        : C O M P L E T E N E S S;
+COMPLETENESS        : C O M P L E T E N E S S ;
 
-CLEAR               : C L E A R;
+CLEAR               : C L E A R ;
 
-IDENTIFIER          : ( (~ ([[ \t\n\r\\()"|{}\],] | '=') ) |
+SWAP                : S W A P ;
+
+IDENTIFIER          : ( (~ ([[ \t\n\r\\()"|{}\],<>%*-+!] | '=' | '/') ) |
                         ('-' {_input.LA(1) != '>'}?) |
                         ('=' {_input.LA(1) != '='}?)
                       )+ ;

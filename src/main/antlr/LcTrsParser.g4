@@ -28,11 +28,11 @@ trs                 : varlist? siglist? ruleslist EOF
                     | rewritinginduction EOF
                     ;
 
-varlist             : VARDECSTART IDENTIFIER* BRACKETCLOSE ;
+varlist             : BRACKETOPEN VARDECSTART IDENTIFIER* BRACKETCLOSE ;
 
-siglist             : SIGSTART fundec* BRACKETCLOSE ;
+siglist             : BRACKETOPEN SIGSTART fundec* BRACKETCLOSE ;
 
-ruleslist           : RULEDECSTART trsrule* BRACKETCLOSE ;
+ruleslist           : BRACKETOPEN RULEDECSTART trsrule* BRACKETCLOSE ;
 
 typeorarity         : IDENTIFIER | IDENTIFIER* ARROW IDENTIFIER ;
 
@@ -43,21 +43,25 @@ trsrule             : term ARROW term logicalconstraint? ;
 term                : IDENTIFIER
                     | IDENTIFIER BRACKETOPEN BRACKETCLOSE
                     | IDENTIFIER BRACKETOPEN termlist BRACKETCLOSE
+                    | factor term
+                    | term (CONJUNCTION | DISJUNCTION) term
+                    | <assoc=right> term CONDITIONAL term
+                    | term BICONDITIONAL term
+                    | term (MULT | DIV | MOD) term
+                    | term (PLUS | MINUS) term
+                    | term (LT | LTEQ | GT | GTEQ)*? term
+                    | term (EQUALITY | NEQ) term
+                    ;
+
+factor              : NEGATION term
+                    | MINUS term
                     ;
 
 termlist            : term
                     | term COMMA termlist
                     ;
 
-logicalconstraint   : SQUAREOPEN logicalterm SQUARECLOSE ;
-
-logicalterm         : term
-                    | NEGATION logicalterm
-                    | logicalterm CONJUNCTION logicalterm
-                    | logicalterm DISJUNCTION logicalterm
-                    |<assoc=right> logicalterm CONDITIONAL logicalterm
-                    | logicalterm BICONDITIONAL logicalterm
-                    ;
+logicalconstraint   : SQUAREOPEN term SQUARECLOSE ;
 
 rewritinginduction  : SIMPLIFICATION
                     | EXPANSION
@@ -69,5 +73,6 @@ rewritinginduction  : SIMPLIFICATION
                     | DISPROVE
                     | COMPLETENESS
                     | CLEAR
+                    | SWAP
                     ;
 
