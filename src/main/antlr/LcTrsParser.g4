@@ -48,7 +48,7 @@ term                : IDENTIFIER
                     | <assoc=right> term CONDITIONAL term
                     | term BICONDITIONAL term
                     | term (MULT | DIV | MOD) term
-                    | term (PLUS | MINUS) term
+                    | term PLUS term
                     | term (LT | LTEQ | GT | GTEQ)*? term
                     | term (EQUALITY | NEQ) term
                     ;
