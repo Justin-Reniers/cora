@@ -1,13 +1,22 @@
 package parsing;
 
+import cora.loggers.ConsoleLogger;
+import cora.loggers.Logger;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.Token;
 import java.util.ArrayList;
+import java.util.Arrays;
+
 import cora.parsers.LcTrsLexer;
 
 public class LcTrsLexerTest {
+    private static final ArrayList<String> forbiddenSymbols = new ArrayList<>(Arrays.asList(
+            "~", "/\\", "\\/", "-->", "<-->", "-", "*", "/", "%", "+",
+            "<", "<=", ">", ">=", "==", "!="));
+    public static Logger l = new Logger(new ConsoleLogger());
+
     private ArrayList<String> warnings;
 
     private LcTrsLexer createLexer (String s) {
@@ -42,6 +51,30 @@ public class LcTrsLexerTest {
     }
 
     @Test
+    public void testMinusArrowConditional() {
+        ArrayList<Token> ts = tokenize("t --> -> - --> -->");
+        Logger.log(ts.toString());
+    }
+
+    @Test
+    public void testSymbolsInIdentifier() {
+        ArrayList<Token> ts = tokenize("=a=b==ts+t==st>=ts<=s");
+        Logger.log(ts.toString());
+    }
+
+    @Test
+    public void testInvalidSymbolsInIdentifier() {
+        ArrayList<Token> ts = tokenize("a()ts)a|a\\a]a[a],a<a>>=a=%a*a-a/a~a{a}");
+        Logger.log(ts.toString());
+    }
+
+    @Test
+    public void testArrowsInIdentifier() {
+        ArrayList<Token> ts = tokenize("ts->t-->st<-->tss");
+        Logger.log(ts.toString());
+    }
+
+    @Test
     public void testLexerSimpleIdentifier() {
          ArrayList<Token> ts = tokenize("function");
          assertEquals(ts.size(), 1);
@@ -53,6 +86,15 @@ public class LcTrsLexerTest {
          ArrayList<Token> ts = tokenize("½ɤ");
          assertEquals(ts.size(), 1);
          verifyToken(ts.get(0), LcTrsLexer.IDENTIFIER, "½ɤ");
+    }
+
+    @Test
+    public void testIdentifierWithForbiddenSymbol() {
+        ArrayList<Token> ts = tokenize("-ts");
+        Logger.log(ts.toString());
+        //assertEquals(ts.size(), 2);
+        verifyToken(ts.get(0), LcTrsLexer.MINUS, "-");
+        verifyToken(ts.get(1), LcTrsLexer.IDENTIFIER, "ts");
     }
 
     @Test
@@ -331,5 +373,12 @@ public class LcTrsLexerTest {
         assertEquals(ts.get(18).getType(), LcTrsLexer.IDENTIFIER);
         assertEquals(ts.get(19).getType(), LcTrsLexer.SQUARECLOSE);
         assertEquals(ts.get(20).getType(), LcTrsLexer.BRACKETCLOSE);
+    }
+
+    @Test
+    public void testTokenizer() {
+        String s = "[1 >= t-3/4]\n";
+        ArrayList<Token> ts = tokenize(s);
+        Logger.log(ts.toString());
     }
 }
