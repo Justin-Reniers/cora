@@ -16,9 +16,6 @@
 package cora.rewriting;
 
 import cora.exceptions.IllegalRuleError;
-import cora.exceptions.NullInitialisationError;
-import cora.exceptions.TypingError;
-import cora.interfaces.types.Type;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Substitution;
 import cora.interfaces.terms.Environment;
@@ -34,6 +31,8 @@ public class FirstOrderRule extends RuleInherit implements Rule {
    * Creates a rule with the given left- and right-hand side.
    * If the types don't match, a TypingError is thrown.
    */
+  private Term _constraint;
+
   public FirstOrderRule(Term left, Term right) {
     super(left, right);
     // both sides need to be first-order
@@ -58,6 +57,12 @@ public class FirstOrderRule extends RuleInherit implements Rule {
     }
   }
 
+  @Override
+  public Term queryConstraint() {
+    if (_constraint != null) return _constraint;
+    return null;
+  }
+
   public boolean applicable(Term t) {
     return _left.match(t) != null;
   }
@@ -68,15 +73,16 @@ public class FirstOrderRule extends RuleInherit implements Rule {
     return _right.substitute(subst);
   }
 
-  public FirstOrderRule(Term left, Term right, Term constraint) {
+  public FirstOrderRule(Term left, Term right, Term _constraint) {
     super(left, right);
+    this._constraint = _constraint;
     if (!left.isFirstOrder() || !right.isFirstOrder()) {
       throw new IllegalRuleError("FirstOrderRule", "terms in rule [" + left.toString() + " → " +
-              right.toString() + "] {" + constraint.toString()+ "} are not first-order." );
+              right.toString() + "] {" + _constraint.toString()+ "} are not first-order." );
     }
     Environment lvars = left.vars();
     Environment rvars = right.vars();
-    Environment cvars = constraint.vars();
+    Environment cvars = _constraint.vars();
     for (Variable x : rvars) {
       if (!lvars.contains(x)) {
         throw new IllegalRuleError("FirstOrderRule", "");
@@ -86,6 +92,13 @@ public class FirstOrderRule extends RuleInherit implements Rule {
     if (!left.isFunctionalTerm()) {
       throw new IllegalRuleError("FirstOrderRule", "");
     }
+  }
+
+  public String toString() {
+    if (_constraint != null) {
+      return _left.toString() + " → " + _right.toString() + " [" + _constraint.toString() +"]";
+    }
+    return _left.toString() + " → " + _right.toString();
   }
 }
 

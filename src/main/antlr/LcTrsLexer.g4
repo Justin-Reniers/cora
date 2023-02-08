@@ -38,8 +38,6 @@ COMMA               : ',' ;
 
 /* Logical Operators */
 
-NEGATION            : '~' ;
-
 CONJUNCTION         : '/' '\\' ;
 
 DISJUNCTION         : '\\' '/' ;
@@ -47,6 +45,18 @@ DISJUNCTION         : '\\' '/' ;
 CONDITIONAL         : '-' '-' '>' ;
 
 BICONDITIONAL       : '<' '-' '-' '>' ;
+
+/* Arithmetic Comparison Operators */
+
+LT                  : '<' ;
+
+LTEQ                : '<' '=' ;
+
+GT                  : '>' ;
+
+GTEQ                : '>' '=' ;
+
+NEQ                 : '!' '=' ;
 
 /* Arithmetic Operators */
 
@@ -60,17 +70,9 @@ PLUS                : '+' ;
 
 MINUS               : '-' ;
 
-/* Arithmetic Comparison Operators */
+/* Unary Boolean Operators */
 
-LT                  : '<' ;
-
-LTEQ                : '<' '=' ;
-
-GT                  : '>' ;
-
-GTEQ                : '>' '=' ;
-
-NEQ                 : '!' '=' ;
+NEGATION            : '~' ;
 
 /* Braces and Brackets */
 
@@ -118,7 +120,14 @@ CLEAR               : C L E A R ;
 
 SWAP                : S W A P ;
 
-IDENTIFIER          : ( (~ ([[ \t\n\r\\()"|{}\],<>%*-+!] | '=' | '/') ) |
-                        ('-' {_input.LA(1) != '>'}?) |
-                        ('=' {_input.LA(1) != '='}?)
+IDENTIFIER          : ( (~[[ \t\n\r\\()"|\],<>%*+!\-/=~{}] ) |
+                        //('>' {_input.LA(-1) != '-' & _input.LA(1) != '='}?) |
+                        //('>' {_input.LA(-2) != '-' & _input.LA(1) != '='}?) |
+                        ([a-zA-Z] {_input.LA(-1) == '-' & _input.LA(1) == '>'}?) |
+                        ([a-zA-Z] {_input.LA(-2) == '-' & _input.LA(2) == '>'}?) |
+                        ([a-zA-Z] {_input.LA(-3) == '-' & _input.LA(3) == '>'}?)
                       )+ ;
+
+Forbidden           : '-' | '>' ;
+
+

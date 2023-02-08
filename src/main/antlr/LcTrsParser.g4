@@ -43,18 +43,14 @@ trsrule             : term ARROW term logicalconstraint? ;
 term                : IDENTIFIER
                     | IDENTIFIER BRACKETOPEN BRACKETCLOSE
                     | IDENTIFIER BRACKETOPEN termlist BRACKETCLOSE
-                    | factor term
-                    | term (CONJUNCTION | DISJUNCTION) term
+                    | (MINUS | NEGATION) term
+                    | term (MULT | DIV | MOD) term
+                    | term (PLUS | MINUS) term
+                    | term (LT | LTEQ | GT | GTEQ)*? term
+                    | term (CONJUNCTION | DISJUNCTION)*? term
                     | <assoc=right> term CONDITIONAL term
                     | term BICONDITIONAL term
-                    | term (MULT | DIV | MOD) term
-                    | term PLUS term
-                    | term (LT | LTEQ | GT | GTEQ)*? term
-                    | term (EQUALITY | NEQ) term
-                    ;
-
-factor              : NEGATION term
-                    | MINUS term
+                    | term (EQUALITY | NEQ)*? term
                     ;
 
 termlist            : term

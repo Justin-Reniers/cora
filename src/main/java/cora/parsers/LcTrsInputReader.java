@@ -9,6 +9,7 @@ import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.FunctionSymbol;
 import cora.interfaces.terms.Term;
 import cora.interfaces.types.Type;
+import cora.loggers.Logger;
 import cora.rewriting.FirstOrderRule;
 import cora.rewriting.TermRewritingSystem;
 import cora.terms.Constant;
@@ -34,6 +35,12 @@ public class LcTrsInputReader extends InputReader{
     private static final Type unitSort = Sort.unitSort;
     private static final Type boolSort = Sort.boolSort;
     private static final Type intSort = Sort.intSort;
+    private static final ArrayList<String> unaryBoolOperators = new ArrayList<>(){{add("~");}};
+    private static final ArrayList<String> binaryBoolOperators = new ArrayList<>(Arrays.asList("/\\", "\\/", "-->", "<-->"));
+    private static final ArrayList<String> unaryIntOperators = new ArrayList<>(){{add("-");}};
+    private static final ArrayList<String> binaryIntOperators = new ArrayList<>(Arrays.asList("*", "/", "%", "+"));
+    private static final ArrayList<String> binaryIntComparison = new ArrayList<>(Arrays.asList("<", "<=", ">", ">=", "==", "!="));
+
 
     public LcTrsInputReader() { super(LcTrsParser.VOCABULARY, LcTrsParser.ruleNames); }
 
@@ -93,7 +100,10 @@ public class LcTrsInputReader extends InputReader{
         verifyChildIsToken(tree, k, "ARROW", "type arrow");
         verifyChildIsToken(tree, k+1, "IDENTIFIER", "identifier");
         String output = tree.getChild(k+1).getText();
-        Type res = new Sort(output);
+        Type res;
+        if (output.toLowerCase().equals("int")) res = intSort;
+        else if (output.toLowerCase().equals("bool") || output.toLowerCase().equals("boolean")) res = boolSort;
+        else res = new Sort(output);
         for (int i = k-1; i >= 0; i--) {
             verifyChildIsToken(tree, i, "IDENTIFIER", "identifier (argument)");
             String arg = tree.getChild(i).getText();
@@ -146,11 +156,6 @@ public class LcTrsInputReader extends InputReader{
      * @param data The data to be updated with all the basic signature declarations.
      */
     public void handleBasicSignature(ParseData data) {
-        ArrayList<String> unaryBoolOperators = new ArrayList<>(){{add("~");}};
-        ArrayList<String> binaryBoolOperators = new ArrayList<>(Arrays.asList("/\\", "\\/", "-->", "<-->"));
-        ArrayList<String> unaryIntOperators = new ArrayList<>(){{add("-");}};
-        ArrayList<String> binaryIntOperators = new ArrayList<>(Arrays.asList("*", "/", "%", "+"));
-        ArrayList<String> binaryIntComparison = new ArrayList<>(Arrays.asList("<", "<=", ">", ">=", "==", "!="));
         Type unaryBool = new ArrowType(boolSort, boolSort);
         Type unaryInt = new ArrowType(intSort, intSort);
         Type boolOperation = new ArrowType(boolSort, new ArrowType(boolSort, boolSort));
@@ -161,6 +166,13 @@ public class LcTrsInputReader extends InputReader{
         addFunctionsToData(data, unaryIntOperators, unaryInt);
         addFunctionsToData(data, binaryIntOperators, intOperation);
         addFunctionsToData(data, binaryIntComparison, intComparison);
+
+        addBooleanConstantsToData(data);
+    }
+
+    private void addBooleanConstantsToData(ParseData data) {
+        data.addFunctionSymbol(new Constant("TRUE", boolSort));
+        data.addFunctionSymbol(new Constant("FALSE", boolSort));
     }
 
     /**
@@ -191,7 +203,6 @@ public class LcTrsInputReader extends InputReader{
     private Term readConstantOrVariable(ParseTree tree, ParseData data, Type expectedType,
                                         boolean mstrs) throws ParserException {
         String n = tree.getText();
-
         Term ret = data.lookupVariable(n);
         if (ret == null) ret = data.lookupFunctionSymbol(n);
         if (ret != null) {
@@ -201,6 +212,12 @@ public class LcTrsInputReader extends InputReader{
             }
             return ret;
         }
+        try {
+            Integer.parseInt(n);
+            if (expectedType == boolSort) throw new TypingException(firstToken(tree), n, intSort.toString(),
+                                            expectedType.toString());
+            return new Constant(n, intSort);
+        } catch (NumberFormatException ignored) {}
         if (mstrs) {
             if (expectedType == null) throw new DeclarationException(firstToken(tree), n);
             Var x = new Var(n, expectedType);
@@ -271,41 +288,9 @@ public class LcTrsInputReader extends InputReader{
      * If we are parsing a mstrs, then all unknown symbols are expected to be variables; if it is an
      * unsorted trs, then all unknown symbols are expected to be function symbols.
      */
-    private Term readTerm(ParseTree tree, ParseData data, Type expectedType,
-                          boolean mstrs) throws ParserException {
-        if (expectedType != null && !expectedType.isBaseType()) {
-            throw buildError(tree, "Trying to read a term of non-basic type!");
-        }
-        verifyChildIsToken(tree, 0, "IDENTIFIER", "Function name or variable (identifier)");
-
-        if (tree.getChildCount() == 1) {
-            return readConstantOrVariable(tree.getChild(0), data, expectedType, mstrs);
-        }
-
-        verifyChildIsToken(tree, 1, "BRACKETOPEN", "Opening bracket '('");
-        verifyChildIsToken(tree, tree.getChildCount()-1, "BRACKETCLOSE", "Closing bracket ')'");
-
-        ArrayList<ParseTree> args = new ArrayList<>();
-        if (tree.getChildCount() > 3) readTermList(tree.getChild(2), args);
-
-        FunctionSymbol f = readFunctionSymbol(tree.getChild(0), data, args.size(), mstrs);
-        Type type = f.queryType();
-        ArrayList<Term> termargs = new ArrayList<>();
-        for (int i = 0; i < args.size(); i++) {
-            Type input = type.queryArrowInputType();
-            termargs.add(readTerm(args.get(i), data, input, mstrs));
-            type = type.queryArrowOutputType();
-        }
-        Term ret = new FunctionalTerm(f, termargs);
-        if (expectedType != null && !ret.queryType().equals(expectedType)) {
-            throw new TypingException(firstToken(tree), ret.toString(), ret.queryType().toString(),
-                                        expectedType.toString());
-        }
-        return ret;
-    }
-
     private Term readTermType(ParseTree tree, ParseData data, Type expectedType,
                                 boolean mstrs) throws ParserException {
+        String kidn2 = checkChild(tree, 0);
         if (expectedType != null && !expectedType.isBaseType()) {
             throw buildError(tree, "Trying to read a term of a non-basic type!");
         }
@@ -316,9 +301,8 @@ public class LcTrsInputReader extends InputReader{
         Term ret = null;
         if (tree.getChildCount() == 2) {
             kind = checkChild(tree, 0);
-            verifyChildIsToken(tree, 1, "IDENTIFIER", "");
             if (kind.equals("token NEGATION") || kind.equals("token MINUS")) {
-                ret = getNewFunctionalTermArityOne(tree, data, tree.getChild(1).getText(), mstrs);
+                ret = getNewFunctionalTermArityOne(tree, data, tree.getChild(0).getText(), mstrs);
             }
         }
         ArrayList<String> symbols = new ArrayList<>(Arrays.asList("token CONJUNCTION", "token DISJUNCTION",
@@ -326,25 +310,16 @@ public class LcTrsInputReader extends InputReader{
                 "token PLUS", "token LT", "token LTEQ", "token GT", "token GTEQ", "token EQUALITY", "token NEQ"));
         if (tree.getChildCount() >= 3) {
             kind = checkChild(tree, 1);
-            if (symbols.contains(kind)) {
-                System.out.println(tree.getChild(1).getText());
+            if (kind.equals("token MINUS")) {
+                verifyChildIsToken(tree, 1, "MINUS", "Minus operator '-'");
+                ret = subtractionOperation(tree, data, mstrs);
+            }
+            else if (symbols.contains(kind)) {
                 verifyChildIsRule(tree, 0, "term", "a term");
                 verifyChildIsRule(tree, 2, "term", "a term");
                 ret = getNewFunctionalTermArityTwo(tree, data, tree.getChild(1).getText(), mstrs);
             } else {
-                verifyChildIsToken(tree, 1, "BRACKETOPEN", "Opening bracket '('");
-                verifyChildIsToken(tree, tree.getChildCount()-1, "BRACKETCLOSE", "Closing bracket ')'");
-                ArrayList<ParseTree> args = new ArrayList<>();
-                if (tree.getChildCount() > 3) readTermList(tree.getChild(2), args);
-                FunctionSymbol f = readFunctionSymbol(tree.getChild(0), data, args.size(), mstrs);
-                Type type = f.queryType();
-                ArrayList<Term> termargs = new ArrayList<>();
-                for (ParseTree arg : args) {
-                    Type input = type.queryArrowInputType();
-                    termargs.add(readTermType(arg, data, input, mstrs));
-                    type = type.queryArrowOutputType();
-                }
-                ret = new FunctionalTerm(f, termargs);
+                ret = getNewFunctionalTermHighArity(tree, data, mstrs);
                 if (expectedType != null && !ret.queryType().equals(expectedType)) {
                     throw new TypingException(firstToken(tree), ret.toString(), ret.queryType().toString(),
                             expectedType.toString());
@@ -354,59 +329,62 @@ public class LcTrsInputReader extends InputReader{
         return ret;
     }
 
+    private Term subtractionOperation(ParseTree tree, ParseData data, boolean mstrs) throws ParserException {
+        Term child1, child2;
+        FunctionSymbol f = data.lookupFunctionSymbol("+");
+        child1 = readTermType(tree.getChild(0), data, intSort, mstrs);
+        child2 = new FunctionalTerm(data.lookupFunctionSymbol("-"), readTermType(tree.getChild(2), data,
+                intSort, mstrs));
+        return new FunctionalTerm(f, child1, child2);
+    }
+
     private Term getNewFunctionalTermArityOne(ParseTree tree, ParseData data, String functionSymbol,
-                                              boolean mstrs) throws ParserException{
-        Term child1;
+                                              boolean mstrs) throws ParserException {
+        Term child1 = null;
         FunctionSymbol f;
-        Type type;
         f = data.lookupFunctionSymbol(functionSymbol);
-        type = f.queryType();
-        child1 = readTermType(tree.getChild(1), data, type, mstrs);
+        if (unaryBoolOperators.contains(f.queryName())) child1 = readTermType(tree.getChild(1), data, boolSort, mstrs);
+        if (unaryIntOperators.contains(f.queryName())) child1 = readTermType(tree.getChild(1), data, intSort, mstrs);
         return new FunctionalTerm(f, child1);
     }
 
     private Term getNewFunctionalTermArityTwo(ParseTree tree, ParseData data, String functionSymbol,
-                                              boolean mstrs) throws ParserException{
+                                              boolean mstrs) throws ParserException {
         Term child1, child2;
         FunctionSymbol f;
-        Type type;
         f = data.lookupFunctionSymbol(functionSymbol);
-        type = f.queryType();
-        child1 = readTermType(tree.getChild(0), data, type, mstrs);
-        child2 = readTermType(tree.getChild(2), data, type, mstrs);
+        if (binaryBoolOperators.contains(f.queryName())){
+            child1 = readTermType(tree.getChild(0), data, boolSort, mstrs);
+            child2 = readTermType(tree.getChild(2), data, boolSort, mstrs);
+        } else {
+            child1 = readTermType(tree.getChild(0), data, intSort, mstrs);
+            child2 = readTermType(tree.getChild(2), data, intSort, mstrs);
+        }
         return new FunctionalTerm(f, child1, child2);
     }
 
-    private Term readLogicalTerm(ParseTree tree, ParseData data, Type expectedType,
-                                 boolean mstrs) throws ParserException {
-        if (expectedType != null && !expectedType.isBaseType()) {
-            throw buildError (tree, "Trying to read a term of a non-basic type!");
+    private Term getNewFunctionalTermHighArity(ParseTree tree, ParseData data, boolean mstrs) throws ParserException {
+        verifyChildIsToken(tree, 1, "BRACKETOPEN", "Opening bracket '('");
+        verifyChildIsToken(tree, tree.getChildCount()-1, "BRACKETCLOSE", "Closing bracket ')'");
+        ArrayList<ParseTree> args = new ArrayList<>();
+        if (tree.getChildCount() > 3) readTermList(tree.getChild(2), args);
+        FunctionSymbol f = readFunctionSymbol(tree.getChild(0), data, args.size(), mstrs);
+        Type type = f.queryType();
+        ArrayList<Term> termargs = new ArrayList<>();
+        for (ParseTree arg : args) {
+            Type input = type.queryArrowInputType();
+            termargs.add(readTermType(arg, data, input, mstrs));
+            type = type.queryArrowOutputType();
         }
-        if (tree.getChildCount() == 1) {
-            return readConstantOrVariable(tree.getChild(0), data, expectedType, mstrs);
-        }
-        FunctionSymbol f;
-        Type type;
-        ArrayList<Term> termArgs = new ArrayList<>();
-        if (tree.getChildCount() == 2) {
-            verifyChildIsToken(tree, 0, "NEGATION", "boolean negation sign");
+        return new FunctionalTerm(f, termargs);
+    }
 
-        }
-        if (tree.getChildCount() == 3) {
-            verifyChildIsRule(tree, 0, "term", "a term");
-            verifyChildIsRule(tree, 2, "term", "a term");
-            String kind = checkChild(tree, 1);
-            if (kind.equals("token CONJUNCTION")) {
-                Type t = null;
-            } else if (kind.equals("token DISJUNCTION")) {
-
-            } else if (kind.equals("token CONDITIONAL")) {
-
-            } else if (kind.equals("token BICONDITIONAL")) {
-
-            }
-        }
-        return null;
+    private Term readLogicalConstraint(ParseTree tree, ParseData data, boolean mstrs) throws ParserException {
+        verifyChildIsToken(tree, 0, "SQUAREOPEN", "Opening square bracket '['");
+        verifyChildIsRule(tree, 1, "term", "Logical Term");
+        verifyChildIsToken(tree, 2, "SQUARECLOSE", "Closing square bracket ']'");
+        Term t = readTermType(tree.getChild(1), data, boolSort, mstrs);
+        return t;
     }
 
     /** This function reads a trsrule from the given parse tree. */
@@ -414,28 +392,22 @@ public class LcTrsInputReader extends InputReader{
         verifyChildIsRule(tree, 0, "term", "a term");
         verifyChildIsToken(tree, 1, "ARROW", "an arrow '->'");
         verifyChildIsRule(tree, 2, "term", "a term");
-        String kind = checkChild(tree, 3);
-        Term c = null;
-        if (kind.equals("token SQUAREOPEN")) {
-            verifyChildIsToken(tree, 3, "SQUAREOPEN", "Opening square bracket '['");
-            verifyChildIsRule(tree, 4, "term", "Logical Term");
-            verifyChildIsToken(tree, 5, "SQUARECLOSE", "Closing square bracket ']'");
-            c = readTermType(tree.getChild(4), data, null, mstrs);
-        }
+        FunctionSymbol a;
         Term l = readTermType(tree.getChild(0), data, null, mstrs);
         Term r = readTermType(tree.getChild(2), data, l.queryType(), mstrs);
-        if (c != null) {
-            try {
-                return new FirstOrderRule(l, r, c);
-            } catch (IllegalRuleError e) {
-                throw new ParserException(firstToken(tree), e.queryProblem());
-            }
+        String kind = checkChild(tree, 3);
+        Term c = null;
+        if (kind.equals("rule logicalconstraint")) {
+            verifyChildIsRule(tree, 3, "logicalconstraint", "Logical constraint");
+            c = readLogicalConstraint(tree.getChild(3), data, mstrs);
         } else {
-            try {
-                return new FirstOrderRule(l, r);
-            } catch (IllegalRuleError e) {
-                throw new ParserException(firstToken(tree), e.queryProblem());
-            }
+            FunctionSymbol f;
+            c = new Constant("TRUE", boolSort);
+        }
+        try {
+            return new FirstOrderRule(l, r, c);
+        } catch (IllegalRuleError e) {
+            throw new ParserException(firstToken(tree), e.queryProblem());
         }
     }
 
@@ -570,17 +542,6 @@ public class LcTrsInputReader extends InputReader{
         collector.throwCollectedExceptions();
 
         ParseData data = new ParseData(trs);
-        return reader.readTerm(tree, data, null, false);
-    }
-
-    public static Term readLogicalTermFromString(String str, TRS trs) throws ParserException {
-        ErrorCollector collector = new ErrorCollector();
-        LcTrsParser parser = createLcTrsParserFromString(str, collector);
-        LcTrsInputReader reader = new LcTrsInputReader();
-        ParseTree tree = parser.term();
-        collector.throwCollectedExceptions();
-
-        ParseData data = new ParseData(trs);
-        return reader.readTerm(tree, data, null, false);
+        return reader.readTermType(tree, data, null, false);
     }
 }

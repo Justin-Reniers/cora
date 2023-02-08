@@ -1,3 +1,7 @@
+package parsing;
+
+import cora.exceptions.TypingError;
+import cora.loggers.Logger;
 import cora.parsers.TrsInputReader;
 import org.antlr.v4.runtime.Parser;
 import org.junit.Test;
@@ -25,10 +29,15 @@ import cora.terms.FunctionalTerm;
 import cora.parsers.ErrorCollector;
 import cora.parsers.LcTrsInputReader;
 import cora.parsers.LcTrsParser;
+import cora.loggers.Logger;
+import cora.loggers.ConsoleLogger;
 
 public class LcTrsReadingTest {
+
+    public static Logger l = new Logger(new ConsoleLogger());
+
     @Test
-    public void testBasicSignature() throws ParserException{
+    public void testBasicSignatureAndStandardSortsAndFunctions() throws ParserException{
         String str = "(VAR x ys xs)\n" +
                 "(SIG (nil 0) (cons 2) (append 2) (0 0) (s 1))\n" +
                 "(RULES\n" +
@@ -43,12 +52,11 @@ public class LcTrsReadingTest {
         assertEquals(lcTrs.lookupSymbol("-->").queryType().toString(), "Bool → Bool → Bool");
         assertEquals(lcTrs.lookupSymbol("<-->").queryType().toString(), "Bool → Bool → Bool");
 
-        //assertEquals(lcTrs.lookupSymbol("-").queryType().toString(), "Int → Int");
+        assertEquals(lcTrs.lookupSymbol("-").queryType().toString(), "Int → Int");
         assertEquals(lcTrs.lookupSymbol("*").queryType().toString(), "Int → Int → Int");
         assertEquals(lcTrs.lookupSymbol("/").queryType().toString(), "Int → Int → Int");
         assertEquals(lcTrs.lookupSymbol("%").queryType().toString(), "Int → Int → Int");
         assertEquals(lcTrs.lookupSymbol("+").queryType().toString(), "Int → Int → Int");
-        assertEquals(lcTrs.lookupSymbol("-").queryType().toString(), "Int → Int → Int");
 
         assertEquals(lcTrs.lookupSymbol("<").queryType().toString(), "Int → Int → Bool");
         assertEquals(lcTrs.lookupSymbol("<=").queryType().toString(), "Int → Int → Bool");
@@ -56,6 +64,314 @@ public class LcTrsReadingTest {
         assertEquals(lcTrs.lookupSymbol(">=").queryType().toString(), "Int → Int → Bool");
         assertEquals(lcTrs.lookupSymbol("==").queryType().toString(), "Int → Int → Bool");
         assertEquals(lcTrs.lookupSymbol("!=").queryType().toString(), "Int → Int → Bool");
+    }
+
+    @Test
+    public void testBasicSignature() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool)\n" +
+                "(and   Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [True]\n" +
+                "and(z, x) -> and(x /\\ z, z)\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test(expected = TypingException.class)
+    public void testBasicSignatureIncorrectTyping() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test
+    public void testMinusOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 == t-2]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+        Logger.log(lcTrs.queryRule(0).toString());
+    }
+
+    @Test
+    public void testMinusOperator2() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 == t+-3]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+        Logger.log(lcTrs.queryRule(0).toString());
+    }
+
+    @Test
+    public void testMinusOperator3() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 == t+-3]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 == t-3]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test
+    public void testMultOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 >= t+-3*4]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 == t-3*4]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test
+    public void testWrongTypingMultOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 >= t+-3*4]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 == t-3*4]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test
+    public void testDivOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 >= t+-3/4]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 >= t-3/4]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test (expected = TypingException.class)
+    public void testWrongTypingDivOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 >= t+-y/4]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 >= t-3/x]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test
+    public void testModOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 >= t+-3%4]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 >= t-3%4]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test (expected = TypingException.class)
+    public void testWrongTypingModOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 >= t+-3%x]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 >= t-3%4]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test
+    public void testPlusOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 >= t+3+4+a]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test (expected = TypingException.class)
+    public void testWrongTypingPlusOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 >= t+x+4+a]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test
+    public void testEqualityOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 == 1]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test (expected = TypingException.class)
+    public void testWrongTypingEqualityOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [z == 1]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test
+    public void testInequalityOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 != 1]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test(expected = TypingException.class)
+    public void testWrongTypingInequalityOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [x != 1]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test(expected = TypingException.class)
+    public void testWrongTypingInequalityOperator2() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [x != y]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test
+    public void testGTOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 > 1]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test (expected = TypingException.class)
+    public void testWrongTypingGTOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 > x]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test
+    public void testLTOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 < 1]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test (expected = TypingException.class)
+    public void testWrongTypingLTOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 < x]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test
+    public void testGTEQOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 >= 1]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test (expected = TypingException.class)
+    public void testWrongTypingGTEQOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 >= x]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test
+    public void testLTEQOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 <= 1]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test (expected = TypingException.class)
+    public void testWrongTypingLTEQOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 <= x]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test (expected = TypingException.class)
+    public void testConstraintType() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
 
     @Test
@@ -71,83 +387,59 @@ public class LcTrsReadingTest {
     }
 
     @Test
-    public void readSimpleUnsortedLcTrs() throws ParserException {
-        TRS lcTrs = LcTrsInputReader.readLcTrsFromString("(VAR x y)\n" +
-                                                            "(RULES\n" +
-                                                            "plus(x, 0) -> x [a /\\ b]\n" +
-                                                            "div(x, y) -> div(x, y) [y0]\n" +
-                                                            ")");
-        assertEquals(lcTrs.lookupSymbol("plus").queryType().toString(), ("o → o → o"));
-        assertEquals(lcTrs.lookupSymbol("div").queryType().toString(), ("o → o → o"));
-        assertNull(lcTrs.lookupSymbol("x"));
-        assertNull(lcTrs.lookupSymbol("y"));
+    public void testNegationOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [~x /\\ y]\n" +
+                "~~x -> x\n" +
+                "~~~x -> ~x\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
 
     @Test
-    public void readTermInLcTrs() throws ParserException {
-        TRS lcTrs = LcTrsInputReader.readLcTrsFromString("(VAR x y)\n" +
-                                                            "(RULES\n" +
-                                                            "plus(x, 0) -> x \n)");
-        Term lt = LcTrsInputReader.readLogicalTermFromString("a /\\ b", lcTrs);
-        assertEquals(lt.toString(), "a /\\ b");
+    public void testConjunctionOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "x /\\ y /\\ z-> y /\\ x /\\ z [-1 == -3]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
 
     @Test
-    public void readRuleInLcTrs() throws ParserException {
-        TRS lcTrs = LcTrsInputReader.readLcTrsFromString("(RULES\n" +
-                                                            "plus(x, 0) -> x [a /\\ b]\n" +
-                                                            ")");
-        Term a = LcTrsInputReader.readTermFromString("plus(x, 0)", lcTrs);
-        assertEquals(a.toString(), "plus(x, 0)");
+    public void testDisjunctionOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "x /\\ y \\/ z -> z /\\ y \\/ x [-1 == -3]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
 
     @Test
-    public void readUserInputSimplify() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("Simplify");
+    public void testConditionalOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "x --> y --> z -> y --> z  [-1 == -3]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
 
     @Test
-    public void readUserInputExpansion() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("ExpAnd");
-    }
-
-    @Test
-    public void readUserInputDeletion() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("deleTe");
-    }
-
-    @Test
-    public void readUserInputPostulate() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("POSTUlate");
-    }
-
-    @Test
-    public void readUserInputGeneralization() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("generaliZE");
-    }
-
-    @Test
-    public void readUserInputGQDeletion() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("gqdelEte");
-    }
-
-    @Test
-    public void readUserInputConstructor() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("conSTRUCTOR");
-    }
-
-    @Test
-    public void readUserInputDisprove() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("DISProve");
-    }
-
-    @Test
-    public void readUserInputCompleteness() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("completeness");
-    }
-
-    @Test
-    public void readUserInputClear() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("CLeAr");
+    public void testBiconditionalOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "x <--> y <--> z -> y <--> x <--> z [-1 == -3]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
 }
