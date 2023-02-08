@@ -59,7 +59,7 @@ termlist            : term
 
 logicalconstraint   : SQUAREOPEN term SQUARECLOSE ;
 
-rewritinginduction  : SIMPLIFICATION
+rewritinginduction  : SIMPLIFICATION POS
                     | EXPANSION
                     | DELETION
                     | POSTULATE

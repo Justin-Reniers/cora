@@ -1,35 +1,17 @@
 package parsing;
 
-import cora.exceptions.TypingError;
 import cora.loggers.Logger;
-import cora.parsers.TrsInputReader;
-import org.antlr.v4.runtime.Parser;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.antlr.v4.runtime.tree.ParseTree;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeMap;
 
 import cora.exceptions.ParserException;
-import cora.exceptions.DeclarationException;
 import cora.exceptions.TypingException;
 import cora.interfaces.types.Type;
-import cora.interfaces.terms.Variable;
-import cora.interfaces.terms.FunctionSymbol;
-import cora.interfaces.terms.Term;
-import cora.interfaces.terms.Position;
-import cora.interfaces.rewriting.Rule;
 import cora.interfaces.rewriting.TRS;
-import cora.types.Sort;
-import cora.types.ArrowType;
-import cora.terms.Var;
-import cora.terms.Constant;
-import cora.terms.FunctionalTerm;
 import cora.parsers.ErrorCollector;
 import cora.parsers.LcTrsInputReader;
 import cora.parsers.LcTrsParser;
-import cora.loggers.Logger;
 import cora.loggers.ConsoleLogger;
 
 public class LcTrsReadingTest {

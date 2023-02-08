@@ -120,14 +120,8 @@ CLEAR               : C L E A R ;
 
 SWAP                : S W A P ;
 
-IDENTIFIER          : ( (~[[ \t\n\r\\()"|\],<>%*+!\-/=~{}] ) |
-                        //('>' {_input.LA(-1) != '-' & _input.LA(1) != '='}?) |
-                        //('>' {_input.LA(-2) != '-' & _input.LA(1) != '='}?) |
-                        ([a-zA-Z] {_input.LA(-1) == '-' & _input.LA(1) == '>'}?) |
-                        ([a-zA-Z] {_input.LA(-2) == '-' & _input.LA(2) == '>'}?) |
-                        ([a-zA-Z] {_input.LA(-3) == '-' & _input.LA(3) == '>'}?)
-                      )+ ;
+POS                 : [0-9] ('.' [0-9])* ;
 
-Forbidden           : '-' | '>' ;
+IDENTIFIER          : [a-zA-Z0-9]+ ;
 
 

@@ -7,6 +7,7 @@ import cora.exceptions.TypingException;
 import cora.interfaces.rewriting.Rule;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.FunctionSymbol;
+import cora.interfaces.terms.Position;
 import cora.interfaces.terms.Term;
 import cora.interfaces.types.Type;
 import cora.loggers.Logger;
@@ -445,6 +446,8 @@ public class LcTrsInputReader extends InputReader{
         return new TermRewritingSystem(data.queryCurrentAlphabet(), rules);
     }
 
+    /* ========= USER INPUT METHODS ========= */
+
     private void readUserInput(ParseTree tree){
         ParseData data = new ParseData();
         int k = 0;
@@ -455,6 +458,7 @@ public class LcTrsInputReader extends InputReader{
         String kind = checkChild(tree, 0);
         if (kind.equals("token SIMPLIFICATION")) {
             verifyChildIsToken(tree, 0, "SIMPLIFICATION", "The simplification rule");
+            verifyChildIsToken(tree, 1, "POS", "Position");
         } if (kind.equals("token EXPANSION")) {
             verifyChildIsToken(tree, 0, "EXPANSION", "The expand rule");
         } if (kind.equals("token DELETION")) {
@@ -474,6 +478,10 @@ public class LcTrsInputReader extends InputReader{
         } if (kind.equals("token CLEAR")) {
             verifyChildIsToken(tree, 0, "CLEAR", "The clear command");
         }
+    }
+
+    private void handleSimplification(Position pos) throws ParserException {
+        //TODO
     }
 
     /* ========= STATIC ACCESS METHODS ========= */

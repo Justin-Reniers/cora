@@ -82,29 +82,12 @@ public class LcTrsLexerTest {
     }
 
     @Test
-    public void testLexerUnicodeIdentifier() {
-         ArrayList<Token> ts = tokenize("½ɤ");
-         assertEquals(ts.size(), 1);
-         verifyToken(ts.get(0), LcTrsLexer.IDENTIFIER, "½ɤ");
-    }
-
-    @Test
     public void testIdentifierWithForbiddenSymbol() {
         ArrayList<Token> ts = tokenize("-ts");
         Logger.log(ts.toString());
         //assertEquals(ts.size(), 2);
         verifyToken(ts.get(0), LcTrsLexer.MINUS, "-");
         verifyToken(ts.get(1), LcTrsLexer.IDENTIFIER, "ts");
-    }
-
-    @Test
-    public void testLexerWhitespaceBetweenIdentifiers() {
-         ArrayList<Token> ts = tokenize(" ½ɤ function a \tɵ");
-         assertEquals(ts.size(), 4);
-         verifyToken(ts.get(0), LcTrsLexer.IDENTIFIER, "½ɤ");
-         verifyToken(ts.get(1), LcTrsLexer.IDENTIFIER, "function");
-         verifyToken(ts.get(2), LcTrsLexer.IDENTIFIER, "a");
-         verifyToken(ts.get(3), LcTrsLexer.IDENTIFIER, "ɵ");
     }
 
     @Test
@@ -251,8 +234,9 @@ public class LcTrsLexerTest {
 
     @Test
     public void testKeywordSimplify() {
-         ArrayList<Token> ts = tokenize("simplifY");
+         ArrayList<Token> ts = tokenize("simplifY 2.2");
          assertEquals(ts.get(0).getType(), LcTrsLexer.SIMPLIFICATION);
+         assertEquals(ts.get(1).getType(), LcTrsLexer.POS);
     }
 
     @Test
