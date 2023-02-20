@@ -77,6 +77,12 @@ public class AtrsRule extends RuleInherit implements Rule {
     return righthead.apply(args);
   }
 
+  /** Atrs Rule does not have constraints */
+  @Override
+  public Term queryConstraint() {
+    return null;
+  }
+
   public String toString() {
     return _left.toString() + " → " + _right.toString();
   }

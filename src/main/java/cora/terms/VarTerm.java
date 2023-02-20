@@ -207,12 +207,17 @@ public class VarTerm extends ApplicativeTermInherit implements Term {
   }
 
   @Override
+  /** Hashcode for Varterms based on the Variable */
   public int hashCode() {
     return Objects.hash(_x);
   }
 
+  /**
+   * Unification of a Varterm and another term.
+   * Not yet implemented.
+   */
   public Subst unify(Term other) {
-    return null;
+    throw new UnsupportedOperationException();
   }
 }
 

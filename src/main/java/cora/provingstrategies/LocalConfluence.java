@@ -4,13 +4,12 @@ import cora.interfaces.provingstrategies.Result;
 import cora.interfaces.provingstrategies.Strategy;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
-import cora.loggers.Logger;
 
 import java.util.*;
 
 public class LocalConfluence extends StrategyInherit implements Strategy{
 
-    private boolean terminating;
+    protected boolean terminating;
 
     public LocalConfluence(TRS trs, boolean terminating) {
         super(trs);
@@ -18,7 +17,7 @@ public class LocalConfluence extends StrategyInherit implements Strategy{
     }
 
 
-    public CriticalPair localConvergence(CriticalPair pair) {
+    private CriticalPair localConvergence(CriticalPair pair) {
         Queue<CriticalPair> q = new LinkedList<>();
         q.add(pair);
         while (!q.isEmpty()) {
@@ -32,12 +31,13 @@ public class LocalConfluence extends StrategyInherit implements Strategy{
             cartesian.addAll(reduce_left);
             for (CriticalPair new_pair : cartesian) {
                 if (new_pair.getLeft().equals(new_pair.getRight())) return new_pair;
+                q.add(new_pair);
             }
         }
         return new CriticalPair(null, null);
     }
 
-    private List<CriticalPair> cartesian(Term unreduced, List<Term> reduced) {
+    protected List<CriticalPair> cartesian(Term unreduced, List<Term> reduced) {
         List<CriticalPair> reductions = new ArrayList<>();
         for (Term t : reduced) {
             reductions.add(new CriticalPair(unreduced, t));
@@ -47,13 +47,11 @@ public class LocalConfluence extends StrategyInherit implements Strategy{
 
     @Override
     public Result apply() {
-        Logger.log("Local Convergence");
         boolean converges = true;
         for (CriticalPair pair : super.criticalPairs) {
             CriticalPair local_convergence = localConvergence(pair);
             if (local_convergence.getLeft() == null || local_convergence.getRight() == null) converges = false;
         }
-        Logger.log("Here");
         if (converges) {
             if (terminating)
                 return new ResultInherit(Result.RESULT.CONFLUENT);

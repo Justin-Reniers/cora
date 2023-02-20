@@ -45,7 +45,7 @@ import cora.rewriting.*;
  */
 public class CoraInputReader extends InputReader {
   public CoraInputReader() {
-    super(CoraParser.VOCABULARY, CoraParser.ruleNames);
+    super(cora.parsers.CoraParser.VOCABULARY, cora.parsers.CoraParser.ruleNames);
   }
 
   /* ========== BASICS (beyond those supplied by the inherit) ========== */
@@ -335,24 +335,24 @@ public class CoraInputReader extends InputReader {
   /* ========== STATIC ACCESS METHODS ========== */
 
   /** Sets up a (lexer and) parser with the given error collector as listeners. */
-  private static CoraParser createCoraParserFromString(String str, ErrorCollector collector) {
-    CoraLexer lexer = new CoraLexer(CharStreams.fromString(str));
+  private static cora.parsers.CoraParser createCoraParserFromString(String str, ErrorCollector collector) {
+    cora.parsers.CoraLexer lexer = new cora.parsers.CoraLexer(CharStreams.fromString(str));
     lexer.removeErrorListeners();
     lexer.addErrorListener(collector);
-    CoraParser parser = new CoraParser(new CommonTokenStream(lexer));
+    cora.parsers.CoraParser parser = new cora.parsers.CoraParser(new CommonTokenStream(lexer));
     parser.removeErrorListeners();
     parser.addErrorListener(collector);
     return parser;
   }
 
   /** Sets up a (lexer and) parser from the given file, using the given error collector. */
-  private static CoraParser createCoraParserFromFile(String filename, ErrorCollector collector)
+  private static cora.parsers.CoraParser createCoraParserFromFile(String filename, ErrorCollector collector)
                                                                                throws IOException {
     ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(filename));
-    CoraLexer lexer = new CoraLexer(input);
+    cora.parsers.CoraLexer lexer = new cora.parsers.CoraLexer(input);
     lexer.removeErrorListeners();
     lexer.addErrorListener(collector);
-    CoraParser parser = new CoraParser(new CommonTokenStream(lexer));
+    cora.parsers.CoraParser parser = new cora.parsers.CoraParser(new CommonTokenStream(lexer));
     parser.removeErrorListeners();
     parser.addErrorListener(collector);
     return parser;
@@ -362,7 +362,7 @@ public class CoraInputReader extends InputReader {
   /** Returns the Type represented by the given string. */
   public static Type readTypeFromString(String str) throws ParserException {
     ErrorCollector collector = new ErrorCollector();
-    CoraParser parser = createCoraParserFromString(str, collector);
+    cora.parsers.CoraParser parser = createCoraParserFromString(str, collector);
     CoraInputReader reader = new CoraInputReader();
     ParseTree tree = parser.onlytype();
     collector.throwCollectedExceptions();
@@ -377,7 +377,7 @@ public class CoraInputReader extends InputReader {
   public static Term readTermFromString(String str, TRS trs, Type expectedType)
                                                           throws ParserException {
     ErrorCollector collector = new ErrorCollector();
-    CoraParser parser = createCoraParserFromString(str, collector);
+    cora.parsers.CoraParser parser = createCoraParserFromString(str, collector);
     CoraInputReader reader = new CoraInputReader();
     ParseTree tree = parser.onlyterm();
     collector.throwCollectedExceptions();
@@ -393,7 +393,7 @@ public class CoraInputReader extends InputReader {
   public static Term testReadTermFromString(String str, ParseData pd, Type expectedType)
                                                               throws ParserException {
     ErrorCollector collector = new ErrorCollector();
-    CoraParser parser = createCoraParserFromString(str, collector);
+    cora.parsers.CoraParser parser = createCoraParserFromString(str, collector);
     CoraInputReader reader = new CoraInputReader();
     ParseTree tree = parser.onlyterm();
     collector.throwCollectedExceptions();
@@ -408,7 +408,7 @@ public class CoraInputReader extends InputReader {
    */
   public static Term readTermFromString(String str, TRS trs) {
     ErrorCollector collector = new ErrorCollector();
-    CoraParser parser = createCoraParserFromString(str, collector);
+    cora.parsers.CoraParser parser = createCoraParserFromString(str, collector);
     CoraInputReader reader = new CoraInputReader();
     ParseTree tree = parser.onlyterm();
 
@@ -427,7 +427,7 @@ public class CoraInputReader extends InputReader {
   /** Parses the given program, and returns the TRS that it defines. */
   public static TRS readProgramFromString(String str) throws ParserException {
     ErrorCollector collector = new ErrorCollector();
-    CoraParser parser = createCoraParserFromString(str, collector);
+    cora.parsers.CoraParser parser = createCoraParserFromString(str, collector);
     CoraInputReader reader = new CoraInputReader();
     ParseTree tree = parser.input();
     collector.throwCollectedExceptions();
@@ -438,7 +438,7 @@ public class CoraInputReader extends InputReader {
   /** Reads the given file, parses the program in it, and returns the TRS that it defines. */
   public static TRS readProgramFromFile(String filename) throws ParserException, IOException {
     ErrorCollector collector = new ErrorCollector();
-    CoraParser parser = createCoraParserFromFile(filename, collector);
+    cora.parsers.CoraParser parser = createCoraParserFromFile(filename, collector);
     CoraInputReader reader = new CoraInputReader();
     ParseTree tree = parser.input();
     collector.throwCollectedExceptions();

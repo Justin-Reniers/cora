@@ -2,6 +2,8 @@ package cora.provingstrategies;
 
 import cora.interfaces.terms.Term;
 
+import java.util.Objects;
+
 public class CriticalPair {
 
     private final Term left;
@@ -33,5 +35,22 @@ public class CriticalPair {
     @Override
     public String toString() {
         return "[" + left.toString() + ", " + right.toString() + "]";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null)
+            return false;
+        if (!(o instanceof CriticalPair))
+            return false;
+        CriticalPair cp = (CriticalPair) o;
+        if (!this.left.equals(cp.getLeft()))
+            return false;
+        return this.right.equals(cp.getRight());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(left.hashCode(), right.hashCode());
     }
 }

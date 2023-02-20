@@ -31,6 +31,9 @@ public interface Rule {
   /** For a rule l -> r, this function returns r. */
   Term queryRightSide();
 
+  /** For a rule l -> r [c], this function returns c. */
+  Term queryConstraint();
+
   /** For a rule l -> r, returns the type of l (which should also be the type of r). */
   Type queryType();
 

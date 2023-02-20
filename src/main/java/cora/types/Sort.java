@@ -27,6 +27,12 @@ public class Sort implements BaseType {
   /** The unit sort is the unique sort that is used for "unsorted" term rewriting. */
   public static Sort unitSort = new Sort("o");
 
+  /** The bool sort is the sort representing booleans in term rewriting. */
+  public static Sort boolSort = new Sort("Bool");
+
+  /** The int sort is the sort representing integers in term rewriting. */
+  public static Sort intSort = new Sort("Int");
+
   public Sort(String name) {
     if (name == null) throw new NullInitialisationError("Sort", "name");
     _name = name;

@@ -8,21 +8,10 @@ import cora.interfaces.terms.Term;
 import java.util.*;
 
 
-public class LocalConfluenceExtended extends StrategyInherit implements Strategy{
-
-    private boolean terminating;
+public class LocalConfluenceExtended extends LocalConfluence implements Strategy{
 
     public LocalConfluenceExtended(TRS trs, boolean terminating) {
-        super(trs);
-        this.terminating = terminating;
-    }
-
-    protected List<CriticalPair> cartesian(Term unreduced, List<Term> reduced) {
-        List<CriticalPair> reductions = new ArrayList<>();
-        for (Term t : reduced) {
-            reductions.add(new CriticalPair(unreduced, t));
-        }
-        return reductions;
+        super(trs, terminating);
     }
 
     private CriticalPair localConvergence(CriticalPair pair) {
@@ -34,8 +23,8 @@ public class LocalConfluenceExtended extends StrategyInherit implements Strategy
             CriticalPair terms = q.poll();
             List<Term> left_reductions = trs.breadthFirstReduce(terms.getLeft());
             List<Term> right_reductions = trs.breadthFirstReduce(terms.getRight());
-            List<CriticalPair> reduce_left = cartesian(terms.getRight(), left_reductions);
-            List<CriticalPair> reduce_right = cartesian(terms.getLeft(), right_reductions);
+            List<CriticalPair> reduce_left = super.cartesian(terms.getRight(), left_reductions);
+            List<CriticalPair> reduce_right = super.cartesian(terms.getLeft(), right_reductions);
             List<CriticalPair> cartesian = new ArrayList<>();
             cartesian.addAll(reduce_right);
             cartesian.addAll(reduce_left);
@@ -54,10 +43,13 @@ public class LocalConfluenceExtended extends StrategyInherit implements Strategy
         boolean converges = true;
         for (CriticalPair pair : this.criticalPairs) {
             CriticalPair local_convergence = this.localConvergence(pair);
-            if (local_convergence.getLeft() == null || local_convergence.getRight() == null) converges = false;
+            if (local_convergence.getLeft() == null || local_convergence.getRight() == null) {
+                converges = false;
+                break;
+            }
         }
         if (converges) {
-            if (terminating) {
+            if (super.terminating) {
                 return new ResultInherit(Result.RESULT.CONFLUENT);
             }
             return new ResultInherit(Result.RESULT.LOCALLY_CONFLUENT);
