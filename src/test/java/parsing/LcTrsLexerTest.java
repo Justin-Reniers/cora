@@ -53,25 +53,21 @@ public class LcTrsLexerTest {
     @Test
     public void testMinusArrowConditional() {
         ArrayList<Token> ts = tokenize("t --> -> - --> -->");
-        Logger.log(ts.toString());
     }
 
     @Test
     public void testSymbolsInIdentifier() {
         ArrayList<Token> ts = tokenize("=a=b==ts+t==st>=ts<=s");
-        Logger.log(ts.toString());
     }
 
     @Test
     public void testInvalidSymbolsInIdentifier() {
         ArrayList<Token> ts = tokenize("a()ts)a|a\\a]a[a],a<a>>=a=%a*a-a/a~a{a}");
-        Logger.log(ts.toString());
     }
 
     @Test
     public void testArrowsInIdentifier() {
         ArrayList<Token> ts = tokenize("ts->t-->st<-->tss");
-        Logger.log(ts.toString());
     }
 
     @Test
@@ -84,15 +80,14 @@ public class LcTrsLexerTest {
     @Test
     public void testIdentifierWithForbiddenSymbol() {
         ArrayList<Token> ts = tokenize("-ts");
-        Logger.log(ts.toString());
-        //assertEquals(ts.size(), 2);
+        assertEquals(ts.size(), 2);
         verifyToken(ts.get(0), LcTrsLexer.MINUS, "-");
         verifyToken(ts.get(1), LcTrsLexer.IDENTIFIER, "ts");
     }
 
     @Test
     public void testLexerAllBasicTokens() {
-        ArrayList<Token> ts = tokenize("a(o){,er _8}[eaf]");
+        ArrayList<Token> ts = tokenize("a(o){,er 8}[eaf]");
         assertEquals(ts.size(), 12);
         assertEquals(ts.get(0).getType(), LcTrsLexer.IDENTIFIER);
         assertEquals(ts.get(1).getType(), LcTrsLexer.BRACKETOPEN);

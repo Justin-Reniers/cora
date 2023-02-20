@@ -16,6 +16,7 @@
 package cora;
 
 import com.beust.jcommander.JCommander;
+import com.beust.jcommander.JCommander.*;
 import com.beust.jcommander.Parameter;
 import cora.interfaces.provingstrategies.Result;
 import cora.interfaces.rewriting.TRS;
@@ -109,7 +110,7 @@ public class Main {
    */
   public static void main(String[] args) {
     try {
-      if (args.length == 0) args = new String[] {"-i", "test.trs", "-t", "lce"};
+      if (args.length == 0) args = new String[] {"-i", "test.trs", "-t", "lc"};
 
       CliArgs cliArgs = new CliArgs();
       JCommander.newBuilder().addObject(cliArgs).build().parse(args);

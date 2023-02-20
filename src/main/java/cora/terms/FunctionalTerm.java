@@ -211,8 +211,8 @@ public class FunctionalTerm extends ApplicativeTermInherit implements Term {
       for (int i = 0; i < _args.size(); i++) {
         Substitution sigma_i = _args.get(i).substitute(sigma).unify(other.queryImmediateSubterm(i+1));
         if (sigma_i == null) return null;
-        for (var x : sigma_i.domain()) {
-          var sigma_i_x = sigma_i.get(x).substitute(sigma);
+        for (Variable x : sigma_i.domain()) {
+          Term sigma_i_x = sigma_i.get(x).substitute(sigma);
           if (!sigma.extend(x, sigma_i_x) && sigma.get(x) != null && !sigma.get(x).equals(sigma_i_x)) return null;
           other = other.substitute(sigma);
           for (Variable v : new HashSet<>(sigma.domain())) {

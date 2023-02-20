@@ -120,8 +120,6 @@ CLEAR               : C L E A R ;
 
 SWAP                : S W A P ;
 
-POS                 : [0-9] ('.' [0-9])* ;
-
 IDENTIFIER          : [a-zA-Z0-9]+ ;
 
-
+POS                 : [0-9] ('.' [0-9])* ;

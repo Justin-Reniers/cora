@@ -81,7 +81,6 @@ public class LcTrsReadingTest {
                 "or(z, or(x, y)) -> z /\\ y \\/ x [1 == t-2]\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
-        Logger.log(lcTrs.queryRule(0).toString());
     }
 
     @Test
@@ -93,7 +92,6 @@ public class LcTrsReadingTest {
                 "or(z, or(x, y)) -> z /\\ y \\/ x [1 == t+-3]\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
-        Logger.log(lcTrs.queryRule(0).toString());
     }
 
     @Test

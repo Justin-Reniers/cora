@@ -53,7 +53,7 @@ public class TrsInputReader extends InputReader {
   private static Type unitSort = Sort.unitSort;
   
   public TrsInputReader() {
-    super(TrsParser.VOCABULARY, TrsParser.ruleNames);
+    super(cora.parsers.TrsParser.VOCABULARY, cora.parsers.TrsParser.ruleNames);
   }
 
   /* ========== READING FUNCTION AND VARIABLE DECLARATIONS ========== */
@@ -364,24 +364,24 @@ public class TrsInputReader extends InputReader {
   /* ========== STATIC ACCESS METHODS ========== */
 
   /** Note: public ONLY for use in unit testing; please use the static access methods otherwise. */
-  public static TrsParser createTrsParserFromString(String str, ErrorCollector collector) {
-    TrsLexer lexer = new TrsLexer(CharStreams.fromString(str));
+  public static cora.parsers.TrsParser createTrsParserFromString(String str, ErrorCollector collector) {
+    cora.parsers.TrsLexer lexer = new cora.parsers.TrsLexer(CharStreams.fromString(str));
     lexer.removeErrorListeners();
     lexer.addErrorListener(collector);
-    TrsParser parser = new TrsParser(new CommonTokenStream(lexer));
+    cora.parsers.TrsParser parser = new cora.parsers.TrsParser(new CommonTokenStream(lexer));
     parser.removeErrorListeners();
     parser.addErrorListener(collector);
     return parser;
   }
 
   /** Sets up a (lexer and) parser from the given file, using the given error collector. */
-  private static TrsParser createTrsParserFromFile(String filename, ErrorCollector collector)
+  private static cora.parsers.TrsParser createTrsParserFromFile(String filename, ErrorCollector collector)
                                                                                throws IOException {
     ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(filename));
-    TrsLexer lexer = new TrsLexer(input);
+    cora.parsers.TrsLexer lexer = new cora.parsers.TrsLexer(input);
     lexer.removeErrorListeners();
     lexer.addErrorListener(collector);
-    TrsParser parser = new TrsParser(new CommonTokenStream(lexer));
+    cora.parsers.TrsParser parser = new cora.parsers.TrsParser(new CommonTokenStream(lexer));
     parser.removeErrorListeners();
     parser.addErrorListener(collector);
     return parser;
@@ -394,7 +394,7 @@ public class TrsInputReader extends InputReader {
   public static Term readUnsortedTermFromString(String str, ArrayList<String> varnames)
                                                                       throws ParserException {
     ErrorCollector collector = new ErrorCollector();
-    TrsParser parser = createTrsParserFromString(str, collector);
+    cora.parsers.TrsParser parser = createTrsParserFromString(str, collector);
     TrsInputReader reader = new TrsInputReader();
     ParseTree tree = parser.term();
     collector.throwCollectedExceptions();
@@ -414,7 +414,7 @@ public class TrsInputReader extends InputReader {
    */
   public static Term readTermFromString(String str, TRS trs) throws ParserException {
     ErrorCollector collector = new ErrorCollector();
-    TrsParser parser = createTrsParserFromString(str, collector);
+    cora.parsers.TrsParser parser = createTrsParserFromString(str, collector);
     TrsInputReader reader = new TrsInputReader();
     ParseTree tree = parser.term();
     collector.throwCollectedExceptions();
@@ -426,7 +426,7 @@ public class TrsInputReader extends InputReader {
   /** Parses the given program, and returns the TRS that it defines. */
   public static TRS readTrsFromString(String str) throws ParserException {
     ErrorCollector collector = new ErrorCollector();
-    TrsParser parser = createTrsParserFromString(str, collector);
+    cora.parsers.TrsParser parser = createTrsParserFromString(str, collector);
     TrsInputReader reader = new TrsInputReader();
     ParseTree tree = parser.trs();
     collector.throwCollectedExceptions();
@@ -437,7 +437,7 @@ public class TrsInputReader extends InputReader {
   /** Reads the given file, parses the program in it, and returns the TRS that it defines. */
   public static TRS readTrsFromFile(String filename) throws ParserException, IOException {
     ErrorCollector collector = new ErrorCollector();
-    TrsParser parser = createTrsParserFromFile(filename, collector);
+    cora.parsers.TrsParser parser = createTrsParserFromFile(filename, collector);
     TrsInputReader reader = new TrsInputReader();
     ParseTree tree = parser.trs();
     collector.throwCollectedExceptions();

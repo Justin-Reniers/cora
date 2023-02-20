@@ -36,14 +36,14 @@ public class LcTrsInputReader extends InputReader{
     private static final Type unitSort = Sort.unitSort;
     private static final Type boolSort = Sort.boolSort;
     private static final Type intSort = Sort.intSort;
-    private static final ArrayList<String> unaryBoolOperators = new ArrayList<>(){{add("~");}};
+    private static final ArrayList<String> unaryBoolOperators = new ArrayList<>(Arrays.asList("~"));
     private static final ArrayList<String> binaryBoolOperators = new ArrayList<>(Arrays.asList("/\\", "\\/", "-->", "<-->"));
-    private static final ArrayList<String> unaryIntOperators = new ArrayList<>(){{add("-");}};
+    private static final ArrayList<String> unaryIntOperators = new ArrayList<>(Arrays.asList("-"));
     private static final ArrayList<String> binaryIntOperators = new ArrayList<>(Arrays.asList("*", "/", "%", "+"));
     private static final ArrayList<String> binaryIntComparison = new ArrayList<>(Arrays.asList("<", "<=", ">", ">=", "==", "!="));
 
 
-    public LcTrsInputReader() { super(LcTrsParser.VOCABULARY, LcTrsParser.ruleNames); }
+    public LcTrsInputReader() { super(cora.parsers.LcTrsParser.VOCABULARY, cora.parsers.LcTrsParser.ruleNames); }
 
     /* ========= READING FUNCTION AND VARIABLE DECLARATIONS ========= */
 
