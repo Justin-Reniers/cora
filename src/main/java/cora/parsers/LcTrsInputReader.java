@@ -56,12 +56,13 @@ public class LcTrsInputReader extends InputReader{
      */
     public void handleVarList(ParseTree tree, ParseData data) throws ParserException {
         int k = tree.getChildCount()-1;
-        verifyChildIsToken(tree, 0, "BRACKETOPEN", "opening bracket ')'");
-        verifyChildIsToken(tree, 1, "VARDECSTART", "Start of a variable list: (VAR");
+        verifyChildIsToken(tree, 0, "BRACKETOPEN", "opening bracket '('");
+        verifyChildIsToken(tree, 1, "VARDECSTART", "Start of a variable list: VAR");
         verifyChildIsToken(tree, k, "BRACKETCLOSE", "closing bracket ')'");
         for (int i = 2; i < k; i++) {
-            verifyChildIsToken(tree, i, "IDENTIFIER", "variable name (identifier)");
+            verifyChildIsRule(tree, i, "identifier", "variable name (identifier)");
             String n = tree.getChild(i).getText();
+            verifyChildIsToken(tree.getChild(i), 0, "WORD", "word identifier");
             if (data.lookupVariable(n) != null) {
                 throw new ParserException(firstToken(tree), "Double declaration of variable" + n);
             }
@@ -94,19 +95,19 @@ public class LcTrsInputReader extends InputReader{
      */
     public Type readTypeOrArity(ParseTree tree) throws ParserException {
         if (tree.getChildCount() == 1) {
-            verifyChildIsToken(tree, 0, "IDENTIFIER", "integer identifier");
+            verifyChildIsToken(tree, 0, "NUM", "integer identifier");
             return readIntegerType(tree.getChild(0));
         }
         int k = tree.getChildCount()-2;
         verifyChildIsToken(tree, k, "ARROW", "type arrow");
-        verifyChildIsToken(tree, k+1, "IDENTIFIER", "identifier");
+        verifyChildIsRule(tree, k+1, "identifier", "identifier");
         String output = tree.getChild(k+1).getText();
         Type res;
         if (output.toLowerCase().equals("int")) res = intSort;
         else if (output.toLowerCase().equals("bool") || output.toLowerCase().equals("boolean")) res = boolSort;
         else res = new Sort(output);
         for (int i = k-1; i >= 0; i--) {
-            verifyChildIsToken(tree, i, "IDENTIFIER", "identifier (argument)");
+            verifyChildIsRule(tree, i, "identifier", "identifier (argument)");
             String arg = tree.getChild(i).getText();
             res = new ArrowType(new Sort(arg), res);
         }
@@ -119,10 +120,11 @@ public class LcTrsInputReader extends InputReader{
      */
     public void handleDeclaration(ParseTree tree, ParseData data) throws ParserException {
         verifyChildIsToken(tree,0,"BRACKETOPEN", "opening bracket '('");
-        verifyChildIsToken(tree, 1, "IDENTIFIER", "identifier (function name)");
+        verifyChildIsRule(tree, 1, "identifier", "identifier (function name)");
         verifyChildIsRule(tree, 2, "typeorarity", "integer or sort declaration");
         verifyChildIsToken(tree, 3, "BRACKETCLOSE", "closing bracket ')'");
 
+        verifyChildIsToken(tree.getChild(1), 0, "WORD", "word identifier");
         String funcname = tree.getChild(1).getText();
         Type type = readTypeOrArity(tree.getChild(2));
 
@@ -291,7 +293,6 @@ public class LcTrsInputReader extends InputReader{
      */
     private Term readTermType(ParseTree tree, ParseData data, Type expectedType,
                                 boolean mstrs) throws ParserException {
-        String kidn2 = checkChild(tree, 0);
         if (expectedType != null && !expectedType.isBaseType()) {
             throw buildError(tree, "Trying to read a term of a non-basic type!");
         }

@@ -28,21 +28,22 @@ trs                 : varlist? siglist? ruleslist EOF
                     | rewritinginduction EOF
                     ;
 
-varlist             : BRACKETOPEN VARDECSTART IDENTIFIER* BRACKETCLOSE ;
+varlist             : BRACKETOPEN VARDECSTART identifier* BRACKETCLOSE ;
 
 siglist             : BRACKETOPEN SIGSTART fundec* BRACKETCLOSE ;
 
 ruleslist           : BRACKETOPEN RULEDECSTART trsrule* BRACKETCLOSE ;
 
-typeorarity         : IDENTIFIER | IDENTIFIER* ARROW IDENTIFIER ;
+typeorarity         : identifier | identifier* ARROW identifier ;
 
-fundec              : BRACKETOPEN IDENTIFIER typeorarity BRACKETCLOSE ;
+fundec              : BRACKETOPEN identifier typeorarity BRACKETCLOSE ;
 
 trsrule             : term ARROW term logicalconstraint? ;
 
-term                : IDENTIFIER
-                    | IDENTIFIER BRACKETOPEN BRACKETCLOSE
-                    | IDENTIFIER BRACKETOPEN termlist BRACKETCLOSE
+term                : identifier
+                    | identifier BRACKETOPEN BRACKETCLOSE
+                    | identifier BRACKETOPEN termlist BRACKETCLOSE
+                    | numeric
                     | (MINUS | NEGATION) term
                     | term (MULT | DIV | MOD) term
                     | term (PLUS | MINUS) term
@@ -57,9 +58,15 @@ termlist            : term
                     | term COMMA termlist
                     ;
 
+identifier          : WORD
+                    ;
+
+numeric             : NUM
+                    ;
+
 logicalconstraint   : SQUAREOPEN term SQUARECLOSE ;
 
-rewritinginduction  : SIMPLIFICATION POS
+rewritinginduction  : SIMPLIFICATION pos NUM
                     | EXPANSION
                     | DELETION
                     | POSTULATE
@@ -72,3 +79,4 @@ rewritinginduction  : SIMPLIFICATION POS
                     | SWAP
                     ;
 
+pos                 : NUM (DOT pos)* ;
