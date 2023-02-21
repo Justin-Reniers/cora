@@ -6,6 +6,7 @@ import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.FunctionSymbol;
 import cora.interfaces.terms.Position;
 import cora.interfaces.terms.Term;
+import cora.loggers.Logger;
 
 public class SimplifyCommand extends UserCommandInherit implements UserCommand {
 
@@ -28,7 +29,9 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
         Term subTerm;
         if (_pos == null) return false;
         subTerm = t.querySubterm(_pos);
-        if (!lcTrs.queryRule(_ruleIndex).applicable(subTerm)) return false;
+        if (!lcTrs.queryRule(_ruleIndex).applicable(subTerm)) {
+            return false;
+        }
         FunctionSymbol fSymbol = lcTrs.queryRule(_ruleIndex).queryConstraint().queryRoot();
         if (!fSymbol.queryRoot().equals(lcTrs.lookupSymbol("TRUE"))) return false;
         return true;
@@ -40,14 +43,19 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
         if (lcTrs.queryRule(_ruleIndex).queryConstraint().queryRoot().equals(lcTrs.lookupSymbol("TRUE"))) {
             return applyUnconstrainedRule(lcTrs, t);
         }
+        //Case 2: Constraint met
+        else if (!lcTrs.queryRule(_ruleIndex).queryConstraint().queryRoot().equals(lcTrs.lookupSymbol("FALSE"))) {
+            return null;
+        }
+        //Case 3: Calculation rules
         return null;
     }
 
     private Term applyUnconstrainedRule(TRS lcTrs, Term t) {
         Term subTerm = t.querySubterm(_pos);
-        lcTrs.queryRule(_ruleIndex).apply(subTerm);
-        t.replaceSubterm(_pos, subTerm);
-        return t;
+        subTerm = lcTrs.queryRule(_ruleIndex).apply(subTerm);
+        Term ret =  t.replaceSubterm(_pos, subTerm);
+        return ret;
     }
 
     @Override

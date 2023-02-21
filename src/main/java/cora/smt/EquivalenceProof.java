@@ -9,30 +9,35 @@ import cora.loggers.Logger;
 import cora.parsers.LcTrsInputReader;
 
 import javax.swing.text.html.parser.Parser;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.sql.Array;
 import java.util.ArrayList;
 
 public class EquivalenceProof implements Proof {
     private TRS _lcTrs;
-    private Term _left, _right;
-    private String _uCommand;
-    private ArrayList<ProofHistory> _uCommands;
+    private Term _left, _right, _constraint;
+    private ArrayList<ProofHistory> _history;
 
-    public EquivalenceProof(TRS lcTrs, Term left, Term right) {
+    public EquivalenceProof(TRS lcTrs, Term left, Term right, Term constraint) {
         _lcTrs = lcTrs;
         _left = left;
         _right = right;
+        _constraint = constraint;
+        _history = new ArrayList<ProofHistory>();
     }
 
+    @Override
     public boolean applyNewUserCommand(String uCommand) {
         try {
-            //TODO make inputreader return usercommand, fiddle around with TRS passing or no
             UserCommand uc = LcTrsInputReader.readUserInputFromString(uCommand);
             if (uc instanceof SwapCommand) {
                 Term temp = _left;
                 _left = _right;
                 _right = temp;
-            }
-            else if (uc.applicable(_lcTrs, _left)) uc.apply(_lcTrs, _left);
+            } else if (uc.applicable(_lcTrs, _left)) _left = uc.apply(_lcTrs, _left);
+            _history.add(new ProofHistory(_left, _right, _constraint, uc));
             return true;
         } catch (ParserException e) {
             Logger.log(e.toString());
@@ -41,8 +46,15 @@ public class EquivalenceProof implements Proof {
     }
 
     @Override
-    public void writeToFile(String filePath) {
+    public void saveStateToFile(String filePath) throws IOException {
+        FileWriter fw = new FileWriter(filePath);
+        for (ProofHistory ph : _history) fw.write(ph.toString() + "\n");
+        fw.close();
+    }
 
+    @Override
+    public UserCommand getLastCommand() {
+        return _history.get(_history.size() - 1).getUserCommand();
     }
 
     @Override
@@ -62,6 +74,12 @@ public class EquivalenceProof implements Proof {
 
     @Override
     public String toString() {
-        return "";
+        return _lcTrs.toString() + "\n" + _left.toString() + "\t" + _right.toString() +
+                "\t[" + _constraint.toString() + "]";
+    }
+
+    @Override
+    public String currentState() {
+        return _left.toString() + "\t" + _right.toString() + "\t[" + _constraint.toString() + "]";
     }
 }
