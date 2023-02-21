@@ -1,11 +1,9 @@
 package cora.parsers;
 
-import cora.exceptions.DeclarationException;
-import cora.exceptions.IllegalRuleError;
-import cora.exceptions.ParserException;
-import cora.exceptions.TypingException;
+import cora.exceptions.*;
 import cora.interfaces.rewriting.Rule;
 import cora.interfaces.rewriting.TRS;
+import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.FunctionSymbol;
 import cora.interfaces.terms.Position;
 import cora.interfaces.terms.Term;
@@ -13,9 +11,13 @@ import cora.interfaces.types.Type;
 import cora.loggers.Logger;
 import cora.rewriting.FirstOrderRule;
 import cora.rewriting.TermRewritingSystem;
+import cora.smt.SimplifyCommand;
+import cora.smt.SwapCommand;
 import cora.terms.Constant;
 import cora.terms.FunctionalTerm;
 import cora.terms.Var;
+import cora.terms.positions.ArgumentPosition;
+import cora.terms.positions.EmptyPosition;
 import cora.types.ArrowType;
 import cora.types.Sort;
 import org.antlr.v4.runtime.CharStream;
@@ -23,6 +25,7 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import java.io.IOException;
+import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -449,40 +452,63 @@ public class LcTrsInputReader extends InputReader{
 
     /* ========= USER INPUT METHODS ========= */
 
-    private void readUserInput(ParseTree tree){
+    private UserCommand readUserInput(ParseTree tree) throws ParserException{
         ParseData data = new ParseData();
         int k = 0;
-        handleUserInput(tree.getChild(k), data);
+        return handleUserInput(tree.getChild(k));
     }
 
-    private void handleUserInput(ParseTree tree, ParseData data) {
+    private UserCommand handleUserInput(ParseTree tree) throws ParserException {
         String kind = checkChild(tree, 0);
         if (kind.equals("token SIMPLIFICATION")) {
             verifyChildIsToken(tree, 0, "SIMPLIFICATION", "The simplification rule");
-            verifyChildIsToken(tree, 1, "POS", "Position");
+            verifyChildIsRule(tree, 1, "pos", "Position rule");
+            verifyChildIsToken(tree, 2, "NUM", "Rule index numerical");
+            Position pos = parsePosition(tree.getChild(1));
+            return new SimplifyCommand(pos, Integer.parseInt(tree.getChild(2).getText()));
         } if (kind.equals("token EXPANSION")) {
             verifyChildIsToken(tree, 0, "EXPANSION", "The expand rule");
+            throw new UnsupportedRewritingRuleException("Expand rule not yet supported");
         } if (kind.equals("token DELETION")) {
             verifyChildIsToken(tree, 0, "DELETION", "The delete rule");
+            throw new UnsupportedRewritingRuleException("Delete rule not yet supported");
         } if (kind.equals("token POSTULATE")) {
             verifyChildIsToken(tree, 0, "POSTULATE", "The postulate rule");
+            throw new UnsupportedRewritingRuleException("Postulate rule not yet supported");
         } if (kind.equals("token GENERALIZATION")) {
             verifyChildIsToken(tree, 0, "GENERALIZATION", "The generalize rule");
+            throw new UnsupportedRewritingRuleException("Generalize rule not yet supported");
         } if (kind.equals("token GQDELETION")) {
             verifyChildIsToken(tree, 0, "GQDELETION", "The gq-delete rule");
+            throw new UnsupportedRewritingRuleException("GQ-delete rule not yet supported");
         } if (kind.equals("token CONSTRUCTOR")) {
             verifyChildIsToken(tree, 0, "CONSTRUCTOR", "The constructor rule");
+            throw new UnsupportedRewritingRuleException("Constructor rule not yet supported");
         } if (kind.equals("token DISPROVE")) {
             verifyChildIsToken(tree, 0, "DISPROVE", "The disprove rule");
+            throw new UnsupportedRewritingRuleException("Disprove rule not yet supported");
         } if (kind.equals("token COMPLETENESS")) {
             verifyChildIsToken(tree, 0, "COMPLETENESS", "The completeness rule");
+            throw new UnsupportedRewritingRuleException("Completeness rule not yet supported");
         } if (kind.equals("token CLEAR")) {
             verifyChildIsToken(tree, 0, "CLEAR", "The clear command");
+            throw new UnsupportedRewritingRuleException("Clear command not yet supported");
+        } if (kind.equals("token SWAP")) {
+            verifyChildIsToken(tree, 0, "SWAP", "The swap command");
+            return new SwapCommand();
         }
+        return null;
     }
 
-    private void handleSimplification(Position pos) throws ParserException {
-        //TODO
+    private Position parsePosition(ParseTree tree) throws ParserException {
+        verifyChildIsToken(tree, 0, "NUM", "position numeral");
+        if (tree.getChildCount() > 2) {
+            verifyChildIsToken(tree, 1, "DOT", "dot in between position numerals");
+            verifyChildIsRule(tree, 2, "pos", "position rule");
+            return new ArgumentPosition(Integer.parseInt(tree.getChild(0).getText()),
+                    parsePosition(tree.getChild(2)));
+        }
+        return new ArgumentPosition(Integer.parseInt(tree.getChild(0).getText()), new EmptyPosition());
     }
 
     /* ========= STATIC ACCESS METHODS ========= */
@@ -523,14 +549,14 @@ public class LcTrsInputReader extends InputReader{
         return reader.readLCTRS(tree);
     }
 
-    public static void readUserInputFromString(String s) throws ParserException {
+    public static UserCommand readUserInputFromString(String s) throws ParserException {
         ErrorCollector collector = new ErrorCollector();
         LcTrsParser parser = createLcTrsParserFromString(s, collector);
         LcTrsInputReader reader = new LcTrsInputReader();
         ParseTree tree = parser.trs();
         collector.throwCollectedExceptions();
 
-        reader.readUserInput(tree);
+        return reader.readUserInput(tree);
     }
 
     public static TRS readLcTrsFromFile(String filename) throws ParserException {
