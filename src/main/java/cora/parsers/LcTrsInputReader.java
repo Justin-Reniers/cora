@@ -106,7 +106,7 @@ public class LcTrsInputReader extends InputReader{
         verifyChildIsRule(tree, k+1, "identifier", "identifier");
         String output = tree.getChild(k+1).getText();
         Type res;
-        if (output.toLowerCase().equals("int")) res = intSort;
+        if (output.toLowerCase().equals("int") || output.toLowerCase().equals("integer")) res = intSort;
         else if (output.toLowerCase().equals("bool") || output.toLowerCase().equals("boolean")) res = boolSort;
         else res = new Sort(output);
         for (int i = k-1; i >= 0; i--) {
@@ -508,7 +508,7 @@ public class LcTrsInputReader extends InputReader{
             return new ArgumentPosition(Integer.parseInt(tree.getChild(0).getText()),
                     parsePosition(tree.getChild(2)));
         }
-        return new ArgumentPosition(Integer.parseInt(tree.getChild(0).getText()), new EmptyPosition());
+        return new EmptyPosition();
     }
 
     /* ========= STATIC ACCESS METHODS ========= */
@@ -577,6 +577,6 @@ public class LcTrsInputReader extends InputReader{
         collector.throwCollectedExceptions();
 
         ParseData data = new ParseData(trs);
-        return reader.readTermType(tree, data, null, false);
+        return reader.readTermType(tree, data, null, true);
     }
 }
