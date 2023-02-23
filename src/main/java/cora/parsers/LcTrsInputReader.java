@@ -462,6 +462,7 @@ public class LcTrsInputReader extends InputReader{
         String kind = checkChild(tree, 0);
         if (kind.equals("token SIMPLIFICATION")) {
             verifyChildIsToken(tree, 0, "SIMPLIFICATION", "The simplification rule");
+            if (tree.getChildCount() == 1) return new SimplifyCommand(null, -1);
             verifyChildIsRule(tree, 1, "pos", "Position rule");
             verifyChildIsToken(tree, 2, "NUM", "Rule index numerical");
             Position pos = parsePosition(tree.getChild(1));

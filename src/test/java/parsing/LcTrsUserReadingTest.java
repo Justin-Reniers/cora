@@ -40,6 +40,11 @@ public class LcTrsUserReadingTest {
         LcTrsInputReader.readUserInputFromString("simplify 2.3 x");
     }
 
+    @Test
+    public void testEmptyArgsSimplify() throws ParserException {
+        LcTrsInputReader.readUserInputFromString("simplify");
+    }
+
     @Test (expected = UnsupportedRewritingRuleException.class)
     public void readExpansion() throws ParserException {
         LcTrsInputReader.readUserInputFromString("ExpAnd");

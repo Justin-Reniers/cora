@@ -66,7 +66,7 @@ numeric             : NUM
 
 logicalconstraint   : SQUAREOPEN term SQUARECLOSE ;
 
-rewritinginduction  : SIMPLIFICATION pos NUM
+rewritinginduction  : SIMPLIFICATION (pos NUM)?
                     | EXPANSION
                     | DELETION
                     | POSTULATE

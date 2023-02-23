@@ -3,13 +3,13 @@ package cora.interfaces.smt;
 import cora.interfaces.terms.Term;
 
 public interface History {
-    public String toString();
+    String toString();
 
-    public Term getLeft();
+    Term getLeft();
 
-    public Term getRight();
+    Term getRight();
 
-    public Term getConstraint();
+    Term getConstraint();
 
-    public UserCommand getUserCommand();
+    UserCommand getUserCommand();
 }

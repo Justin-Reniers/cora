@@ -8,17 +8,25 @@ import java.io.IOException;
 public interface Proof {
     public void saveStateToFile(String filePath) throws IOException;
 
-    public UserCommand getLastCommand();
+    UserCommand getLastCommand();
 
-    public TRS getLcTrs();
+    TRS getLcTrs();
 
-    public Term getLeft();
+    Term getLeft();
 
-    public Term getRight();
+    void setLeft(Term t);
 
-    public String toString();
+    Term getRight();
 
-    public String currentState();
+    void setRight(Term t);
 
-    public boolean applyNewUserCommand(String uCommand);
+    Term getConstraint();
+
+    void setConstraint(Term t);
+
+    String toString();
+
+    String currentState();
+
+    boolean applyNewUserCommand(String uCommand);
 }

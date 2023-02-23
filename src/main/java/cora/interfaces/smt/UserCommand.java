@@ -3,6 +3,7 @@ package cora.interfaces.smt;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Position;
 import cora.interfaces.terms.Term;
+import cora.smt.EquivalenceProof;
 
 public interface UserCommand {
 
@@ -11,11 +12,13 @@ public interface UserCommand {
     Position queryPosition();
 
     /** Returns whether the user command can be applied to the term. */
-    boolean applicable(TRS lcTrs, Term t, Term constraint);
+    boolean applicable();
 
     /** Applies the user command to Term t, otherwise it returns null. */
-    Term apply(TRS lcTrs, Term t, Term constraint);
+    void apply();
 
     /** Gives a string representation of the current user command situation. */
     String toString();
+
+    void setProof(EquivalenceProof proof);
 }

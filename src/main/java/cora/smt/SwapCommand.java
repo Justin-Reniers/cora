@@ -8,7 +8,11 @@ import cora.interfaces.terms.Term;
 
 public class SwapCommand extends UserCommandInherit implements UserCommand {
 
-    public SwapCommand() {};
+    private EquivalenceProof _proof;
+
+    public SwapCommand() {
+        _proof = null;
+    };
 
     @Override
     public Position queryPosition() {
@@ -16,13 +20,21 @@ public class SwapCommand extends UserCommandInherit implements UserCommand {
     }
 
     @Override
-    public boolean applicable(TRS lcTrs, Term t, Term constraint) {
+    public boolean applicable() {
         return true;
     }
 
     @Override
-    public Term apply(TRS lcTrs, Term t, Term constraint) {
-        return null;
+    public void apply() {
+        Term l = _proof.getLeft();
+        Term r = _proof.getRight();
+        _proof.setLeft(r);
+        _proof.setRight(l);
+    }
+
+    @Override
+    public void setProof(EquivalenceProof proof) {
+        _proof = proof;
     }
 
     @Override

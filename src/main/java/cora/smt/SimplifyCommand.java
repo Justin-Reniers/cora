@@ -14,6 +14,7 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
     private Position _pos;
     private int _ruleIndex;
     private boolean _noArgs;
+    private EquivalenceProof _proof;
 
     public SimplifyCommand(Position pos, int ruleIndex) {
         if (pos != null && ruleIndex >= 0) {
@@ -25,6 +26,7 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
             _ruleIndex = -1;
             _noArgs = true;
         }
+        _proof = null;
     }
 
     @Override
@@ -34,7 +36,10 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
     }
 
     @Override
-    public boolean applicable(TRS lcTrs, Term t, Term constraint) {
+    public boolean applicable() {
+        TRS lcTrs = _proof.getLcTrs();
+        Term t = _proof.getLeft();
+        if (_noArgs) return true;
         Term subTerm;
         if (_pos == null) return false;
         subTerm = t.querySubterm(_pos);
@@ -50,28 +55,25 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
     }
 
     @Override
-    public Term apply(TRS lcTrs, Term t, Term constraint) {
+    public void apply() {
+        TRS lcTrs = _proof.getLcTrs();
+        Term t = _proof.getLeft();
+        Term c = _proof.getConstraint();
+        //Case 3: Calculation rules
+        if (_noArgs) {
+        }
         //Case 1: Unconstrained Rule
-        if (lcTrs.queryRule(_ruleIndex).queryConstraint().queryRoot().equals(lcTrs.lookupSymbol("TRUE"))) {
-            return applyUnconstrainedRule(lcTrs, t);
+        else if (lcTrs.queryRule(_ruleIndex).queryConstraint().queryRoot().equals(lcTrs.lookupSymbol("TRUE"))) {
+            _proof.setLeft(applyRule(lcTrs, t));
         }
         //Case 2: Constraint met
         else if (!lcTrs.queryRule(_ruleIndex).queryConstraint().queryRoot().equals(lcTrs.lookupSymbol("FALSE"))) {
             Z3TermDeconstructor dec = new Z3TermDeconstructor();
-            dec.deconstruct(constraint);
+            dec.deconstruct(c);
             if (dec.getModel() != null) {
-                return applyRule(lcTrs, t);
+                _proof.setLeft(applyRule(lcTrs, t));
             }
         }
-        //Case 3: Calculation rules
-        return null;
-    }
-
-    private Term applyUnconstrainedRule(TRS lcTrs, Term t) {
-        Term subTerm = t.querySubterm(_pos);
-        subTerm = lcTrs.queryRule(_ruleIndex).apply(subTerm);
-        Term ret =  t.replaceSubterm(_pos, subTerm);
-        return ret;
     }
 
     private Term applyRule(TRS lcTrs, Term t) {
@@ -81,8 +83,16 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
         return ret;
     }
 
+    private boolean containsReducibleTerm
+
     @Override
     public String toString() {
+        if (_noArgs) return "simplify";
         return "simplify " + _pos.toString() + " " + _ruleIndex;
+    }
+
+    @Override
+    public void setProof(EquivalenceProof proof) {
+        _proof = proof;
     }
 }

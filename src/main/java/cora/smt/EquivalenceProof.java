@@ -32,11 +32,8 @@ public class EquivalenceProof implements Proof {
     public boolean applyNewUserCommand(String uCommand) {
         try {
             UserCommand uc = LcTrsInputReader.readUserInputFromString(uCommand);
-            if (uc instanceof SwapCommand) {
-                Term temp = _left;
-                _left = _right;
-                _right = temp;
-            } else if (uc.applicable(_lcTrs, _left, _constraint)) _left = uc.apply(_lcTrs, _left, _constraint);
+            uc.setProof(this);
+            if (uc.applicable()) uc.apply();
             _history.add(new ProofHistory(_left, _right, _constraint, uc));
             return true;
         } catch (ParserException e) {
@@ -68,8 +65,28 @@ public class EquivalenceProof implements Proof {
     }
 
     @Override
+    public void setLeft(Term t) {
+        if (t != null) _left = t;
+    }
+
+    @Override
     public Term getRight() {
         return _right;
+    }
+
+    @Override
+    public void setRight(Term t) {
+        if (t != null) _right = t;
+    }
+
+    @Override
+    public Term getConstraint() {
+        return _constraint;
+    }
+
+    @Override
+    public void setConstraint(Term t) {
+        if (t != null) _constraint = t;
     }
 
     @Override
