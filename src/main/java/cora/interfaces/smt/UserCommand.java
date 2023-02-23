@@ -11,10 +11,10 @@ public interface UserCommand {
     Position queryPosition();
 
     /** Returns whether the user command can be applied to the term. */
-    boolean applicable(TRS lcTrs, Term t);
+    boolean applicable(TRS lcTrs, Term t, Term constraint);
 
     /** Applies the user command to Term t, otherwise it returns null. */
-    Term apply(TRS lcTrs, Term t);
+    Term apply(TRS lcTrs, Term t, Term constraint);
 
     /** Gives a string representation of the current user command situation. */
     String toString();

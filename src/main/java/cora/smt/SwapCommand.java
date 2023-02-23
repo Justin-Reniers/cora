@@ -16,12 +16,12 @@ public class SwapCommand extends UserCommandInherit implements UserCommand {
     }
 
     @Override
-    public boolean applicable(TRS lcTrs, Term t) {
+    public boolean applicable(TRS lcTrs, Term t, Term constraint) {
         return true;
     }
 
     @Override
-    public Term apply(TRS lcTrs, Term t) {
+    public Term apply(TRS lcTrs, Term t, Term constraint) {
         return null;
     }
 

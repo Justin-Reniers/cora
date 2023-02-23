@@ -1,7 +1,8 @@
-package cora.smt;
+package cora.z3;
 
 import com.microsoft.z3.*;
 import cora.interfaces.terms.Term;
+import cora.loggers.Logger;
 
 import java.util.ArrayList;
 
@@ -27,7 +28,7 @@ public class Z3Helper {
         return ctx.mkSub(e1, e2);
     }
 
-    public static Expr<IntSort> getMultExpr(Context ctx, IntExpr e1, IntExpr e2) {
+    public static Expr<IntSort> getMultExpr(Context ctx, Expr<IntSort> e1, Expr<IntSort> e2) {
         return ctx.mkMul(e1, e2);
     }
 
@@ -94,10 +95,10 @@ public class Z3Helper {
     public static Model getModel(Solver s) {
         Status q = s.check();
         if (q == Status.SATISFIABLE) {
-            System.out.println("SAT");
+            //Logger.log("SAT");
             return s.getModel();
         }
-        if (q == Status.UNSATISFIABLE) System.out.println("UNSAT");
+        //if (q == Status.UNSATISFIABLE) Logger.log("UNSAT");
         return null;
     }
 

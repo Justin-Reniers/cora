@@ -36,7 +36,7 @@ public class EquivalenceProof implements Proof {
                 Term temp = _left;
                 _left = _right;
                 _right = temp;
-            } else if (uc.applicable(_lcTrs, _left)) _left = uc.apply(_lcTrs, _left);
+            } else if (uc.applicable(_lcTrs, _left, _constraint)) _left = uc.apply(_lcTrs, _left, _constraint);
             _history.add(new ProofHistory(_left, _right, _constraint, uc));
             return true;
         } catch (ParserException e) {
