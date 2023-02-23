@@ -1,10 +1,15 @@
 package cora.smt;
 
 import com.microsoft.z3.*;
+import cora.interfaces.terms.Term;
 
 import java.util.ArrayList;
 
 public class Z3Helper {
+
+    public Expr<BoolSort> deconstructTerm(Term t) {
+        return null;
+    }
 
     public static IntExpr getIntVar(Context ctx, String varName) {
         return ctx.mkIntConst(varName);
