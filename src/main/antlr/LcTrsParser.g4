@@ -48,10 +48,10 @@ term                : identifier
                     | term (MULT | DIV | MOD) term
                     | term (PLUS | MINUS) term
                     | term (LT | LTEQ | GT | GTEQ)*? term
+                    | term (EQUALITY | NEQ)*? term
                     | term (CONJUNCTION | DISJUNCTION)*? term
                     | <assoc=right> term CONDITIONAL term
                     | term BICONDITIONAL term
-                    | term (EQUALITY | NEQ)*? term
                     ;
 
 termlist            : term
