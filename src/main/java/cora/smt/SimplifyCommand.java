@@ -1,13 +1,12 @@
 package cora.smt;
 
-import cora.interfaces.rewriting.Rule;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.FunctionSymbol;
 import cora.interfaces.terms.Position;
 import cora.interfaces.terms.Term;
 import cora.loggers.Logger;
-import cora.z3.Z3TermDeconstructor;
+import cora.z3.Z3TermHandler;
 
 public class SimplifyCommand extends UserCommandInherit implements UserCommand {
 
@@ -61,6 +60,14 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
         Term c = _proof.getConstraint();
         //Case 3: Calculation rules
         if (_noArgs) {
+            if (containsEq(c)) Logger.log("equality in constraint");
+            Z3TermHandler dec = new Z3TermHandler();
+            Term temp = dec.simplify(t);
+            _proof.setLeft(temp);
+            temp = dec.simplify(_proof.getRight());
+            _proof.setRight(temp);
+            temp = dec.simplify(_proof.getConstraint());
+            _proof.setConstraint(temp);
         }
         //Case 1: Unconstrained Rule
         else if (lcTrs.queryRule(_ruleIndex).queryConstraint().queryRoot().equals(lcTrs.lookupSymbol("TRUE"))) {
@@ -68,7 +75,7 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
         }
         //Case 2: Constraint met
         else if (!lcTrs.queryRule(_ruleIndex).queryConstraint().queryRoot().equals(lcTrs.lookupSymbol("FALSE"))) {
-            Z3TermDeconstructor dec = new Z3TermDeconstructor();
+            Z3TermHandler dec = new Z3TermHandler();
             dec.deconstruct(c);
             if (dec.getModel() != null) {
                 _proof.setLeft(applyRule(lcTrs, t));
@@ -83,7 +90,16 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
         return ret;
     }
 
-    private boolean containsReducibleTerm
+    private boolean containsEq(Term t) {
+        if (t.isFunctionalTerm()) {
+            if (t.queryRoot().toString().equals("==")) return true;
+            for (int i = 1; i < t.numberImmediateSubterms() + 1; i++) {
+                Term sub = t.queryImmediateSubterm(i);
+                containsEq(sub);
+            }
+        }
+        return false;
+    }
 
     @Override
     public String toString() {

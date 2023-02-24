@@ -4,6 +4,7 @@ import com.microsoft.z3.*;
 import cora.interfaces.terms.Term;
 import cora.loggers.Logger;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class Z3Helper {
@@ -90,6 +91,20 @@ public class Z3Helper {
 
     public static BoolExpr getIff(Context ctx, Expr<BoolSort> e1, Expr<BoolSort> e2) {
         return ctx.mkIff(e1, e2);
+    }
+
+    public static Expr getFunc(Context ctx, String fName, ArrayList<Expr> exprs, boolean boolSort) {
+        Sort[] sortArr = new Sort[exprs.size()];
+        Expr[] exprArr = new Expr[exprs.size()];
+        for (int i = 0; i < exprs.size(); i++) {
+            sortArr[i] = exprs.get(i).getSort();
+            exprArr[i] = exprs.get(i);
+        }
+        FuncDecl f;
+        if (boolSort) f = ctx.mkFuncDecl(fName, sortArr, ctx.getBoolSort());
+        else f = ctx.mkFuncDecl(fName, sortArr, ctx.getIntSort());
+        Expr func = ctx.mkApp(f, exprArr);
+        return func;
     }
 
     public static Model getModel(Solver s) {
