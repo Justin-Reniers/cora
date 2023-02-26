@@ -4,8 +4,10 @@ import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.FunctionSymbol;
 import cora.interfaces.terms.Position;
+import cora.interfaces.terms.Substitution;
 import cora.interfaces.terms.Term;
 import cora.loggers.Logger;
+import cora.z3.Z3Helper;
 import cora.z3.Z3TermHandler;
 
 public class SimplifyCommand extends UserCommandInherit implements UserCommand {

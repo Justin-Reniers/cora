@@ -62,7 +62,7 @@ public class Z3Helper {
     }
 
     public static BoolExpr getGeExpr(Context ctx, Expr<IntSort> e1, Expr<IntSort> e2) {
-        return ctx.mkLt(e1, e2);
+        return ctx.mkGe(e1, e2);
     }
 
     public static BoolExpr getEqExpr(Context ctx, Expr<IntSort> e1, Expr<IntSort> e2) {

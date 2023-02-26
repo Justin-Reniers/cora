@@ -1,17 +1,23 @@
 package cora.z3;
 
 import com.microsoft.z3.*;
+import cora.exceptions.IndexingError;
+import cora.interfaces.terms.Substitution;
 import cora.interfaces.terms.Term;
+import cora.interfaces.terms.Variable;
 import cora.interfaces.types.Type;
 import cora.loggers.Logger;
 import cora.terms.Constant;
 import cora.terms.FunctionalTerm;
+import cora.terms.Subst;
 import cora.terms.Var;
 import cora.types.ArrowType;
 import cora.types.Sort;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static cora.z3.Z3Helper.*;
 
@@ -84,8 +90,14 @@ public class Z3TermHandler {
                     return getAddExpr(_ctx, deconstruct(t.queryImmediateSubterm(1)),
                             deconstruct(t.queryImmediateSubterm(2)));
                 case "-":
-                    return getSubExpr(_ctx, deconstruct(t.queryImmediateSubterm(1)),
-                            deconstruct(t.queryImmediateSubterm(2)));
+                    try {
+                        return getSubExpr(_ctx, deconstruct(t.queryImmediateSubterm(1)),
+                                deconstruct(t.queryImmediateSubterm(2)));
+                    } catch (IndexingError e) {
+                        return getSubExpr(_ctx,
+                                deconstruct(new Constant("0", Sort.intSort)),
+                                deconstruct(t.queryImmediateSubterm(1)));
+                    }
                 default:
                     boolean boolSort = false;
                     if (t.queryType().equals(Sort.boolSort)) boolSort = true;

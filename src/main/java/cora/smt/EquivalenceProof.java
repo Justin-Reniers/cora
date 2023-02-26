@@ -26,6 +26,8 @@ public class EquivalenceProof implements Proof {
         _right = right;
         _constraint = constraint;
         _history = new ArrayList<ProofHistory>();
+        _history.add(new ProofHistory(_left, _right, _constraint, null));
+    }
     }
 
     @Override
@@ -33,9 +35,11 @@ public class EquivalenceProof implements Proof {
         try {
             UserCommand uc = LcTrsInputReader.readUserInputFromString(uCommand);
             uc.setProof(this);
-            if (uc.applicable()) uc.apply();
-            _history.add(new ProofHistory(_left, _right, _constraint, uc));
-            return true;
+            if (uc.applicable()) {
+                _history.add(new ProofHistory(_left, _right, _constraint, uc));
+                uc.apply();
+                return true;
+            } return false;
         } catch (ParserException e) {
             Logger.log(e.toString());
             return false;

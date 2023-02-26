@@ -453,9 +453,7 @@ public class LcTrsInputReader extends InputReader{
     /* ========= USER INPUT METHODS ========= */
 
     private UserCommand readUserInput(ParseTree tree) throws ParserException{
-        ParseData data = new ParseData();
-        int k = 0;
-        return handleUserInput(tree.getChild(k));
+        return handleUserInput(tree.getChild(0));
     }
 
     private UserCommand handleUserInput(ParseTree tree) throws ParserException {
