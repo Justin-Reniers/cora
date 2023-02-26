@@ -334,6 +334,11 @@ public class LcTrsInputReader extends InputReader{
         return ret;
     }
 
+    /**
+     * This constructs a subtraction term from the parse tree. It recursively constructs (and type checks)
+     * the two children of which the subtraction operation is comprised. Also handles nested unary subtraction
+     * terms.
+     */
     private Term subtractionOperation(ParseTree tree, ParseData data, boolean mstrs) throws ParserException {
         Term child1, child2;
         FunctionSymbol f = data.lookupFunctionSymbol("+");
@@ -343,6 +348,10 @@ public class LcTrsInputReader extends InputReader{
         return new FunctionalTerm(f, child1, child2);
     }
 
+    /**
+     * This constructs the given term from the parse tree, assuming that it a predefined term with
+     * arity one (which are "-" and "~"). Recursively constructs the child of the unary operator.
+     */
     private Term getNewFunctionalTermArityOne(ParseTree tree, ParseData data, String functionSymbol,
                                               boolean mstrs) throws ParserException {
         Term child1 = null;
@@ -353,6 +362,12 @@ public class LcTrsInputReader extends InputReader{
         return new FunctionalTerm(f, child1);
     }
 
+    /**
+     * This constructs the given term from the parse tree, assuming that it a predefined term with
+     * arity two. Recursively constructs the two children of the binary operator. Also ensures that
+     * the expected type corresponds with the function symbol (e.g. two children of type intSort for
+     * the "+" operator etc.)
+     */
     private Term getNewFunctionalTermArityTwo(ParseTree tree, ParseData data, String functionSymbol,
                                               boolean mstrs) throws ParserException {
         Term child1, child2;
@@ -368,6 +383,10 @@ public class LcTrsInputReader extends InputReader{
         return new FunctionalTerm(f, child1, child2);
     }
 
+    /**
+     * This constructs the given term from the parse tree with arity two or higher.
+     * Recursively constructs the two children of the binary operator.
+     */
     private Term getNewFunctionalTermHighArity(ParseTree tree, ParseData data, boolean mstrs) throws ParserException {
         verifyChildIsToken(tree, 1, "BRACKETOPEN", "Opening bracket '('");
         verifyChildIsToken(tree, tree.getChildCount()-1, "BRACKETCLOSE", "Closing bracket ')'");
@@ -384,6 +403,9 @@ public class LcTrsInputReader extends InputReader{
         return new FunctionalTerm(f, termargs);
     }
 
+    /**
+     * This reads the given logical constraint from the parse tree.
+     */
     private Term readLogicalConstraint(ParseTree tree, ParseData data, boolean mstrs) throws ParserException {
         verifyChildIsToken(tree, 0, "SQUAREOPEN", "Opening square bracket '['");
         verifyChildIsRule(tree, 1, "term", "Logical Term");
@@ -392,7 +414,9 @@ public class LcTrsInputReader extends InputReader{
         return t;
     }
 
-    /** This function reads a trsrule from the given parse tree. */
+    /** This function reads a trsrule from the given parse tree. If a trsrule does not
+     * contain a constraint, the constraint is set to "TRUE".
+     */
     private Rule readRule(ParseTree tree, ParseData data, boolean mstrs) throws ParserException {
         verifyChildIsRule(tree, 0, "term", "a term");
         verifyChildIsToken(tree, 1, "ARROW", "an arrow '->'");
@@ -452,10 +476,17 @@ public class LcTrsInputReader extends InputReader{
 
     /* ========= USER INPUT METHODS ========= */
 
+    /**
+     * This function reads a user command from the given parse tree.
+     */
     private UserCommand readUserInput(ParseTree tree) throws ParserException{
         return handleUserInput(tree.getChild(0));
     }
 
+    /**
+     * This function decides what user command was given from the given parse tree. If a user
+     * command is not implemented yet, it throws an UnsupportedRewritingRuleException.
+     */
     private UserCommand handleUserInput(ParseTree tree) throws ParserException {
         String kind = checkChild(tree, 0);
         if (kind.equals("token SIMPLIFICATION")) {
@@ -499,6 +530,10 @@ public class LcTrsInputReader extends InputReader{
         return null;
     }
 
+    /**
+     *  This function reads a position from the given parse tree. A position is of the
+     *  form x or x.a... where x and a are integers.
+     */
     private Position parsePosition(ParseTree tree) throws ParserException {
         verifyChildIsToken(tree, 0, "NUM", "position numeral");
         if (tree.getChildCount() > 2) {
