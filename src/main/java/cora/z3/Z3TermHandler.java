@@ -225,9 +225,21 @@ public class Z3TermHandler {
             }
             String fSymbol = e.toString().replace("(", "");
             fSymbol = fSymbol.split(" ", 2)[0];
+            if (e.getNumArgs() <= 0) return new Var(fSymbol, type);
             return new FunctionalTerm(new Constant(fSymbol, type), args);
         }
         return null;
+    }
+
+    public void constraintCheck(Term ruleConstraint, Term proofConstraint, Substitution s) {
+        Expr rc = deconstruct(ruleConstraint);
+        Expr pc = deconstruct(proofConstraint);
+        Expr e = getAnd(_ctx, rc, pc);
+        for (Variable v : s.domain()) {
+            Expr ass = getEqExpr(_ctx, deconstruct(v), deconstruct(s.getReplacement(v)));
+            e = getAnd(_ctx, e, ass);
+        }
+        _s.add(e);
     }
 
     public Context getContext() {
@@ -240,5 +252,28 @@ public class Z3TermHandler {
 
     public void printContext(Context ctx) {
 
+    }
+
+    public Substitution getSubstitutions(Term c) {
+        Set<Expr> equalities = new HashSet<>();
+        getEqualities(c, equalities);
+        Substitution s = new Subst();
+        for (Expr e : equalities) {
+            Term arg1 = reconstruct(e.getArgs()[0]);
+            Term arg2 = reconstruct(e.getArgs()[1]);
+            if (arg1 instanceof Var) s.extend((Var) arg1, arg2);
+            else if (arg2 instanceof Var) s.extend((Var) arg2, arg1);
+        }
+        return s;
+    }
+
+    private void getEqualities(Term c, Set equalities) {
+        if (c.isFunctionalTerm() && c.queryRoot().queryName().equals("==")) {
+            equalities.add(deconstruct(c));
+        } else {
+            for (int i = 1; i < c.numberImmediateSubterms() + 1; i++) {
+                getEqualities(c.queryImmediateSubterm(i), equalities);
+            }
+        }
     }
 }

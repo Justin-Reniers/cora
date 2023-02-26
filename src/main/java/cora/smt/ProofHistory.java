@@ -17,7 +17,7 @@ public class ProofHistory implements History {
 
     public String toString() {
         return _left.toString() + ",\t" + _right.toString() + ",\t" +
-                _constraint.toString() + "\t" + _uCommand.toString();
+                _constraint.toString() + "\t" + (_uCommand != null ? _uCommand.toString() : "");
     }
 
     public Term getLeft() {

@@ -16,6 +16,7 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
     private EquivalenceProof _proof;
 
     public SimplifyCommand(Position pos, int ruleIndex) {
+        super();
         if (pos != null && ruleIndex >= 0) {
             _pos = pos;
             _ruleIndex = ruleIndex;
@@ -25,7 +26,6 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
             _ruleIndex = -1;
             _noArgs = true;
         }
-        _proof = null;
     }
 
     @Override
@@ -47,10 +47,14 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
         }
         FunctionSymbol fSymbol = lcTrs.queryRule(_ruleIndex).queryConstraint().queryRoot();
         if (fSymbol.queryRoot().equals(lcTrs.lookupSymbol("TRUE"))) return true;
-        if (!fSymbol.queryRoot().equals(lcTrs.lookupSymbol("FALSE"))) {
-
+        if (fSymbol.queryRoot().equals(lcTrs.lookupSymbol("FALSE"))) return false;
+        else {
+            Z3TermHandler z3 = new Z3TermHandler();
+            Term ruleLeft = lcTrs.queryRule(_ruleIndex).queryLeftSide();
+            Substitution s = ruleLeft.unify(t);
+            z3.constraintCheck(lcTrs.queryRule(_ruleIndex).queryConstraint(), _proof.getConstraint(), s);
+            return z3.getModel() != null;
         }
-        return true;
     }
 
     @Override
@@ -61,13 +65,15 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
         //Case 3: Calculation rules
         if (_noArgs) {
             if (containsEq(c)) Logger.log("equality in constraint");
-            Z3TermHandler dec = new Z3TermHandler();
-            Term temp = dec.simplify(t);
-            _proof.setLeft(temp);
-            temp = dec.simplify(_proof.getRight());
-            _proof.setRight(temp);
-            temp = dec.simplify(_proof.getConstraint());
+            Z3TermHandler handler = new Z3TermHandler();
+            Substitution s = handler.getSubstitutions(c);
+            Logger.log(s.toString());
+            Term temp = handler.simplify(c).substitute(s);
             _proof.setConstraint(temp);
+            temp = handler.simplify(_proof.getRight()).substitute(s);
+            _proof.setRight(temp);
+            temp = handler.simplify(t).substitute(s);
+            _proof.setLeft(temp);
         }
         //Case 1: Unconstrained Rule
         else if (lcTrs.queryRule(_ruleIndex).queryConstraint().queryRoot().equals(lcTrs.lookupSymbol("TRUE"))) {

@@ -11,7 +11,7 @@ public class SwapCommand extends UserCommandInherit implements UserCommand {
     private EquivalenceProof _proof;
 
     public SwapCommand() {
-        _proof = null;
+        super();
     };
 
     @Override
