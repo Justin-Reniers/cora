@@ -19,15 +19,17 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
 
     public SimplifyCommand(Position pos, int ruleIndex) {
         super();
-        if (pos != null && ruleIndex >= 0) {
-            _pos = pos;
-            _ruleIndex = ruleIndex;
-            _noArgs = false;
-        } else {
-            _pos = null;
-            _ruleIndex = -1;
-            _noArgs = true;
-        }
+        _pos = pos;
+        _ruleIndex = ruleIndex;
+        _noArgs = false;
+
+    }
+
+    public SimplifyCommand() {
+        super();
+        _pos = null;
+        _ruleIndex = -1;
+        _noArgs = true;
     }
 
     @Override
