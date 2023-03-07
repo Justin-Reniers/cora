@@ -2,6 +2,7 @@ package cora.z3;
 
 import com.microsoft.z3.*;
 import cora.exceptions.IndexingError;
+import cora.interfaces.terms.Environment;
 import cora.interfaces.terms.Substitution;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
@@ -14,10 +15,7 @@ import cora.terms.Var;
 import cora.types.ArrowType;
 import cora.types.Sort;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static cora.z3.Z3Helper.*;
 
@@ -25,6 +23,9 @@ public class Z3TermHandler {
     private Solver _s;
     private Context _ctx;
     private Z3Helper _z3Helper;
+
+    private static final ArrayList<String> fsymbols = new ArrayList<>(Arrays.asList(
+            "-", "*", "/", "%", "+"));
 
     public Z3TermHandler() {
         _ctx = new Context();
@@ -113,16 +114,17 @@ public class Z3TermHandler {
     }
 
     public Term simplify(Term t) {
+        Environment env = t.vars();
         Expr e = deconstruct(t);
-        if (e.getSort().equals(_ctx.getBoolSort())) {
+        /**if (e.getSort().equals(_ctx.getBoolSort())) {
             Goal g = _ctx.mkGoal(true, false, false); //params: models, unsatCores, proofs
             g.add(e);
             Tactic css = _ctx.mkTactic("ctx-solver-simplify");
             ApplyResult ar = css.apply(g);
             return reconstruct(ar.getSubgoals()[0].getFormulas()[0]);
-        }
+        }**/
         e = e.simplify();
-        return reconstruct(e);
+        return reconstruct(e, env);
     }
 
     private static boolean isNumeric(String s) {
@@ -134,7 +136,7 @@ public class Z3TermHandler {
         }
     }
 
-    private Term reconstruct(Expr e) {
+    private Term reconstruct(Expr e, Environment env) {
         if (e.isInt() && !e.isApp()) {
             if (isNumeric(e.toString())) return new Constant(e.toString(), Sort.intSort);
             return new Var(e.toString(), Sort.intSort);
@@ -147,82 +149,82 @@ public class Z3TermHandler {
         if (e.isNot()) {
             if (e.getArgs()[0].isEq()) {
                 Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.boolSort));
-                return new FunctionalTerm(new Constant("!=", type), reconstruct(e.getArgs()[0]),
-                        reconstruct(e.getArgs()[1]));
+                return new FunctionalTerm(new Constant("!=", type), reconstruct(e.getArgs()[0], env),
+                        reconstruct(e.getArgs()[1], env));
             } else {
                 Type type = new ArrowType(Sort.boolSort, Sort.boolSort);
-                return new FunctionalTerm(new Constant("~", type), reconstruct(e.getArgs()[0]));
+                return new FunctionalTerm(new Constant("~", type), reconstruct(e.getArgs()[0], env));
             }
         }
         if (e.isAnd()) {
             Type type = new ArrowType(Sort.boolSort, new ArrowType(Sort.boolSort, Sort.boolSort));
-            return new FunctionalTerm(new Constant("/\\", type), reconstruct(e.getArgs()[0]),
-                    reconstruct(e.getArgs()[1]));
+            return new FunctionalTerm(new Constant("/\\", type), reconstruct(e.getArgs()[0], env),
+                    reconstruct(e.getArgs()[1], env));
         }
         if (e.isOr()) {
             Type type = new ArrowType(Sort.boolSort, new ArrowType(Sort.boolSort, Sort.boolSort));
-            return new FunctionalTerm(new Constant("\\/", type), reconstruct(e.getArgs()[0]),
-                    reconstruct(e.getArgs()[1]));
+            return new FunctionalTerm(new Constant("\\/", type), reconstruct(e.getArgs()[0], env),
+                    reconstruct(e.getArgs()[1], env));
         }
         if (e.isImplies()) {
             Type type = new ArrowType(Sort.boolSort, new ArrowType(Sort.boolSort, Sort.boolSort));
-            return new FunctionalTerm(new Constant("-->", type), reconstruct(e.getArgs()[0]),
-                    reconstruct(e.getArgs()[1]));
+            return new FunctionalTerm(new Constant("-->", type), reconstruct(e.getArgs()[0], env),
+                    reconstruct(e.getArgs()[1], env));
         }
         if (e.isIff()) {
             Type type = new ArrowType(Sort.boolSort, new ArrowType(Sort.boolSort, Sort.boolSort));
-            return new FunctionalTerm(new Constant("<-->", type), reconstruct(e.getArgs()[0]),
-                    reconstruct(e.getArgs()[1]));
+            return new FunctionalTerm(new Constant("<-->", type), reconstruct(e.getArgs()[0], env),
+                    reconstruct(e.getArgs()[1], env));
         }
         if (e.isLT()) {
             Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.boolSort));
-            return new FunctionalTerm(new Constant("<", type), reconstruct(e.getArgs()[0]),
-                    reconstruct(e.getArgs()[1]));
+            return new FunctionalTerm(new Constant("<", type), reconstruct(e.getArgs()[0], env),
+                    reconstruct(e.getArgs()[1], env));
         }
         if (e.isLE()) {
             Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.boolSort));
-            return new FunctionalTerm(new Constant("<=", type), reconstruct(e.getArgs()[0]),
-                    reconstruct(e.getArgs()[1]));
+            return new FunctionalTerm(new Constant("<=", type), reconstruct(e.getArgs()[0], env),
+                    reconstruct(e.getArgs()[1], env));
         }
         if (e.isGT()) {
             Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.boolSort));
-            return new FunctionalTerm(new Constant(">", type), reconstruct(e.getArgs()[0]),
-                    reconstruct(e.getArgs()[1]));
+            return new FunctionalTerm(new Constant(">", type), reconstruct(e.getArgs()[0], env),
+                    reconstruct(e.getArgs()[1], env));
         }
         if (e.isGE()) {
             Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.boolSort));
-            return new FunctionalTerm(new Constant(">=", type), reconstruct(e.getArgs()[0]),
-                    reconstruct(e.getArgs()[1]));
+            return new FunctionalTerm(new Constant(">=", type), reconstruct(e.getArgs()[0], env),
+                    reconstruct(e.getArgs()[1], env));
         }
         if (e.isEq()) {
             Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.boolSort));
-            return new FunctionalTerm(new Constant("==", type), reconstruct(e.getArgs()[0]),
-                    reconstruct(e.getArgs()[1]));
+            return new FunctionalTerm(new Constant("==", type), reconstruct(e.getArgs()[0], env),
+                    reconstruct(e.getArgs()[1], env));
         }
         if (e.isMul()) {
             Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.intSort));
-            return new FunctionalTerm(new Constant("*", type), reconstruct(e.getArgs()[0]),
-                    reconstruct(e.getArgs()[1]));
+            return new FunctionalTerm(new Constant("*", type), reconstruct(e.getArgs()[0], env),
+                    reconstruct(e.getArgs()[1], env));
         }
         if (e.isDiv()) {
             Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.intSort));
-            return new FunctionalTerm(new Constant("/", type), reconstruct(e.getArgs()[0]),
-                    reconstruct(e.getArgs()[1]));
+            return new FunctionalTerm(new Constant("/", type), reconstruct(e.getArgs()[0], env),
+                    reconstruct(e.getArgs()[1], env));
         }
         if (e.isModulus()) {
             Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.intSort));
-            return new FunctionalTerm(new Constant("%", type), reconstruct(e.getArgs()[0]),
-                    reconstruct(e.getArgs()[1]));
+            return new FunctionalTerm(new Constant("%", type), reconstruct(e.getArgs()[0], env),
+                    reconstruct(e.getArgs()[1], env));
         }
         if (e.isAdd()) {
             Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.intSort));
-            return new FunctionalTerm(new Constant("+", type), reconstruct(e.getArgs()[0]),
-                    reconstruct(e.getArgs()[1]));
+            return new FunctionalTerm(new Constant("+", type), reconstruct(e.getArgs()[0], env),
+                    reconstruct(e.getArgs()[1], env));
         }
         if (e.isSub()) {
             Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.intSort));
-            return new FunctionalTerm(new Constant("-", type), reconstruct(e.getArgs()[0]),
-                    reconstruct(e.getArgs()[1]));
+            return new FunctionalTerm(new Constant("-", type), reconstruct(e.getArgs()[0], env),
+                    reconstruct(e.getArgs()[1], env));
         }
         if (e.isApp()) {
             Type type;
@@ -233,11 +235,17 @@ public class Z3TermHandler {
                 Expr expr = e.getArgs()[i];
                 if (expr.getSort().equals(_ctx.getIntSort())) type = new ArrowType(Sort.intSort, type);
                 else type = new ArrowType(Sort.boolSort, type);
-                args.add(reconstruct(expr));
+                args.add(reconstruct(expr, env));
             }
             String fSymbol = e.toString().replace("(", "");
             fSymbol = fSymbol.split(" ", 2)[0];
-            if (e.getNumArgs() <= 0) return new Var(fSymbol, type);
+            if (e.getNumArgs() <= 0) {
+                for (Variable v : env) {
+                    if (v.queryName().equals(e.toString())) {
+                        return v;
+                    }
+                }
+            }
             return new FunctionalTerm(new Constant(fSymbol, type), args);
         }
         return null;
@@ -270,9 +278,10 @@ public class Z3TermHandler {
         Set<Expr> equalities = new HashSet<>();
         getEqualities(c, equalities);
         Substitution s = new Subst();
+        Environment env = c.vars();
         for (Expr e : equalities) {
-            Term arg1 = reconstruct(e.getArgs()[0]);
-            Term arg2 = reconstruct(e.getArgs()[1]);
+            Term arg1 = reconstruct(e.getArgs()[0], env);
+            Term arg2 = reconstruct(e.getArgs()[1], env);
             if (arg1 instanceof Var) s.extend((Var) arg1, arg2);
             else if (arg2 instanceof Var) s.extend((Var) arg2, arg1);
         }
@@ -285,6 +294,30 @@ public class Z3TermHandler {
         } else {
             for (int i = 1; i < c.numberImmediateSubterms() + 1; i++) {
                 getEqualities(c.queryImmediateSubterm(i), equalities);
+            }
+        }
+    }
+
+    public Substitution getSubstitutionsFreshVars(Term c) {
+        Set<Expr> calcVar = new HashSet<>();
+        containsCalcVar(c, calcVar, null);
+        Substitution s = new Subst();
+        Environment env = c.vars();
+        for (Expr e : calcVar) {
+            Term arg1 = reconstruct(e.getArgs()[0], env);
+            Term arg2 = reconstruct(e.getArgs()[1], env);
+            if (arg1 instanceof FunctionalTerm) s.extend(new Var("y3"), arg1);
+            else if (arg2 instanceof FunctionalTerm) s.extend(new Var("y5"), arg2);
+        }
+        return s;
+    }
+
+    private void containsCalcVar(Term c, Set calcVar, Term parent) {
+        if (c.isVariable() && fsymbols.contains(parent.queryRoot().queryName())) {
+            calcVar.add(deconstruct(parent));
+        } else {
+            for (int i = 1; i < c.numberImmediateSubterms() + 1; i++) {
+                containsCalcVar(c.queryImmediateSubterm(i), calcVar, c);
             }
         }
     }

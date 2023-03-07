@@ -157,6 +157,11 @@ public class FunctionalTerm extends ApplicativeTermInherit implements Term {
     return reconstruct(newargs);
   }
 
+  public Term unsubstitute(Substitution gamma) {
+    List<Term> newargs = unsubstituteArgs(gamma);
+    return reconstruct(newargs);
+  }
+
   /** 
    * This method checks that other has the same root symbol as we do, and if so, that all the
    * parameters match (updating the substitution as we go along).

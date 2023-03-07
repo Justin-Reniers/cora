@@ -7,6 +7,9 @@ import cora.loggers.Logger;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 
+/**
+ * The Z3Helper is a class that acts as a bridge between
+ */
 public class Z3Helper {
 
     public Expr<BoolSort> deconstructTerm(Term t) {

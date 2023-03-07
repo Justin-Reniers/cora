@@ -106,6 +106,10 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
     return this;
   }
 
+  public Term unsubstitute(Substitution gamma) {
+    return this;
+  }
+
   /**
    * This method checks that other is the same constant. If so, null is returned, otherwise a
    * description of the instantiation failure.

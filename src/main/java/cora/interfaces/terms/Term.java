@@ -136,6 +136,9 @@ public interface Term {
    */
   Term substitute(Substitution gamma);
 
+
+  Term unsubstitute(Substitution cSub);
+
   /**
    * This method either extends gamma so that <this term> gamma = other and returns null, or
    * returns a string describing why other is not an instance of gamma.

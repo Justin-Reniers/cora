@@ -22,6 +22,7 @@ import cora.exceptions.NullCallError;
 import cora.exceptions.NullInitialisationError;
 import cora.interfaces.types.Type;
 import cora.interfaces.terms.*;
+import cora.loggers.Logger;
 import cora.types.Sort;
 
 /**
@@ -35,7 +36,7 @@ import cora.types.Sort;
 public class Var extends LeafTermInherit implements Variable {
   private static int COUNTER = 0;
   private String _name;
-  private int _index;
+  public int _index;
 
   /** Create a variable with the given name and type. */
   public Var(String name, Type type) {
@@ -124,6 +125,11 @@ public class Var extends LeafTermInherit implements Variable {
     return gamma.getReplacement(this);
   }
 
+  public Term unsubstitute(Substitution gamma) {
+    if (gamma == null) throw new NullCallError("Var", "substitute", "substitution gamma");
+    return this;
+  }
+
   /** 
    * This method updates gamma by adding the extension from x to the given other term, if x is not
    * yet mapped to anything.
@@ -152,6 +158,7 @@ public class Var extends LeafTermInherit implements Variable {
    * Currently, this can only occur if they are the same object, but this may change in the future.
    */
   public boolean equals(Variable other) {
+    Logger.log(Integer.toString(_index) + "\t" + other.queryVariableIndex());
     return other.queryVariableIndex() == _index && queryType().equals(other.queryType());
   }
 

@@ -16,10 +16,9 @@
 package cora;
 
 import com.beust.jcommander.JCommander;
-import com.beust.jcommander.JCommander.*;
 import com.beust.jcommander.Parameter;
-import cora.interfaces.provingstrategies.Result;
 import cora.interfaces.rewriting.TRS;
+import cora.interfaces.terms.Term;
 import cora.loggers.ConsoleLogger;
 import cora.loggers.Logger;
 import cora.parsers.CoraInputReader;
@@ -29,6 +28,7 @@ import cora.provingstrategies.LocalConfluence;
 import cora.provingstrategies.LocalConfluenceExtended;
 import cora.provingstrategies.Orthogonality;
 import cora.provingstrategies.StrategyInherit;
+import cora.smt.EquivalenceProof;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +47,7 @@ class CliArgs {
   /**
    * Parameter for the path of the input file of a TRS
    */
-  @Parameter(names = { "-i", "--input", "--trs"}, description = "Input file", required = true)
+  @Parameter(names = { "-i", "--input", "--lctrs"}, description = "Input file", required = true)
   String inputFilePath;
 
   /**
@@ -110,17 +110,13 @@ public class Main {
    */
   public static void main(String[] args) {
     try {
-      if (args.length == 0) args = new String[] {"-i", "test.trs", "-t", "lc"};
+      if (args.length == 0) args = new String[] {"-i", "src/test/java/utils/recursive_fact.lctrs", "-t", "lc"};
 
       CliArgs cliArgs = new CliArgs();
       JCommander.newBuilder().addObject(cliArgs).build().parse(args);
 
       new Logger(new ConsoleLogger());
-      StrategyInherit strat = getStrategy(cliArgs);
-      Result result = strat.apply(cliArgs.timeout);
-      Logger.log("Result type: " + result.getResult());
-      Logger.log("Time taken: " + result.getTime() + "ms");
-      Logger.finalized();
+      //equivalenceProofDemo(args[1]);
       System.exit(0);
 
     } catch (Exception e) {
