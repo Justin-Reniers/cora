@@ -122,6 +122,8 @@ SWAP                : S W A P ;
 
 WORD                : [a-zA-Z]+ ;
 
+UNDERSCORE			: '_' ;
+
 NUM                 : [0-9]+ ;
 
 DOT                 : '.' ;

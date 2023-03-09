@@ -158,7 +158,6 @@ public class Var extends LeafTermInherit implements Variable {
    * Currently, this can only occur if they are the same object, but this may change in the future.
    */
   public boolean equals(Variable other) {
-    Logger.log(Integer.toString(_index) + "\t" + other.queryVariableIndex());
     return other.queryVariableIndex() == _index && queryType().equals(other.queryType());
   }
 

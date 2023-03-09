@@ -59,6 +59,7 @@ termlist            : term
                     ;
 
 identifier          : WORD
+					| WORD UNDERSCORE NUM
                     ;
 
 numeric             : NUM

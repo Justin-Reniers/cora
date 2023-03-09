@@ -158,7 +158,7 @@ public class FunctionalTerm extends ApplicativeTermInherit implements Term {
   }
 
   public Term unsubstitute(Substitution gamma) {
-    List<Term> newargs = unsubstituteArgs(gamma);
+    List<Term> newargs = reverseSubstitute(gamma);
     return reconstruct(newargs);
   }
 

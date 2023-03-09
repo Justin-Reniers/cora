@@ -3,6 +3,8 @@ package cora.smt;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Position;
 import cora.interfaces.terms.Term;
+import cora.interfaces.types.Type;
+import cora.terms.Var;
 
 /**
  * Swap is a user command that switches the places of the left hand side and
@@ -50,6 +52,14 @@ public class SwapCommand extends UserCommandInherit implements UserCommand {
     @Override
     public void setProof(EquivalenceProof proof) {
         _proof = proof;
+    }
+
+    /**
+     * Swap does not need fresh variables.
+     */
+    @Override
+    public Var getFreshVar(Type expectedType) {
+        return null;
     }
 
     /**

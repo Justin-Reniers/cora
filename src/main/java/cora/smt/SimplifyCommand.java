@@ -3,6 +3,7 @@ package cora.smt;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.*;
+import cora.interfaces.types.Type;
 import cora.loggers.Logger;
 import cora.terms.Var;
 import cora.z3.Z3TermHandler;
@@ -96,15 +97,16 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
         Term c = _proof.getConstraint();
         //Case 3: Calculation rules
         if (_noArgs) {
-            if (containsEq(c)) Logger.log("equality in constraint");
             Z3TermHandler handler = new Z3TermHandler();
-            Substitution c_sub = handler.getSubstitutions(c);
-            Term temp = t.unsubstitute(c_sub);
-            Substitution f_vars = handler.getSubstitutionsFreshVars(temp);
-            temp = temp.substitute(f_vars);
+            Term temp = t;
+            if (containsEq(c)) {
+                Substitution c_sub = handler.getSubstitutions(c);
+                temp = t.substitute(c_sub);
+            }
+            Substitution f_vars = handler.getSubstitutionsFreshVars(temp, this);
+            temp = temp.unsubstitute(f_vars);
             temp = handler.simplify(temp);
             _proof.setLeft(temp);
-            Logger.log(c_sub.toString());
         }
         //Case 1: Unconstrained Rule
         else if (lcTrs.queryRule(_ruleIndex).queryConstraint().queryRoot().equals(lcTrs.lookupSymbol("TRUE"))) {
@@ -158,5 +160,10 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
     @Override
     public void setProof(EquivalenceProof proof) {
         _proof = proof;
+    }
+
+    @Override
+    public Var getFreshVar(Type expectedType) {
+        return _proof.getFreshVar(expectedType);
     }
 }

@@ -2,6 +2,7 @@ package cora.z3;
 
 import com.microsoft.z3.*;
 import cora.exceptions.IndexingError;
+import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Environment;
 import cora.interfaces.terms.Substitution;
 import cora.interfaces.terms.Term;
@@ -298,7 +299,7 @@ public class Z3TermHandler {
         }
     }
 
-    public Substitution getSubstitutionsFreshVars(Term c) {
+    public Substitution getSubstitutionsFreshVars(Term c, UserCommand uc) {
         Set<Expr> calcVar = new HashSet<>();
         containsCalcVar(c, calcVar, null);
         Substitution s = new Subst();
@@ -306,8 +307,8 @@ public class Z3TermHandler {
         for (Expr e : calcVar) {
             Term arg1 = reconstruct(e.getArgs()[0], env);
             Term arg2 = reconstruct(e.getArgs()[1], env);
-            if (arg1 instanceof FunctionalTerm) s.extend(new Var("y3"), arg1);
-            else if (arg2 instanceof FunctionalTerm) s.extend(new Var("y5"), arg2);
+            if (arg1 instanceof Var) s.extend(uc.getFreshVar(Sort.intSort), reconstruct(e, env));
+            else if (arg2 instanceof Var) s.extend(uc.getFreshVar(Sort.intSort), reconstruct(e, env));
         }
         return s;
     }

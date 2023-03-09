@@ -6,8 +6,11 @@ import cora.interfaces.smt.Proof;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Substitution;
 import cora.interfaces.terms.Term;
+import cora.interfaces.types.Type;
 import cora.loggers.Logger;
 import cora.parsers.LcTrsInputReader;
+import cora.terms.Var;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,6 +24,7 @@ public class EquivalenceProof implements Proof {
     private TRS _lcTrs;
     private Term _left, _right, _constraint;
     private ArrayList<ProofHistory> _history;
+    private int _varcounter;
 
     /**
      * This constructor is used to create an equivalence proof. Keeps a list _history
@@ -32,7 +36,8 @@ public class EquivalenceProof implements Proof {
         _right = right;
         _constraint = constraint;
         _history = new ArrayList<ProofHistory>();
-        _history.add(new ProofHistory(_left, _right, _constraint, null));
+        //_history.add(new ProofHistory(_left, _right, _constraint, null));
+        _varcounter = 0;
     }
 
     /**
@@ -66,6 +71,7 @@ public class EquivalenceProof implements Proof {
     public void saveStateToFile(String filePath) throws IOException {
         FileWriter fw = new FileWriter(filePath);
         for (ProofHistory ph : _history) fw.write(ph.toString() + "\n");
+        fw.write(currentState());
         fw.close();
     }
 
@@ -131,6 +137,13 @@ public class EquivalenceProof implements Proof {
     @Override
     public void setConstraint(Term t) {
         if (t != null) _constraint = t;
+    }
+
+    @Override
+    public Var getFreshVar(Type expectedType) {
+        Var fresh = new Var("x_" + _varcounter, expectedType);
+        _varcounter++;
+        return fresh;
     }
 
     /**

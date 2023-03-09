@@ -2,6 +2,8 @@ package cora.interfaces.smt;
 
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
+import cora.interfaces.types.Type;
+import cora.terms.Var;
 
 import java.io.IOException;
 
@@ -23,6 +25,8 @@ public interface Proof {
     Term getConstraint();
 
     void setConstraint(Term t);
+
+    Var getFreshVar(Type expectedType);
 
     String toString();
 

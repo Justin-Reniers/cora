@@ -23,7 +23,6 @@ import cora.exceptions.NullInitialisationError;
 import cora.exceptions.TypingError;
 import cora.interfaces.types.Type;
 import cora.interfaces.terms.*;
-import cora.loggers.Logger;
 import cora.terms.positions.EmptyPosition;
 import cora.terms.positions.ArgumentPosition;
 
@@ -198,22 +197,21 @@ abstract class ApplicativeTermInherit extends TermInherit implements Term {
     return args;
   }
 
-  protected List<Term> unsubstituteArgs(Substitution gamma) {
+  protected List<Term> reverseSubstitute(Substitution gamma) {
     List<Term> args = new ArrayList<>(_args);
-    Logger.log(args.toString());
     for (Variable v : gamma.domain()) {
       for (int i = 0; i < args.size(); i++) {
         if (gamma.getReplacement(v) == null) {
           throw new Error("Unsubstituting " + args.get(i).toString() + " results in null!");
         }
-        Term a = gamma.get(v);
-        Term b = args.get(i);
-        if (gamma.getReplacement(v).toString().equals(args.get(i).toString())) {
+        Term r = gamma.getReplacement(v);
+        Term n = args.get(i);
+        Substitution s = r.match(n);
+        if (r.equals(n.substitute(s))) {
           args.set(i, v);
         }
       }
     }
-    Logger.log(args.toString());
     return args;
   }
 }
