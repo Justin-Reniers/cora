@@ -22,7 +22,9 @@ import java.util.ArrayList;
  */
 public class EquivalenceProof implements Proof {
     private TRS _lcTrs;
-    private Term _left, _right, _constraint;
+    private boolean _completeness;
+    private ArrayList<Equation> _equations;
+    private Equation _cur_eq;
     private ArrayList<ProofHistory> _history;
     private int _varcounter;
 
@@ -32,9 +34,12 @@ public class EquivalenceProof implements Proof {
      */
     public EquivalenceProof(TRS lcTrs, Term left, Term right, Term constraint) {
         _lcTrs = lcTrs;
-        _left = left;
-        _right = right;
-        _constraint = constraint;
+        //TODO add flag reading for confluence of lctrs yes or no.
+        _completeness = false;
+        Equation equation = new Equation(left, right, constraint);
+        _equations = new ArrayList<Equation>();
+        _equations.add(equation);
+        _cur_eq = equation;
         _history = new ArrayList<ProofHistory>();
         //_history.add(new ProofHistory(_left, _right, _constraint, null));
         _varcounter = 0;
@@ -52,13 +57,25 @@ public class EquivalenceProof implements Proof {
             UserCommand uc = LcTrsInputReader.readUserInputFromString(uCommand);
             uc.setProof(this);
             if (uc.applicable()) {
-                _history.add(new ProofHistory(_left, _right, _constraint, uc));
+                Equation eq = _equations.get(_equations.size() - 1);
+                _history.add(new ProofHistory(eq, uc));
                 uc.apply();
                 return true;
             } return false;
         } catch (ParserException e) {
             Logger.log(e.toString());
             return false;
+        }
+    }
+
+    @Override
+    public void removeCurrentEquation() {
+        _equations.remove(_cur_eq);
+        try {
+            _cur_eq = _equations.get(0);
+        } catch (IndexOutOfBoundsException e) {
+            //Logger.log("No more equations in proof");
+            _cur_eq = null;
         }
     }
 
@@ -96,7 +113,7 @@ public class EquivalenceProof implements Proof {
      */
     @Override
     public Term getLeft() {
-        return _left;
+        return _cur_eq.getLeft();
     }
 
     /**
@@ -104,7 +121,7 @@ public class EquivalenceProof implements Proof {
      */
     @Override
     public void setLeft(Term t) {
-        if (t != null) _left = t;
+        _cur_eq.setLeft(t);
     }
 
     /**
@@ -112,23 +129,21 @@ public class EquivalenceProof implements Proof {
      */
     @Override
     public Term getRight() {
-        return _right;
+        return _cur_eq.getRight();
     }
 
     /**
      * Sets the right hand side of the equivalence proof.
      */
     @Override
-    public void setRight(Term t) {
-        if (t != null) _right = t;
-    }
+    public void setRight(Term t) { _cur_eq.setRight(t); }
 
     /**
      * Returns the constraint side of the equivalence proof.
      */
     @Override
     public Term getConstraint() {
-        return _constraint;
+        return _cur_eq.getConstraint();
     }
 
     /**
@@ -136,7 +151,12 @@ public class EquivalenceProof implements Proof {
      */
     @Override
     public void setConstraint(Term t) {
-        if (t != null) _constraint = t;
+        _cur_eq.setConstraint(t);
+    }
+
+    @Override
+    public Equation getCurrentEquation() {
+        return _cur_eq;
     }
 
     @Override
@@ -151,8 +171,9 @@ public class EquivalenceProof implements Proof {
      */
     @Override
     public String toString() {
-        return _lcTrs.toString() + "\n" + _left.toString() + "\t" + _right.toString() +
-                "\t[" + _constraint.toString() + "]";
+        //return _lcTrs.toString() + "\n" + _left.toString() + "\t" + _right.toString() +
+        //        "\t[" + _constraint.toString() + "]";
+        return "";
     }
 
     /**
@@ -161,6 +182,7 @@ public class EquivalenceProof implements Proof {
      */
     @Override
     public String currentState() {
-        return _left.toString() + "\t" + _right.toString() + "\t[" + _constraint.toString() + "]";
+        return _cur_eq.getLeft().toString() + "\t" + _cur_eq.getRight().toString() +
+                "\t[" + _cur_eq.getConstraint().toString() + "]";
     }
 }
