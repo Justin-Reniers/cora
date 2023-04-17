@@ -64,5 +64,10 @@ public class Env implements Environment {
   public Environment copy() {
     return new Env(_variables);
   }
+
+  @Override
+  public TreeSet<Variable> getVars() {
+    return _variables;
+  }
 }
 

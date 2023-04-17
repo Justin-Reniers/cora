@@ -4,15 +4,13 @@ import cora.exceptions.*;
 import cora.interfaces.rewriting.Rule;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.UserCommand;
-import cora.interfaces.terms.FunctionSymbol;
-import cora.interfaces.terms.Position;
-import cora.interfaces.terms.Term;
+import cora.interfaces.terms.*;
 import cora.interfaces.types.Type;
-import cora.loggers.Logger;
 import cora.rewriting.FirstOrderRule;
 import cora.rewriting.TermRewritingSystem;
-import cora.smt.SimplifyCommand;
-import cora.smt.SwapCommand;
+import cora.usercommands.DeleteCommand;
+import cora.usercommands.SimplifyCommand;
+import cora.usercommands.SwapCommand;
 import cora.terms.Constant;
 import cora.terms.FunctionalTerm;
 import cora.terms.Var;
@@ -25,9 +23,9 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import java.io.IOException;
-import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.TreeSet;
 
 /**
  * This class reads text from a string or file written in the LcTrs input format.
@@ -501,7 +499,8 @@ public class LcTrsInputReader extends InputReader{
             throw new UnsupportedRewritingRuleException("Expand rule not yet supported");
         } if (kind.equals("token DELETION")) {
             verifyChildIsToken(tree, 0, "DELETION", "The delete rule");
-            throw new UnsupportedRewritingRuleException("Delete rule not yet supported");
+            return new DeleteCommand();
+            //throw new UnsupportedRewritingRuleException("Delete rule not yet supported");
         } if (kind.equals("token POSTULATE")) {
             verifyChildIsToken(tree, 0, "POSTULATE", "The postulate rule");
             throw new UnsupportedRewritingRuleException("Postulate rule not yet supported");
@@ -611,6 +610,17 @@ public class LcTrsInputReader extends InputReader{
         collector.throwCollectedExceptions();
 
         ParseData data = new ParseData(trs);
+        return reader.readTermType(tree, data, null, true);
+    }
+
+    public static Term readTermFromStringWithEnv(String str, TRS trs, TreeSet<Variable> env) throws ParserException {
+        ErrorCollector collector = new ErrorCollector();
+        LcTrsParser parser = createLcTrsParserFromString(str, collector);
+        LcTrsInputReader reader = new LcTrsInputReader();
+        ParseTree tree = parser.term();
+        collector.throwCollectedExceptions();
+
+        ParseData data = new ParseData(trs, env);
         return reader.readTermType(tree, data, null, true);
     }
 }
