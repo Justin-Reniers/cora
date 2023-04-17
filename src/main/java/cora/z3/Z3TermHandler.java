@@ -138,6 +138,11 @@ public class Z3TermHandler {
     }
 
     private Term reconstruct(Expr e, Environment env) {
+        if (e.isUMinus()) {
+            Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.intSort));
+            return new FunctionalTerm(new Constant("-", type), new Constant("0", Sort.intSort),
+                    reconstruct(e.getArgs()[1], env));
+        }
         if (e.isInt() && !e.isApp()) {
             if (isNumeric(e.toString())) return new Constant(e.toString(), Sort.intSort);
             return new Var(e.toString(), Sort.intSort);
@@ -252,6 +257,14 @@ public class Z3TermHandler {
         return null;
     }
 
+    public boolean validity(Term proofConstraint, Term ruleConstraintPhi) {
+        Expr pc = deconstruct(proofConstraint);
+        Expr rc = deconstruct(ruleConstraintPhi);
+        Expr e = getAnd(_ctx, pc, getNot(_ctx, rc));
+        _s.add(e);
+        return true;
+    }
+
     public void constraintCheck(Term ruleConstraint, Term proofConstraint, Substitution s) {
         Expr rc = deconstruct(ruleConstraint);
         Expr pc = deconstruct(proofConstraint);
@@ -268,6 +281,7 @@ public class Z3TermHandler {
     }
 
     public Model getModel() {
+        if (Z3Helper.getModel(_s) == null) return null;
         return Z3Helper.getModel(_s);
     }
 
@@ -275,7 +289,7 @@ public class Z3TermHandler {
 
     }
 
-    public Substitution getSubstitutions(Term c) {
+    public Substitution getEqualities(Term c) {
         Set<Expr> equalities = new HashSet<>();
         getEqualities(c, equalities);
         Substitution s = new Subst();
@@ -321,5 +335,11 @@ public class Z3TermHandler {
                 containsCalcVar(c.queryImmediateSubterm(i), calcVar, c);
             }
         }
+    }
+
+    public boolean satisfiable(Term constraint) {
+        Expr e = deconstruct(constraint);
+        _s.add(e);
+        return getModel() != null;
     }
 }
