@@ -1,8 +1,6 @@
 package cora.interfaces.smt;
 
-import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Position;
-import cora.interfaces.terms.Term;
 import cora.interfaces.types.Type;
 import cora.smt.EquivalenceProof;
 import cora.terms.Var;
@@ -25,4 +23,6 @@ public interface UserCommand {
     void setProof(EquivalenceProof proof);
 
     Var getFreshVar(Type expectedType);
+
+    EquivalenceProof getProof();
 }

@@ -1,9 +1,10 @@
-package cora.smt;
+package cora.usercommands;
 
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Position;
 import cora.interfaces.terms.Term;
 import cora.interfaces.types.Type;
+import cora.smt.EquivalenceProof;
 import cora.terms.Var;
 
 /**
@@ -59,6 +60,11 @@ public class SwapCommand extends UserCommandInherit implements UserCommand {
      */
     @Override
     public Var getFreshVar(Type expectedType) {
+        return null;
+    }
+
+    @Override
+    public EquivalenceProof getProof() {
         return null;
     }
 
