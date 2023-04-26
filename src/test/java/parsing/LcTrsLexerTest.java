@@ -263,8 +263,8 @@ public class LcTrsLexerTest {
 
     @Test
     public void testKeywordGQDelete() {
-         ArrayList<Token> ts = tokenize("gqdeleTe");
-         assertEquals(ts.get(0).getType(), LcTrsLexer.GQDELETION);
+         ArrayList<Token> ts = tokenize("eqdeleTe");
+         assertEquals(ts.get(0).getType(), LcTrsLexer.EQDELETION);
     }
 
     @Test

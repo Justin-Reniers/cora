@@ -50,7 +50,7 @@ public class LcTrsUserReadingTest {
         LcTrsInputReader.readUserInputFromString("ExpAnd");
     }
 
-    @Test (expected = UnsupportedRewritingRuleException.class)
+    @Test
     public void readDeletion() throws ParserException {
         LcTrsInputReader.readUserInputFromString("deleTe");
     }
@@ -65,9 +65,9 @@ public class LcTrsUserReadingTest {
         LcTrsInputReader.readUserInputFromString("generaliZE");
     }
 
-    @Test (expected = UnsupportedRewritingRuleException.class)
-    public void readGQDeletion() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("gqdelEte");
+    @Test
+    public void readEQDeletion() throws ParserException {
+        LcTrsInputReader.readUserInputFromString("eqdelEte");
     }
 
     @Test (expected = UnsupportedRewritingRuleException.class)
