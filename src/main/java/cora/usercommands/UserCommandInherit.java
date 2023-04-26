@@ -171,4 +171,10 @@ abstract class UserCommandInherit {
     public Var getFreshVar(EquivalenceProof proof, Type expectedType) {
         return proof.getFreshVar(expectedType);
     }
+
+    protected void addTermToConstraint(EquivalenceProof proof, Term eq) {
+        Term c = proof.getConstraint();
+        Term newAnd = new FunctionalTerm(proof.getLcTrs().lookupSymbol("/\\"), c, eq);
+        proof.setConstraint(newAnd);
+    }
 }
