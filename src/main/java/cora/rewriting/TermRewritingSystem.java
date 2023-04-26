@@ -132,5 +132,10 @@ public class TermRewritingSystem implements TRS {
     }
     return reductions;
   }
+
+    @Override
+    public void addRule(Rule r) {
+        _rules.add(r);
+    }
 }
 

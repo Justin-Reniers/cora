@@ -1,6 +1,7 @@
 package cora.smt;
 
 import cora.exceptions.ParserException;
+import cora.interfaces.rewriting.Rule;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.Proof;
 import cora.interfaces.smt.UserCommand;
@@ -77,6 +78,16 @@ public class EquivalenceProof implements Proof {
             //Logger.log("No more equations in proof");
             _cur_eq = null;
         }
+    }
+
+    @Override
+    public void addEquations(ArrayList<Equation> eqs) {
+        _equations.addAll(eqs);
+    }
+
+    @Override
+    public void addRule(Rule r) {
+        _lcTrs.addRule(r);
     }
 
     /**
@@ -157,6 +168,11 @@ public class EquivalenceProof implements Proof {
     @Override
     public Equation getCurrentEquation() {
         return _cur_eq;
+    }
+
+    @Override
+    public ArrayList<Equation> getEquations() {
+        return _equations;
     }
 
     @Override

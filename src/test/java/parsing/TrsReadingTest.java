@@ -212,6 +212,9 @@ public class TrsReadingTest {
       return null;
     }
 
+    @Override
+    public void addRule(Rule r) {}
+
     public FunctionSymbol lookupSymbol(String name) { return _symbols.get(name); }
   }
 
