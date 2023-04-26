@@ -514,7 +514,7 @@ public class LcTrsInputReader extends InputReader{
             return new ConstructorCommand();
         } if (kind.equals("token DISPROVE")) {
             verifyChildIsToken(tree, 0, "DISPROVE", "The disprove rule");
-            throw new UnsupportedRewritingRuleException("Disprove rule not yet supported");
+            return new DisproveCommand();
         } if (kind.equals("token COMPLETENESS")) {
             verifyChildIsToken(tree, 0, "COMPLETENESS", "The completeness rule");
             throw new UnsupportedRewritingRuleException("Completeness rule not yet supported");

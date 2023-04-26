@@ -1,11 +1,11 @@
 package cora.smt;
 
+import cora.exceptions.BottomException;
 import cora.exceptions.ParserException;
 import cora.interfaces.rewriting.Rule;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.Proof;
 import cora.interfaces.smt.UserCommand;
-import cora.interfaces.terms.Substitution;
 import cora.interfaces.terms.Term;
 import cora.interfaces.types.Type;
 import cora.loggers.Logger;
@@ -28,6 +28,7 @@ public class EquivalenceProof implements Proof {
     private Equation _cur_eq;
     private ArrayList<ProofHistory> _history;
     private int _varcounter;
+    private boolean _bottom;
 
     /**
      * This constructor is used to create an equivalence proof. Keeps a list _history
@@ -44,6 +45,7 @@ public class EquivalenceProof implements Proof {
         _history = new ArrayList<ProofHistory>();
         //_history.add(new ProofHistory(_left, _right, _constraint, null));
         _varcounter = 0;
+        _bottom = false;
     }
 
     /**
@@ -54,6 +56,7 @@ public class EquivalenceProof implements Proof {
      */
     @Override
     public boolean applyNewUserCommand(String uCommand) {
+        if (_bottom) throw new BottomException(uCommand);
         try {
             UserCommand uc = LcTrsInputReader.readUserInputFromString(uCommand);
             uc.setProof(this);
@@ -83,11 +86,22 @@ public class EquivalenceProof implements Proof {
     @Override
     public void addEquations(ArrayList<Equation> eqs) {
         _equations.addAll(eqs);
+        if (_cur_eq == null && !_equations.isEmpty()) _cur_eq = _equations.get(0);
     }
 
     @Override
     public void addRule(Rule r) {
         _lcTrs.addRule(r);
+    }
+
+    @Override
+    public void setBottom(boolean bottom) {
+        if (!_bottom) _bottom = bottom;
+    }
+
+    @Override
+    public boolean getBottom() {
+        return _bottom;
     }
 
     /**

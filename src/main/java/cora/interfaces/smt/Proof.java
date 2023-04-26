@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public interface Proof {
+    boolean getBottom();
+
     public void saveStateToFile(String filePath) throws IOException;
 
     UserCommand getLastCommand();
@@ -46,4 +48,6 @@ public interface Proof {
     void addEquations(ArrayList<Equation> eqs);
 
     void addRule(Rule r);
+
+    void setBottom(boolean bottom);
 }
