@@ -63,4 +63,65 @@ public class ConstraintRewritingTest {
         Term l2 = LcTrsInputReader.readTermFromStringWithEnv("g(1)", lcTrs, vars);
         assertEquals(eq.getLeft(), l2);
     }
+
+    @Test
+    public void testConstraintRewrite2() throws ParserException {
+        String lctrs = "(SIG\n" +
+                "(factrec\t Int -> Int)\n" +
+                "(return\t Int -> Int)\n" +
+                "(mul\t Int Int -> Int)\n" +
+                "(iter\t Int Int Int -> Int)\n" +
+                ")\n" +
+                "(RULES\n" +
+                "\tfactrec(x) -> return(1) [x <= 1]\n" +
+                "\tfactrec(x) -> mul(x, factrec(x - 1)) [x > 1]\n" +
+                ")\n";
+        String t1 = "factrec(n)";
+        String t2 = "iter(n, 1, 2)";
+        String c1 = "n >= 1";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(lctrs);
+        Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
+        TreeSet<Variable> vars = new TreeSet<>();
+        vars.addAll(l.vars().getVars());
+        Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
+        vars.addAll(r.vars().getVars());
+        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
+        eq.applyNewUserCommand("simplify 0 0");
+        vars.addAll(eq.getConstraint().vars().getVars());
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("return(1)", lcTrs, vars);
+        assertEquals(eq.getLeft(), l2);
+    }
+
+    @Test
+    public void testConstraintRewrite3() throws ParserException {
+        String lctrs = "(SIG\n" +
+                "(factrec\t Int -> Int)\n" +
+                "(return\t Int -> Int)\n" +
+                "(mul\t Int Int -> Int)\n" +
+                "(iter\t Int Int Int -> Int)\n" +
+                ")\n" +
+                "(RULES\n" +
+                "\tfactrec(x) -> return(1) [x <= 1]\n" +
+                "\tfactrec(x) -> mul(x, factrec(x - 1)) [x > 1]\n" +
+                ")\n";
+        String t1 = "factrec(n)";
+        String t2 = "iter(n, 1, 2)";
+        String c1 = "n >= 1";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(lctrs);
+        Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
+        TreeSet<Variable> vars = new TreeSet<>();
+        vars.addAll(l.vars().getVars());
+        Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
+        vars.addAll(r.vars().getVars());
+        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        vars.addAll(c.vars().getVars());
+        EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
+        eq.applyNewUserCommand("simplify 0 1");
+        vars.addAll(eq.getConstraint().vars().getVars());
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("mul(x_0, factrec(x_0 - 1))", lcTrs, vars);
+        System.out.println(eq.getLeft());
+        System.out.println(l2);
+        assertEquals(eq.getLeft(), l2);
+    }
 }
