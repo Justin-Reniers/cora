@@ -8,9 +8,7 @@ import cora.interfaces.terms.*;
 import cora.interfaces.types.Type;
 import cora.rewriting.FirstOrderRule;
 import cora.rewriting.TermRewritingSystem;
-import cora.usercommands.DeleteCommand;
-import cora.usercommands.SimplifyCommand;
-import cora.usercommands.SwapCommand;
+import cora.usercommands.*;
 import cora.terms.Constant;
 import cora.terms.FunctionalTerm;
 import cora.terms.Var;
@@ -496,20 +494,21 @@ public class LcTrsInputReader extends InputReader{
             return new SimplifyCommand(pos, Integer.parseInt(tree.getChild(2).getText()));
         } if (kind.equals("token EXPANSION")) {
             verifyChildIsToken(tree, 0, "EXPANSION", "The expand rule");
-            throw new UnsupportedRewritingRuleException("Expand rule not yet supported");
+            verifyChildIsRule(tree, 1, "pos", "Position rule");
+            Position pos = parsePosition(tree.getChild(1));
+            return new ExpandCommand(pos);
         } if (kind.equals("token DELETION")) {
             verifyChildIsToken(tree, 0, "DELETION", "The delete rule");
             return new DeleteCommand();
-            //throw new UnsupportedRewritingRuleException("Delete rule not yet supported");
         } if (kind.equals("token POSTULATE")) {
             verifyChildIsToken(tree, 0, "POSTULATE", "The postulate rule");
             throw new UnsupportedRewritingRuleException("Postulate rule not yet supported");
         } if (kind.equals("token GENERALIZATION")) {
             verifyChildIsToken(tree, 0, "GENERALIZATION", "The generalize rule");
             throw new UnsupportedRewritingRuleException("Generalize rule not yet supported");
-        } if (kind.equals("token GQDELETION")) {
-            verifyChildIsToken(tree, 0, "GQDELETION", "The gq-delete rule");
-            throw new UnsupportedRewritingRuleException("GQ-delete rule not yet supported");
+        } if (kind.equals("token EQDELETION")) {
+            verifyChildIsToken(tree, 0, "EQDELETION", "The eq-delete rule");
+            return new EQDeleteCommand();
         } if (kind.equals("token CONSTRUCTOR")) {
             verifyChildIsToken(tree, 0, "CONSTRUCTOR", "The constructor rule");
             throw new UnsupportedRewritingRuleException("Constructor rule not yet supported");
