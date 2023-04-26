@@ -1,5 +1,6 @@
 package cora.usercommands;
 
+import cora.interfaces.rewriting.Rule;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Position;
 import cora.interfaces.terms.Substitution;
@@ -177,5 +178,27 @@ abstract class UserCommandInherit {
         Term c = proof.getConstraint();
         Term newAnd = new FunctionalTerm(proof.getLcTrs().lookupSymbol("/\\"), c, eq);
         proof.setConstraint(newAnd);
+    }
+
+
+    protected boolean isBasicTerm(Term t, EquivalenceProof _proof) {
+        if (t.isVariable()) return true;
+        boolean defined = false;
+        for (int i = 0; i < _proof.getLcTrs().queryRuleCount(); i++) {
+            if (t.queryRoot().equals(_proof.getLcTrs().queryRule(i).queryLeftSide().queryRoot())) defined = true;
+        }
+        if (!defined) return false;
+        for (int i = 1; i <= t.numberImmediateSubterms(); i++) {
+            if (!isConstructorTerm(t.queryImmediateSubterm(i), _proof)) return false;
+        }
+        return true;
+    }
+
+    protected boolean isConstructorTerm(Term t, EquivalenceProof _proof) {
+        for (int i = 0; i < _proof.getLcTrs().queryRuleCount(); i++) {
+            Rule rule = _proof.getLcTrs().queryRule(i);
+            if (!t.isVariable() && rule.queryLeftSide().queryRoot().equals(t.queryRoot())) return false;
+        }
+        return true;
     }
 }
