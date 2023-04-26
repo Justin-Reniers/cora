@@ -511,7 +511,7 @@ public class LcTrsInputReader extends InputReader{
             return new EQDeleteCommand();
         } if (kind.equals("token CONSTRUCTOR")) {
             verifyChildIsToken(tree, 0, "CONSTRUCTOR", "The constructor rule");
-            throw new UnsupportedRewritingRuleException("Constructor rule not yet supported");
+            return new ConstructorCommand();
         } if (kind.equals("token DISPROVE")) {
             verifyChildIsToken(tree, 0, "DISPROVE", "The disprove rule");
             throw new UnsupportedRewritingRuleException("Disprove rule not yet supported");
