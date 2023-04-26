@@ -108,7 +108,7 @@ POSTULATE           : P O S T U L A T E ;
 
 GENERALIZATION      : G E N E R A L I Z E ;
 
-GQDELETION          : G Q D E L E T E ;
+EQDELETION          : E Q D E L E T E ;
 
 CONSTRUCTOR         : C O N S T R U C T O R ;
 
