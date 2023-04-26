@@ -40,13 +40,14 @@ abstract class UserCommandInherit {
         Term tAtPos = proofLeft.querySubterm(q);
         Substitution y = tAtPos.unify(ruleLeft);
         if (y == null) return null;
-        TreeSet<Variable> vars = proofLeft.vars().getVars();
-        if (!ruleConstraint.queryRoot().queryName().equals("/\\")) {
-            for (Variable v : ruleConstraint.substitute(y).queryImmediateSubterm(1).vars().getVars()) {
+        TreeSet<Variable> vars = ruleLeft.vars().getVars();
+        vars.addAll(ruleConstraint.vars().getVars());
+        if (!proofConstraint.queryRoot().queryName().equals("/\\")) {
+            for (Variable v : proofConstraint.substitute(y).queryImmediateSubterm(1).vars().getVars()) {
                 if (!vars.contains(v)) return null;
             }
         } else {
-            checkVarsInConstraint(ruleConstraint, vars);
+            checkVarsInConstraint(proofConstraint, vars);
         }
         Z3TermHandler z3 = new Z3TermHandler();
         boolean valid;
