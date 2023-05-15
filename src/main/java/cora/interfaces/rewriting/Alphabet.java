@@ -17,6 +17,8 @@ package cora.interfaces.rewriting;
 
 import cora.interfaces.terms.FunctionSymbol;
 
+import java.util.List;
+
 /**
  * An Alphabet is a (possibly infinite) set of function symbols, which does not have any duplicate
  * name uses.
@@ -34,5 +36,7 @@ public interface Alphabet {
    * immutable).
    */
   Alphabet copy();
+
+  List<FunctionSymbol> queryAlphabetSymbols();
 }
 

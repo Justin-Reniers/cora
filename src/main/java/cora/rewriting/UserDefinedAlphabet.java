@@ -15,7 +15,9 @@
 
 package cora.rewriting;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.TreeMap;
 import cora.exceptions.NullInitialisationError;
 import cora.exceptions.TypingError;
@@ -45,6 +47,13 @@ public class UserDefinedAlphabet implements Alphabet {
                   // change to do a deep copy if this alphabet is ever made mutable!
   }
 
+  @Override
+  public List<FunctionSymbol> queryAlphabetSymbols() {
+    List<FunctionSymbol> fs = new ArrayList<>();
+      for (FunctionSymbol f : _symbols.values()) fs.add(f);
+    return fs;
+  }
+
   /**
    * Adds a symbol to the current Alphabet. ONLY to be called from constructors (or otherwise
    * during the setup of a UserDefinedAlphabet), since calling it later would violate immutability.
@@ -71,5 +80,7 @@ public class UserDefinedAlphabet implements Alphabet {
     }
     return ret;
   }
+
+
 }
 

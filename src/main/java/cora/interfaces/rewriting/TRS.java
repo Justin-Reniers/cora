@@ -57,5 +57,7 @@ public interface TRS {
   List<Term> breadthFirstReduce(Term s);
 
   void addRule(Rule r);
+
+  List<FunctionSymbol> querySymbols();
 }
 

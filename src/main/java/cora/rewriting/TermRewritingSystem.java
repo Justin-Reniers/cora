@@ -137,5 +137,10 @@ public class TermRewritingSystem implements TRS {
     public void addRule(Rule r) {
         _rules.add(r);
     }
+
+    @Override
+    public List<FunctionSymbol> querySymbols() {
+        return _alphabet.queryAlphabetSymbols();
+    }
 }
 

@@ -5,6 +5,7 @@ import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
 import cora.parsers.LcTrsInputReader;
+import cora.rewriting.FirstOrderRule;
 import cora.smt.Equation;
 import cora.smt.EquivalenceProof;
 import org.junit.Test;
@@ -57,8 +58,8 @@ public class ExpandCommandSMTTest {
         vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("expand 0");
-        System.out.println(eq.getEquations());
-        //System.out.println(eq.getLcTrs());
+        FirstOrderRule rule = new FirstOrderRule(l, r, c);
+        assertEquals(rule, eq.getLcTrs().queryRule(eq.getLcTrs().queryRuleCount()-1));
     }
 
     @Test
@@ -74,8 +75,8 @@ public class ExpandCommandSMTTest {
         Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
         vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
-        ArrayList<Equation> eqs = eq.getEquations();
+        int eqSize = eq.getEquations().size();
         eq.applyNewUserCommand("expand 1.1");
-        assertEquals(eqs, eq.getEquations());
+        assertEquals(eqSize, eq.getEquations().size());
     }
 }
