@@ -2,10 +2,7 @@ package cora.usercommands;
 
 import cora.interfaces.rewriting.Rule;
 import cora.interfaces.rewriting.TRS;
-import cora.interfaces.terms.Position;
-import cora.interfaces.terms.Substitution;
-import cora.interfaces.terms.Term;
-import cora.interfaces.terms.Variable;
+import cora.interfaces.terms.*;
 import cora.interfaces.types.Type;
 import cora.rewriting.FirstOrderRule;
 import cora.smt.EquivalenceProof;
@@ -198,6 +195,14 @@ abstract class UserCommandInherit {
         for (int i = 0; i < _proof.getLcTrs().queryRuleCount(); i++) {
             Rule rule = _proof.getLcTrs().queryRule(i);
             if (!t.isVariable() && rule.queryLeftSide().queryRoot().equals(t.queryRoot())) return false;
+        }
+        return true;
+    }
+
+    protected boolean isConstructorTerm (FunctionSymbol f, EquivalenceProof proof) {
+        for (int i = 0; i < proof.getLcTrs().queryRuleCount(); i++) {
+            Rule rule = proof.getLcTrs().queryRule(i);
+            if (!f.isVariable() && rule.queryLeftSide().queryRoot().equals(f)) return false;
         }
         return true;
     }
