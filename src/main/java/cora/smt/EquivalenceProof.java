@@ -24,7 +24,7 @@ import java.util.ArrayList;
 public class EquivalenceProof implements Proof {
     private TRS _lcTrs;
     private boolean _completeness;
-    private ArrayList<Equation> _equations;
+    private ArrayList<Equation> _equations, _completenessEquations;
     private Equation _cur_eq;
     private ArrayList<ProofHistory> _history;
     private int _varcounter;
@@ -41,6 +41,7 @@ public class EquivalenceProof implements Proof {
         Equation equation = new Equation(left, right, constraint);
         _equations = new ArrayList<Equation>();
         _equations.add(equation);
+        _completenessEquations = new ArrayList<Equation>();
         _cur_eq = equation;
         _history = new ArrayList<ProofHistory>();
         //_history.add(new ProofHistory(_left, _right, _constraint, null));
@@ -87,6 +88,34 @@ public class EquivalenceProof implements Proof {
     public void addEquations(ArrayList<Equation> eqs) {
         _equations.addAll(eqs);
         if (_cur_eq == null && !_equations.isEmpty()) _cur_eq = _equations.get(0);
+    }
+
+    @Override
+    public void addEquation(Equation eq) { _equations.add(eq); }
+
+    @Override
+    public boolean getCompleteness() {
+        return _completeness;
+    }
+
+    @Override
+    public void setCompleteness(boolean c) {
+        _completeness = c;
+    }
+
+    @Override
+    public ArrayList<Equation> getCompletenessEquationSet() {
+        return _completenessEquations;
+    }
+
+    @Override
+    public void setCompletenessEquationSet() {
+        _completenessEquations.addAll(_equations);
+    }
+
+    @Override
+    public void emptyCompletenessEquationSet() {
+        _completenessEquations.clear();
     }
 
     @Override
