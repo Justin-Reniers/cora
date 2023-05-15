@@ -110,7 +110,7 @@ public class EquivalenceProof implements Proof {
 
     @Override
     public void setCompletenessEquationSet() {
-        _completenessEquations.addAll(_equations);
+        if (_completenessEquations.isEmpty()) _completenessEquations.addAll(_equations);
     }
 
     @Override

@@ -47,6 +47,18 @@ public interface Proof {
 
     void addEquations(ArrayList<Equation> eqs);
 
+    void addEquation(Equation eq);
+
+    boolean getCompleteness();
+
+    void setCompleteness(boolean c);
+
+    ArrayList<Equation> getCompletenessEquationSet();
+
+    void setCompletenessEquationSet();
+
+    void emptyCompletenessEquationSet();
+
     void addRule(Rule r);
 
     void setBottom(boolean bottom);
