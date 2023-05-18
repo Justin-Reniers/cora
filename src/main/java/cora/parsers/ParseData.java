@@ -16,8 +16,9 @@
 package cora.parsers;
 
 import java.util.TreeMap;
+import java.util.TreeSet;
+
 import cora.exceptions.NullStorageError;
-import cora.exceptions.TypingError;
 import cora.interfaces.types.Type;
 import cora.interfaces.terms.FunctionSymbol;
 import cora.interfaces.terms.Variable;
@@ -47,11 +48,20 @@ public class ParseData {
    */
   public ParseData(TRS trs) {
     _trs = trs;
-    _alphabet = new TreeMap<String,FunctionSymbol>();
-    _environment = new TreeMap<String,Variable>();
+    _alphabet = new TreeMap<String, FunctionSymbol>();
+    _environment = new TreeMap<String, Variable>();
   }
 
-  /**
+    public ParseData(TRS trs, TreeSet<Variable> env) {
+      _trs = trs;
+      _alphabet = new TreeMap<String, FunctionSymbol>();
+      _environment = new TreeMap<String, Variable>();
+      for (Variable v : env) {
+        _environment.put(v.queryName(), v);
+      }
+    }
+
+    /**
    * Returns the number of function symbols declared in the current parser data.
    * This ignores any function symbols that are included by including a TRS.
    */

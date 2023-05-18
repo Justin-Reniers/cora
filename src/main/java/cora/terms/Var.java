@@ -22,6 +22,7 @@ import cora.exceptions.NullCallError;
 import cora.exceptions.NullInitialisationError;
 import cora.interfaces.types.Type;
 import cora.interfaces.terms.*;
+import cora.loggers.Logger;
 import cora.types.Sort;
 
 /**
@@ -35,7 +36,7 @@ import cora.types.Sort;
 public class Var extends LeafTermInherit implements Variable {
   private static int COUNTER = 0;
   private String _name;
-  private int _index;
+  public int _index;
 
   /** Create a variable with the given name and type. */
   public Var(String name, Type type) {
@@ -122,6 +123,11 @@ public class Var extends LeafTermInherit implements Variable {
   public Term substitute(Substitution gamma) {
     if (gamma == null) throw new NullCallError("Var", "substitute", "substitution gamma");
     return gamma.getReplacement(this);
+  }
+
+  public Term unsubstitute(Substitution gamma) {
+    if (gamma == null) throw new NullCallError("Var", "substitute", "substitution gamma");
+    return this;
   }
 
   /** 

@@ -2,6 +2,7 @@ package parsing;
 
 import cora.loggers.ConsoleLogger;
 import cora.loggers.Logger;
+import org.antlr.v4.parse.ANTLRLexer;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.antlr.v4.runtime.CharStreams;
@@ -74,7 +75,7 @@ public class LcTrsLexerTest {
     public void testLexerSimpleIdentifier() {
          ArrayList<Token> ts = tokenize("function");
          assertEquals(ts.size(), 1);
-         verifyToken(ts.get(0), LcTrsLexer.IDENTIFIER, "function");
+         verifyToken(ts.get(0), LcTrsLexer.WORD, "function");
     }
 
     @Test
@@ -82,24 +83,24 @@ public class LcTrsLexerTest {
         ArrayList<Token> ts = tokenize("-ts");
         assertEquals(ts.size(), 2);
         verifyToken(ts.get(0), LcTrsLexer.MINUS, "-");
-        verifyToken(ts.get(1), LcTrsLexer.IDENTIFIER, "ts");
+        verifyToken(ts.get(1), LcTrsLexer.WORD, "ts");
     }
 
     @Test
     public void testLexerAllBasicTokens() {
         ArrayList<Token> ts = tokenize("a(o){,er 8}[eaf]");
         assertEquals(ts.size(), 12);
-        assertEquals(ts.get(0).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.WORD);
         assertEquals(ts.get(1).getType(), LcTrsLexer.BRACKETOPEN);
-        assertEquals(ts.get(2).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(2).getType(), LcTrsLexer.WORD);
         assertEquals(ts.get(3).getType(), LcTrsLexer.BRACKETCLOSE);
         assertEquals(ts.get(4).getType(), LcTrsLexer.BRACEOPEN);
         assertEquals(ts.get(5).getType(), LcTrsLexer.COMMA);
-        assertEquals(ts.get(6).getType(), LcTrsLexer.IDENTIFIER);
-        assertEquals(ts.get(7).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(6).getType(), LcTrsLexer.WORD);
+        assertEquals(ts.get(7).getType(), LcTrsLexer.NUM);
         assertEquals(ts.get(8).getType(), LcTrsLexer.BRACECLOSE);
         assertEquals(ts.get(9).getType(), LcTrsLexer.SQUAREOPEN);
-        assertEquals(ts.get(10).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(10).getType(), LcTrsLexer.WORD);
         assertEquals(ts.get(11).getType(), LcTrsLexer.SQUARECLOSE);
     }
 
@@ -110,9 +111,9 @@ public class LcTrsLexerTest {
         assertEquals(ts.get(0).getType(), LcTrsLexer.ARROW);
         assertEquals(ts.get(1).getType(), LcTrsLexer.MINUS);
         assertEquals(ts.get(2).getType(), LcTrsLexer.GT);
-        assertEquals(ts.get(3).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(3).getType(), LcTrsLexer.WORD);
         assertEquals(ts.get(4).getType(), LcTrsLexer.CONDITIONAL);
-        assertEquals(ts.get(5).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(5).getType(), LcTrsLexer.WORD);
     }
 
     @Test
@@ -229,9 +230,11 @@ public class LcTrsLexerTest {
 
     @Test
     public void testKeywordSimplify() {
-         ArrayList<Token> ts = tokenize("simplifY 2.2");
-         assertEquals(ts.get(0).getType(), LcTrsLexer.SIMPLIFICATION);
-         assertEquals(ts.get(1).getType(), LcTrsLexer.POS);
+        ArrayList<Token> ts = tokenize("simplifY 2.2");
+        assertEquals(ts.get(0).getType(), LcTrsLexer.SIMPLIFICATION);
+        assertEquals(ts.get(1).getType(), LcTrsLexer.NUM);
+        assertEquals(ts.get(2).getType(), LcTrsLexer.DOT);
+        assertEquals(ts.get(3).getType(), LcTrsLexer.NUM);
     }
 
     @Test
@@ -260,8 +263,8 @@ public class LcTrsLexerTest {
 
     @Test
     public void testKeywordGQDelete() {
-         ArrayList<Token> ts = tokenize("gqdeleTe");
-         assertEquals(ts.get(0).getType(), LcTrsLexer.GQDELETION);
+         ArrayList<Token> ts = tokenize("eqdeleTe");
+         assertEquals(ts.get(0).getType(), LcTrsLexer.EQDELETION);
     }
 
     @Test
@@ -294,9 +297,9 @@ public class LcTrsLexerTest {
         assertEquals(6, ts.size());
         assertEquals(ts.get(0).getType(), LcTrsLexer.BRACKETOPEN);
         assertEquals(ts.get(1).getType(), LcTrsLexer.VARDECSTART);
-        assertEquals(ts.get(2).getType(), LcTrsLexer.IDENTIFIER);
-        assertEquals(ts.get(3).getType(), LcTrsLexer.IDENTIFIER);
-        assertEquals(ts.get(4).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(2).getType(), LcTrsLexer.WORD);
+        assertEquals(ts.get(3).getType(), LcTrsLexer.WORD);
+        assertEquals(ts.get(4).getType(), LcTrsLexer.WORD);
         assertEquals(ts.get(5).getType(), LcTrsLexer.BRACKETCLOSE);
     }
 
@@ -308,19 +311,19 @@ public class LcTrsLexerTest {
         assertEquals(ts.size(), 16);
         assertEquals(ts.get(0).getType(), LcTrsLexer.BRACKETOPEN);
         assertEquals(ts.get(1).getType(), LcTrsLexer.VARDECSTART);
-        assertEquals(ts.get(2).getType(), LcTrsLexer.IDENTIFIER);
-        assertEquals(ts.get(3).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(2).getType(), LcTrsLexer.WORD);
+        assertEquals(ts.get(3).getType(), LcTrsLexer.WORD);
         assertEquals(ts.get(4).getType(), LcTrsLexer.BRACKETCLOSE);
         assertEquals(ts.get(5).getType(), LcTrsLexer.BRACKETOPEN);
         assertEquals(ts.get(6).getType(), LcTrsLexer.RULEDECSTART);
-        assertEquals(ts.get(7).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(7).getType(), LcTrsLexer.WORD);
         assertEquals(ts.get(8).getType(), LcTrsLexer.BRACKETOPEN);
-        assertEquals(ts.get(9).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(9).getType(), LcTrsLexer.WORD);
         assertEquals(ts.get(10).getType(), LcTrsLexer.COMMA);
-        assertEquals(ts.get(11).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(11).getType(), LcTrsLexer.NUM);
         assertEquals(ts.get(12).getType(), LcTrsLexer.BRACKETCLOSE);
         assertEquals(ts.get(13).getType(), LcTrsLexer.ARROW);
-        assertEquals(ts.get(14).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(14).getType(), LcTrsLexer.WORD);
         assertEquals(ts.get(15).getType(), LcTrsLexer.BRACKETCLOSE);
     }
 
@@ -333,23 +336,23 @@ public class LcTrsLexerTest {
         assertEquals(ts.size(), 21);
         assertEquals(ts.get(0).getType(), LcTrsLexer.BRACKETOPEN);
         assertEquals(ts.get(1).getType(), LcTrsLexer.VARDECSTART);
-        assertEquals(ts.get(2).getType(), LcTrsLexer.IDENTIFIER);
-        assertEquals(ts.get(3).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(2).getType(), LcTrsLexer.WORD);
+        assertEquals(ts.get(3).getType(), LcTrsLexer.WORD);
         assertEquals(ts.get(4).getType(), LcTrsLexer.BRACKETCLOSE);
         assertEquals(ts.get(5).getType(), LcTrsLexer.BRACKETOPEN);
         assertEquals(ts.get(6).getType(), LcTrsLexer.RULEDECSTART);
-        assertEquals(ts.get(7).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(7).getType(), LcTrsLexer.WORD);
         assertEquals(ts.get(8).getType(), LcTrsLexer.BRACKETOPEN);
-        assertEquals(ts.get(9).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(9).getType(), LcTrsLexer.WORD);
         assertEquals(ts.get(10).getType(), LcTrsLexer.COMMA);
-        assertEquals(ts.get(11).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(11).getType(), LcTrsLexer.NUM);
         assertEquals(ts.get(12).getType(), LcTrsLexer.BRACKETCLOSE);
         assertEquals(ts.get(13).getType(), LcTrsLexer.ARROW);
-        assertEquals(ts.get(14).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(14).getType(), LcTrsLexer.WORD);
         assertEquals(ts.get(15).getType(), LcTrsLexer.SQUAREOPEN);
-        assertEquals(ts.get(16).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(16).getType(), LcTrsLexer.WORD);
         assertEquals(ts.get(17).getType(), LcTrsLexer.CONJUNCTION);
-        assertEquals(ts.get(18).getType(), LcTrsLexer.IDENTIFIER);
+        assertEquals(ts.get(18).getType(), LcTrsLexer.WORD);
         assertEquals(ts.get(19).getType(), LcTrsLexer.SQUARECLOSE);
         assertEquals(ts.get(20).getType(), LcTrsLexer.BRACKETCLOSE);
     }
@@ -358,6 +361,5 @@ public class LcTrsLexerTest {
     public void testTokenizer() {
         String s = "[1 >= t-3/4]\n";
         ArrayList<Token> ts = tokenize(s);
-        Logger.log(ts.toString());
     }
 }

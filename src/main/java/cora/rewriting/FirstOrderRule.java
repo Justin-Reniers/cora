@@ -64,7 +64,17 @@ public class FirstOrderRule extends RuleInherit implements Rule {
   }
 
   public boolean applicable(Term t) {
+    //TODO if constraint, throw error
+    //if (_constraint != null) return false;
     return _left.match(t) != null;
+  }
+
+  public boolean applicable(Term t, Term c, Substitution y) {
+    if (_constraint.queryRoot().queryName().equals("TRUE")) return true;
+    if (_constraint.queryRoot().queryName().equals("FALSE")) return false;
+    return _left.match(t) != null;
+    //y = rewriteConstraint(_proof, _pos, _ruleIndex);
+    //return y != null;
   }
 
   public Term apply(Term t) {
@@ -88,7 +98,6 @@ public class FirstOrderRule extends RuleInherit implements Rule {
         throw new IllegalRuleError("FirstOrderRule", "");
       }
     }
-    //TODO constraint vars checking
     if (!left.isFunctionalTerm()) {
       throw new IllegalRuleError("FirstOrderRule", "");
     }
@@ -99,6 +108,13 @@ public class FirstOrderRule extends RuleInherit implements Rule {
       return _left.toString() + " → " + _right.toString() + " [" + _constraint.toString() +"]";
     }
     return _left.toString() + " → " + _right.toString();
+  }
+
+  public boolean equals(Object o) {
+    if (o == this) return true;
+    if (!(o instanceof FirstOrderRule)) return false;
+    FirstOrderRule r = (FirstOrderRule) o;
+    return this._left.equals(r._left) && this._right.equals(r._right) && this._constraint.equals(r._constraint);
   }
 }
 

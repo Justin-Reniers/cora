@@ -55,5 +55,9 @@ public interface TRS {
    * if no such positions exist returns the empty list.
    */
   List<Term> breadthFirstReduce(Term s);
+
+  void addRule(Rule r);
+
+  List<FunctionSymbol> querySymbols();
 }
 

@@ -16,6 +16,7 @@
 package cora.interfaces.terms;
 
 import java.lang.Iterable;
+import java.util.TreeSet;
 
 /**
  * An Environment is a finite set of variables.
@@ -36,5 +37,7 @@ public interface Environment extends Iterable<Variable> {
    * immutable).
    */
   Environment copy();
+
+  TreeSet<Variable> getVars();
 }
 

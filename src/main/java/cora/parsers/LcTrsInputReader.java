@@ -1,21 +1,19 @@
 package cora.parsers;
 
-import cora.exceptions.DeclarationException;
-import cora.exceptions.IllegalRuleError;
-import cora.exceptions.ParserException;
-import cora.exceptions.TypingException;
+import cora.exceptions.*;
 import cora.interfaces.rewriting.Rule;
 import cora.interfaces.rewriting.TRS;
-import cora.interfaces.terms.FunctionSymbol;
-import cora.interfaces.terms.Position;
-import cora.interfaces.terms.Term;
+import cora.interfaces.smt.UserCommand;
+import cora.interfaces.terms.*;
 import cora.interfaces.types.Type;
-import cora.loggers.Logger;
 import cora.rewriting.FirstOrderRule;
 import cora.rewriting.TermRewritingSystem;
+import cora.usercommands.*;
 import cora.terms.Constant;
 import cora.terms.FunctionalTerm;
 import cora.terms.Var;
+import cora.terms.positions.ArgumentPosition;
+import cora.terms.positions.EmptyPosition;
 import cora.types.ArrowType;
 import cora.types.Sort;
 import org.antlr.v4.runtime.CharStream;
@@ -25,6 +23,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.TreeSet;
 
 /**
  * This class reads text from a string or file written in the LcTrs input format.
@@ -56,12 +55,13 @@ public class LcTrsInputReader extends InputReader{
      */
     public void handleVarList(ParseTree tree, ParseData data) throws ParserException {
         int k = tree.getChildCount()-1;
-        verifyChildIsToken(tree, 0, "BRACKETOPEN", "opening bracket ')'");
-        verifyChildIsToken(tree, 1, "VARDECSTART", "Start of a variable list: (VAR");
+        verifyChildIsToken(tree, 0, "BRACKETOPEN", "opening bracket '('");
+        verifyChildIsToken(tree, 1, "VARDECSTART", "Start of a variable list: VAR");
         verifyChildIsToken(tree, k, "BRACKETCLOSE", "closing bracket ')'");
         for (int i = 2; i < k; i++) {
-            verifyChildIsToken(tree, i, "IDENTIFIER", "variable name (identifier)");
+            verifyChildIsRule(tree, i, "identifier", "variable name (identifier)");
             String n = tree.getChild(i).getText();
+            verifyChildIsToken(tree.getChild(i), 0, "WORD", "word identifier");
             if (data.lookupVariable(n) != null) {
                 throw new ParserException(firstToken(tree), "Double declaration of variable" + n);
             }
@@ -94,19 +94,19 @@ public class LcTrsInputReader extends InputReader{
      */
     public Type readTypeOrArity(ParseTree tree) throws ParserException {
         if (tree.getChildCount() == 1) {
-            verifyChildIsToken(tree, 0, "IDENTIFIER", "integer identifier");
+            verifyChildIsToken(tree, 0, "NUM", "integer identifier");
             return readIntegerType(tree.getChild(0));
         }
         int k = tree.getChildCount()-2;
         verifyChildIsToken(tree, k, "ARROW", "type arrow");
-        verifyChildIsToken(tree, k+1, "IDENTIFIER", "identifier");
+        verifyChildIsRule(tree, k+1, "identifier", "identifier");
         String output = tree.getChild(k+1).getText();
         Type res;
-        if (output.toLowerCase().equals("int")) res = intSort;
+        if (output.toLowerCase().equals("int") || output.toLowerCase().equals("integer")) res = intSort;
         else if (output.toLowerCase().equals("bool") || output.toLowerCase().equals("boolean")) res = boolSort;
         else res = new Sort(output);
         for (int i = k-1; i >= 0; i--) {
-            verifyChildIsToken(tree, i, "IDENTIFIER", "identifier (argument)");
+            verifyChildIsRule(tree, i, "identifier", "identifier (argument)");
             String arg = tree.getChild(i).getText();
             res = new ArrowType(new Sort(arg), res);
         }
@@ -119,10 +119,11 @@ public class LcTrsInputReader extends InputReader{
      */
     public void handleDeclaration(ParseTree tree, ParseData data) throws ParserException {
         verifyChildIsToken(tree,0,"BRACKETOPEN", "opening bracket '('");
-        verifyChildIsToken(tree, 1, "IDENTIFIER", "identifier (function name)");
+        verifyChildIsRule(tree, 1, "identifier", "identifier (function name)");
         verifyChildIsRule(tree, 2, "typeorarity", "integer or sort declaration");
         verifyChildIsToken(tree, 3, "BRACKETCLOSE", "closing bracket ')'");
 
+        verifyChildIsToken(tree.getChild(1), 0, "WORD", "word identifier");
         String funcname = tree.getChild(1).getText();
         Type type = readTypeOrArity(tree.getChild(2));
 
@@ -291,7 +292,6 @@ public class LcTrsInputReader extends InputReader{
      */
     private Term readTermType(ParseTree tree, ParseData data, Type expectedType,
                                 boolean mstrs) throws ParserException {
-        String kidn2 = checkChild(tree, 0);
         if (expectedType != null && !expectedType.isBaseType()) {
             throw buildError(tree, "Trying to read a term of a non-basic type!");
         }
@@ -330,6 +330,11 @@ public class LcTrsInputReader extends InputReader{
         return ret;
     }
 
+    /**
+     * This constructs a subtraction term from the parse tree. It recursively constructs (and type checks)
+     * the two children of which the subtraction operation is comprised. Also handles nested unary subtraction
+     * terms.
+     */
     private Term subtractionOperation(ParseTree tree, ParseData data, boolean mstrs) throws ParserException {
         Term child1, child2;
         FunctionSymbol f = data.lookupFunctionSymbol("+");
@@ -339,6 +344,10 @@ public class LcTrsInputReader extends InputReader{
         return new FunctionalTerm(f, child1, child2);
     }
 
+    /**
+     * This constructs the given term from the parse tree, assuming that it a predefined term with
+     * arity one (which are "-" and "~"). Recursively constructs the child of the unary operator.
+     */
     private Term getNewFunctionalTermArityOne(ParseTree tree, ParseData data, String functionSymbol,
                                               boolean mstrs) throws ParserException {
         Term child1 = null;
@@ -349,6 +358,12 @@ public class LcTrsInputReader extends InputReader{
         return new FunctionalTerm(f, child1);
     }
 
+    /**
+     * This constructs the given term from the parse tree, assuming that it a predefined term with
+     * arity two. Recursively constructs the two children of the binary operator. Also ensures that
+     * the expected type corresponds with the function symbol (e.g. two children of type intSort for
+     * the "+" operator etc.)
+     */
     private Term getNewFunctionalTermArityTwo(ParseTree tree, ParseData data, String functionSymbol,
                                               boolean mstrs) throws ParserException {
         Term child1, child2;
@@ -364,6 +379,10 @@ public class LcTrsInputReader extends InputReader{
         return new FunctionalTerm(f, child1, child2);
     }
 
+    /**
+     * This constructs the given term from the parse tree with arity two or higher.
+     * Recursively constructs the two children of the binary operator.
+     */
     private Term getNewFunctionalTermHighArity(ParseTree tree, ParseData data, boolean mstrs) throws ParserException {
         verifyChildIsToken(tree, 1, "BRACKETOPEN", "Opening bracket '('");
         verifyChildIsToken(tree, tree.getChildCount()-1, "BRACKETCLOSE", "Closing bracket ')'");
@@ -380,6 +399,9 @@ public class LcTrsInputReader extends InputReader{
         return new FunctionalTerm(f, termargs);
     }
 
+    /**
+     * This reads the given logical constraint from the parse tree.
+     */
     private Term readLogicalConstraint(ParseTree tree, ParseData data, boolean mstrs) throws ParserException {
         verifyChildIsToken(tree, 0, "SQUAREOPEN", "Opening square bracket '['");
         verifyChildIsRule(tree, 1, "term", "Logical Term");
@@ -388,7 +410,9 @@ public class LcTrsInputReader extends InputReader{
         return t;
     }
 
-    /** This function reads a trsrule from the given parse tree. */
+    /** This function reads a trsrule from the given parse tree. If a trsrule does not
+     * contain a constraint, the constraint is set to "TRUE".
+     */
     private Rule readRule(ParseTree tree, ParseData data, boolean mstrs) throws ParserException {
         verifyChildIsRule(tree, 0, "term", "a term");
         verifyChildIsToken(tree, 1, "ARROW", "an arrow '->'");
@@ -448,40 +472,83 @@ public class LcTrsInputReader extends InputReader{
 
     /* ========= USER INPUT METHODS ========= */
 
-    private void readUserInput(ParseTree tree){
+    /**
+     * This function reads a user command from the given parse tree.
+     */
+    private UserCommand readUserInput(ParseTree tree, TRS lcTrs) throws ParserException{
         ParseData data = new ParseData();
-        int k = 0;
-        handleUserInput(tree.getChild(k), data);
+        for (FunctionSymbol f : lcTrs.querySymbols()) data.addFunctionSymbol(f);
+        return handleUserInput(tree.getChild(0), data);
     }
 
-    private void handleUserInput(ParseTree tree, ParseData data) {
+    /**
+     * This function decides what user command was given from the given parse tree. If a user
+     * command is not implemented yet, it throws an UnsupportedRewritingRuleException.
+     */
+    private UserCommand handleUserInput(ParseTree tree, ParseData data) throws ParserException {
         String kind = checkChild(tree, 0);
         if (kind.equals("token SIMPLIFICATION")) {
             verifyChildIsToken(tree, 0, "SIMPLIFICATION", "The simplification rule");
-            verifyChildIsToken(tree, 1, "POS", "Position");
+            if (tree.getChildCount() == 1) return new SimplifyCommand();
+            verifyChildIsRule(tree, 1, "pos", "Position rule");
+            verifyChildIsToken(tree, 2, "NUM", "Rule index numerical");
+            Position pos = parsePosition(tree.getChild(1));
+            return new SimplifyCommand(pos, Integer.parseInt(tree.getChild(2).getText()));
         } if (kind.equals("token EXPANSION")) {
             verifyChildIsToken(tree, 0, "EXPANSION", "The expand rule");
+            verifyChildIsRule(tree, 1, "pos", "Position rule");
+            Position pos = parsePosition(tree.getChild(1));
+            return new ExpandCommand(pos);
         } if (kind.equals("token DELETION")) {
             verifyChildIsToken(tree, 0, "DELETION", "The delete rule");
+            return new DeleteCommand();
         } if (kind.equals("token POSTULATE")) {
             verifyChildIsToken(tree, 0, "POSTULATE", "The postulate rule");
+            verifyChildIsRule(tree, 1, "term", "Left proof term");
+            verifyChildIsRule(tree, 2, "term", "Right proof term");
+            verifyChildIsRule(tree, 3, "logicalconstraint", "Logical constraint");
+            Term l = readTermType(tree.getChild(1), data, null, true);
+            Term r = readTermType(tree.getChild(1), data, null, true);
+            Term c = readLogicalConstraint(tree.getChild(3), data, true);
+            return new PostulateCommand(l, r, c);
         } if (kind.equals("token GENERALIZATION")) {
             verifyChildIsToken(tree, 0, "GENERALIZATION", "The generalize rule");
-        } if (kind.equals("token GQDELETION")) {
-            verifyChildIsToken(tree, 0, "GQDELETION", "The gq-delete rule");
+            throw new UnsupportedRewritingRuleException("Generalize rule not yet supported");
+        } if (kind.equals("token EQDELETION")) {
+            verifyChildIsToken(tree, 0, "EQDELETION", "The eq-delete rule");
+            return new EQDeleteCommand();
         } if (kind.equals("token CONSTRUCTOR")) {
             verifyChildIsToken(tree, 0, "CONSTRUCTOR", "The constructor rule");
+            return new ConstructorCommand();
         } if (kind.equals("token DISPROVE")) {
             verifyChildIsToken(tree, 0, "DISPROVE", "The disprove rule");
+            return new DisproveCommand();
         } if (kind.equals("token COMPLETENESS")) {
             verifyChildIsToken(tree, 0, "COMPLETENESS", "The completeness rule");
+            throw new UnsupportedRewritingRuleException("Completeness rule not yet supported");
         } if (kind.equals("token CLEAR")) {
             verifyChildIsToken(tree, 0, "CLEAR", "The clear command");
+            throw new UnsupportedRewritingRuleException("Clear command not yet supported");
+        } if (kind.equals("token SWAP")) {
+            verifyChildIsToken(tree, 0, "SWAP", "The swap command");
+            return new SwapCommand();
         }
+        return null;
     }
 
-    private void handleSimplification(Position pos) throws ParserException {
-        //TODO
+    /**
+     *  This function reads a position from the given parse tree. A position is of the
+     *  form x or x.a... where x and a are integers.
+     */
+    private Position parsePosition(ParseTree tree) throws ParserException {
+        verifyChildIsToken(tree, 0, "NUM", "position numeral");
+        if (tree.getChildCount() > 2) {
+            verifyChildIsToken(tree, 1, "DOT", "dot in between position numerals");
+            verifyChildIsRule(tree, 2, "pos", "position rule");
+            return new ArgumentPosition(Integer.parseInt(tree.getChild(0).getText()),
+                    parsePosition(tree.getChild(2)));
+        }
+        return new EmptyPosition();
     }
 
     /* ========= STATIC ACCESS METHODS ========= */
@@ -522,14 +589,14 @@ public class LcTrsInputReader extends InputReader{
         return reader.readLCTRS(tree);
     }
 
-    public static void readUserInputFromString(String s) throws ParserException {
+    public static UserCommand readUserInputFromString(String s, TRS lcTrs) throws ParserException {
         ErrorCollector collector = new ErrorCollector();
         LcTrsParser parser = createLcTrsParserFromString(s, collector);
         LcTrsInputReader reader = new LcTrsInputReader();
         ParseTree tree = parser.trs();
         collector.throwCollectedExceptions();
 
-        reader.readUserInput(tree);
+        return reader.readUserInput(tree, lcTrs);
     }
 
     public static TRS readLcTrsFromFile(String filename) throws ParserException {
@@ -550,6 +617,17 @@ public class LcTrsInputReader extends InputReader{
         collector.throwCollectedExceptions();
 
         ParseData data = new ParseData(trs);
-        return reader.readTermType(tree, data, null, false);
+        return reader.readTermType(tree, data, null, true);
+    }
+
+    public static Term readTermFromStringWithEnv(String str, TRS trs, TreeSet<Variable> env) throws ParserException {
+        ErrorCollector collector = new ErrorCollector();
+        LcTrsParser parser = createLcTrsParserFromString(str, collector);
+        LcTrsInputReader reader = new LcTrsInputReader();
+        ParseTree tree = parser.term();
+        collector.throwCollectedExceptions();
+
+        ParseData data = new ParseData(trs, env);
+        return reader.readTermType(tree, data, null, true);
     }
 }

@@ -1,5 +1,6 @@
 package parsing;
 
+import cora.exceptions.AntlrParserException;
 import cora.loggers.Logger;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -20,11 +21,13 @@ public class LcTrsReadingTest {
 
     @Test
     public void testBasicSignatureAndStandardSortsAndFunctions() throws ParserException{
-        String str = "(VAR x ys xs)\n" +
-                "(SIG (nil 0) (cons 2) (append 2) (0 0) (s 1))\n" +
+        String str = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool)\n" +
+                "(and   Bool Bool -> Bool))\n" +
                 "(RULES\n" +
-                "  append(nil, ys) -> ys\n" +
-                "  append(cons(x, xs), ys) -> cons(x, append(xs, ys))\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [True]\n" +
+                "and(z, x) -> and(x /\\ z, z)\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(str);
 
@@ -354,7 +357,7 @@ public class LcTrsReadingTest {
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
 
-    @Test
+    @Test (expected = AntlrParserException.class)
     public void testReadArityInTypeOrArity() throws ParserException {
         ErrorCollector collector = new ErrorCollector();
         LcTrsInputReader reader = new LcTrsInputReader();
