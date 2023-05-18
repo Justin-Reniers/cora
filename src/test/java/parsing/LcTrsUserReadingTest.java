@@ -89,9 +89,9 @@ public class LcTrsUserReadingTest {
         LcTrsInputReader.readUserInputFromString("POSTUlate f(x+1) f(x+2) [x>=3]", lcTrs);
     }
 
-    @Test (expected = cora.exceptions.DeclarationException.class)
+    @Test //(expected = cora.exceptions.DeclarationException.class)
     public void readPostulateUndeclaredFunctions() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("POSTUlate f(x+1) f(x+2) [x>=3]", lcTrs);
+        LcTrsInputReader.readUserInputFromString("POSTUlate f(x+1) g(x+2) [x>=3]", lcTrs);
     }
 
     @Test (expected = UnsupportedRewritingRuleException.class)

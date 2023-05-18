@@ -96,9 +96,7 @@ public class Z3TermHandler {
                         return getSubExpr(_ctx, deconstruct(t.queryImmediateSubterm(1)),
                                 deconstruct(t.queryImmediateSubterm(2)));
                     } catch (IndexingError e) {
-                        return getSubExpr(_ctx,
-                                deconstruct(new Constant("0", Sort.intSort)),
-                                deconstruct(t.queryImmediateSubterm(1)));
+                        return getUnaryMinusExpr(_ctx, deconstruct(t.queryImmediateSubterm(1)));
                     }
                 default:
                     boolean boolSort = false;

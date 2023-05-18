@@ -32,6 +32,10 @@ public class Z3Helper {
         return ctx.mkSub(e1, e2);
     }
 
+    public static Expr<IntSort> getUnaryMinusExpr(Context ctx, Expr<IntSort> e1) {
+        return ctx.mkUnaryMinus(e1);
+    }
+
     public static Expr<IntSort> getMultExpr(Context ctx, Expr<IntSort> e1, Expr<IntSort> e2) {
         return ctx.mkMul(e1, e2);
     }

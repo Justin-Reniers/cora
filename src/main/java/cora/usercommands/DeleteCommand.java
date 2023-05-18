@@ -2,9 +2,7 @@ package cora.usercommands;
 
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Position;
-import cora.interfaces.terms.Substitution;
 import cora.interfaces.types.Type;
-import cora.loggers.Logger;
 import cora.smt.EquivalenceProof;
 import cora.terms.Var;
 import cora.z3.Z3TermHandler;
