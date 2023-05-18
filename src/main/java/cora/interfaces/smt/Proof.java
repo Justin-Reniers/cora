@@ -41,7 +41,7 @@ public interface Proof {
 
     String currentState();
 
-    boolean applyNewUserCommand(String uCommand);
+    void applyNewUserCommand(String uCommand);
 
     void removeCurrentEquation();
 

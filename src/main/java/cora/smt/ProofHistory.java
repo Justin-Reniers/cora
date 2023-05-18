@@ -4,47 +4,38 @@ import cora.interfaces.smt.History;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Term;
 
+import java.util.ArrayList;
+
 /**
  * A Proof History is an object that contains a single state of an equivalence proof.
  * It serves as a record type for
  */
 public class ProofHistory implements History {
-    private final Equation _eq;
+    private final ArrayList<Equation> _eqs;
+    private final boolean _completeness;
+
     private final UserCommand _uCommand;
 
     /**
      * This constructor is used to create a Proof History record.
      */
-    public ProofHistory(Equation eq, UserCommand uCommand) {
-        _eq = eq;
+    public ProofHistory(ArrayList<Equation> eqs, UserCommand uCommand, boolean completeness) {
+        _eqs = eqs;
         _uCommand = uCommand;
+        _completeness = completeness;
     }
 
     /**
      * This function gives a String representation of a proof history record.
      */
     public String toString() {
-        return _eq.getLeft().toString() + ",\t" + _eq.getRight().toString() + ",\t" +
-                _eq.getConstraint().toString() + (_uCommand != null ? "\n" + _uCommand.toString() : "");
+        return _eqs.toString() + "\tCompleteness: " + _completeness +
+                (_uCommand != null ? "\n" + _uCommand.toString() : "");
     }
 
-    /**
-     * Returns the left argument of the equivalence proof at this proof state.
-     */
-    public Term getLeft() { return _eq.getLeft(); }
-
-    /**
-     * Returns the right argument of the equivalence proof at this proof state.
-     */
-    public Term getRight() {
-        return _eq.getRight();
-    }
-
-    /**
-     * Returns the constraint of the equivalence proof at this proof state.
-     */
-    public Term getConstraint() {
-        return _eq.getConstraint();
+    @Override
+    public ArrayList<Equation> getEquations() {
+        return _eqs;
     }
 
     /**

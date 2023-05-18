@@ -1,6 +1,7 @@
 package cora.smt;
 
 import cora.exceptions.BottomException;
+import cora.exceptions.InvalidRuleApplicationException;
 import cora.exceptions.ParserException;
 import cora.interfaces.rewriting.Rule;
 import cora.interfaces.rewriting.TRS;
@@ -37,14 +38,14 @@ public class EquivalenceProof implements Proof {
     public EquivalenceProof(TRS lcTrs, Term left, Term right, Term constraint) {
         _lcTrs = lcTrs;
         //TODO add flag reading for confluence of lctrs yes or no.
-        _completeness = false;
+        _completeness = true;
         Equation equation = new Equation(left, right, constraint);
         _equations = new ArrayList<Equation>();
         _equations.add(equation);
         _completenessEquations = new ArrayList<Equation>();
         _cur_eq = equation;
         _history = new ArrayList<ProofHistory>();
-        //_history.add(new ProofHistory(_left, _right, _constraint, null));
+        _history.add(new ProofHistory(_equations, null, _completeness));
         _varcounter = 0;
         _bottom = false;
     }
@@ -56,20 +57,18 @@ public class EquivalenceProof implements Proof {
      * Catches a Parser Exception and returns false if the user command is invalid.
      */
     @Override
-    public boolean applyNewUserCommand(String uCommand) {
+    public void applyNewUserCommand(String uCommand) {
         if (_bottom) throw new BottomException(uCommand);
         try {
-            UserCommand uc = LcTrsInputReader.readUserInputFromString(uCommand);
+            UserCommand uc = LcTrsInputReader.readUserInputFromString(uCommand, _lcTrs);
             uc.setProof(this);
             if (uc.applicable()) {
-                Equation eq = _equations.get(_equations.size() - 1);
-                _history.add(new ProofHistory(eq, uc));
+                _history.add(new ProofHistory(_equations, uc, _completeness));
                 uc.apply();
-                return true;
-            } return false;
-        } catch (ParserException e) {
+            };
+        } catch (ParserException | InvalidRuleApplicationException e) {
             Logger.log(e.toString());
-            return false;
+            throw new InvalidRuleApplicationException(uCommand);
         }
     }
 

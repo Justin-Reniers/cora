@@ -1,15 +1,13 @@
 package cora.interfaces.smt;
 
-import cora.interfaces.terms.Term;
+import cora.smt.Equation;
+
+import java.util.ArrayList;
 
 public interface History {
     String toString();
 
-    Term getLeft();
-
-    Term getRight();
-
-    Term getConstraint();
+    ArrayList<Equation> getEquations();
 
     UserCommand getUserCommand();
 }
