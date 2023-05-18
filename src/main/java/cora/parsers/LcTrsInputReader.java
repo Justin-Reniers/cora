@@ -475,15 +475,17 @@ public class LcTrsInputReader extends InputReader{
     /**
      * This function reads a user command from the given parse tree.
      */
-    private UserCommand readUserInput(ParseTree tree) throws ParserException{
-        return handleUserInput(tree.getChild(0));
+    private UserCommand readUserInput(ParseTree tree, TRS lcTrs) throws ParserException{
+        ParseData data = new ParseData();
+        for (FunctionSymbol f : lcTrs.querySymbols()) data.addFunctionSymbol(f);
+        return handleUserInput(tree.getChild(0), data);
     }
 
     /**
      * This function decides what user command was given from the given parse tree. If a user
      * command is not implemented yet, it throws an UnsupportedRewritingRuleException.
      */
-    private UserCommand handleUserInput(ParseTree tree) throws ParserException {
+    private UserCommand handleUserInput(ParseTree tree, ParseData data) throws ParserException {
         String kind = checkChild(tree, 0);
         if (kind.equals("token SIMPLIFICATION")) {
             verifyChildIsToken(tree, 0, "SIMPLIFICATION", "The simplification rule");
@@ -502,7 +504,13 @@ public class LcTrsInputReader extends InputReader{
             return new DeleteCommand();
         } if (kind.equals("token POSTULATE")) {
             verifyChildIsToken(tree, 0, "POSTULATE", "The postulate rule");
-            throw new UnsupportedRewritingRuleException("Postulate rule not yet supported");
+            verifyChildIsRule(tree, 1, "term", "Left proof term");
+            verifyChildIsRule(tree, 2, "term", "Right proof term");
+            verifyChildIsRule(tree, 3, "logicalconstraint", "Logical constraint");
+            Term l = readTermType(tree.getChild(1), data, null, true);
+            Term r = readTermType(tree.getChild(1), data, null, true);
+            Term c = readLogicalConstraint(tree.getChild(3), data, true);
+            return new PostulateCommand(l, r, c);
         } if (kind.equals("token GENERALIZATION")) {
             verifyChildIsToken(tree, 0, "GENERALIZATION", "The generalize rule");
             throw new UnsupportedRewritingRuleException("Generalize rule not yet supported");
@@ -581,14 +589,14 @@ public class LcTrsInputReader extends InputReader{
         return reader.readLCTRS(tree);
     }
 
-    public static UserCommand readUserInputFromString(String s) throws ParserException {
+    public static UserCommand readUserInputFromString(String s, TRS lcTrs) throws ParserException {
         ErrorCollector collector = new ErrorCollector();
         LcTrsParser parser = createLcTrsParserFromString(s, collector);
         LcTrsInputReader reader = new LcTrsInputReader();
         ParseTree tree = parser.trs();
         collector.throwCollectedExceptions();
 
-        return reader.readUserInput(tree);
+        return reader.readUserInput(tree, lcTrs);
     }
 
     public static TRS readLcTrsFromFile(String filename) throws ParserException {
