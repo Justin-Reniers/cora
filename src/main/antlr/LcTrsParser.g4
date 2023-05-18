@@ -70,7 +70,7 @@ logicalconstraint   : SQUAREOPEN term SQUARECLOSE ;
 rewritinginduction  : SIMPLIFICATION (pos NUM)?
                     | EXPANSION pos
                     | DELETION
-                    | POSTULATE
+                    | POSTULATE term term logicalconstraint
                     | GENERALIZATION
                     | EQDELETION
                     | CONSTRUCTOR
