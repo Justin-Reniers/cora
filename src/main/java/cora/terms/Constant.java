@@ -29,6 +29,7 @@ import cora.interfaces.terms.*;
  */
 public class Constant extends LeafTermInherit implements FunctionSymbol {
   private String _name;
+  private boolean _infix;
 
   /**
    * A constant is always identified by the combination of its name and its type.
@@ -39,6 +40,14 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
     _name = name;
     if (name == null) throw new NullInitialisationError("Constant", "name");
     if (name.equals("")) throw new Error("Function Symbol created with empty name.");
+    _infix = false;
+  }
+  public Constant(String name, Type type, boolean infix) {
+    super(type);
+    _name = name;
+    if (name == null) throw new NullInitialisationError("Constant", "name");
+    if (name.equals("")) throw new Error("Function Symbol created with empty name.");
+    _infix = infix;
   }
 
   /** Returns the name of the current user-defined symbol. */
@@ -70,7 +79,12 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
     return queryType().equals(symbol.queryType());
   }
 
-  /** @return false */
+    @Override
+  public boolean isInfix() {
+    return _infix;
+  }
+
+    /** @return false */
   public boolean isVariable() { return false; }
 
   /** @return false */

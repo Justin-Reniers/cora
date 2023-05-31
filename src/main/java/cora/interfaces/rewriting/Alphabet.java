@@ -38,5 +38,7 @@ public interface Alphabet {
   Alphabet copy();
 
   List<FunctionSymbol> queryAlphabetSymbols();
+
+  boolean infix(String name);
 }
 

@@ -182,9 +182,12 @@ public class FunctionalTerm extends ApplicativeTermInherit implements Term {
 
   /** This method gives a string representation of the term. */
   public String toString() {
-    String ret = _f.toString();
-    if (_args.size() > 0) {
-      ret += "(" + _args.get(0).toString();
+    String ret = "";
+    if (_args.size() == 2 && _f.isInfix()) {
+      if (_f.isInfix()) ret += "(" + _args.get(0).toString() + _f.toString() + _args.get(1).toString() + ")";
+    }
+    else {
+      ret += _f.toString() + "(" + _args.get(0).toString();
       for (int i = 1; i < _args.size(); i++) ret += ", " + _args.get(i).toString();
       ret += ")";
     }
