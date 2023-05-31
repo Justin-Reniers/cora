@@ -176,6 +176,7 @@ public class Var extends LeafTermInherit implements Variable {
 
   /** Applies the unification algorithm between Variable and another term */
   public Substitution unify(Term other) {
+    if (other.isVariable()) return new Subst(this, other);
     if (other.vars().contains(this)) return null;
     return new Subst(this, other);
   }
