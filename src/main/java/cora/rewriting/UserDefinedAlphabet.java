@@ -54,6 +54,11 @@ public class UserDefinedAlphabet implements Alphabet {
     return fs;
   }
 
+  @Override
+  public boolean infix(String name) {
+    return _symbols.get(name).isInfix();
+  }
+
   /**
    * Adds a symbol to the current Alphabet. ONLY to be called from constructors (or otherwise
    * during the setup of a UserDefinedAlphabet), since calling it later would violate immutability.
@@ -80,7 +85,5 @@ public class UserDefinedAlphabet implements Alphabet {
     }
     return ret;
   }
-
-
 }
 
