@@ -64,6 +64,23 @@ public class PostulateCommandSMTTest {
         assertFalse(eq.getCompleteness());
     }
 
+    @Test
+    public void postulateExampleTest2() throws ParserException {
+        String t1 = "return(2)";
+        String t2 = "return(1)";
+        String c1 = "x==2";
+        Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
+        TreeSet<Variable> vars = new TreeSet<>();
+        vars.addAll(l.vars().getVars());
+        Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
+        vars.addAll(r.vars().getVars());
+        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        vars.addAll(c.vars().getVars());
+        EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
+        eq.applyNewUserCommand("postulate f(1+x) f(2+x) [x>=3]");
+        assertFalse(eq.getCompleteness());
+    }
+
     @Test (expected = InvalidRuleApplicationException.class)
     public void postulateInvalidFunctionsExampleTest() throws ParserException {
         String t1 = "return(2)";
