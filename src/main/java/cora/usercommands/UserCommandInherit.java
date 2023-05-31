@@ -11,6 +11,7 @@ import cora.terms.Subst;
 import cora.terms.Var;
 import cora.z3.Z3TermHandler;
 
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.TreeSet;
@@ -47,7 +48,7 @@ abstract class UserCommandInherit {
         } else {
             checkVarsInConstraint(proofConstraint, vars);
         }
-        Z3TermHandler z3 = new Z3TermHandler();
+        Z3TermHandler z3 = new Z3TermHandler(null);
         boolean valid;
         if (!ruleConstraint.queryRoot().queryName().equals("/\\")) valid = z3.validity(proofConstraint.substitute(y),
                 ruleConstraint.substitute(y));

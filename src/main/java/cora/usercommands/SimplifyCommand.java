@@ -35,7 +35,7 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
     public SimplifyCommand(Position pos, int ruleIndex) {
         super();
         _pos = pos;
-        _ruleIndex = ruleIndex;
+        _ruleIndex = ruleIndex - 1;
         _noArgs = false;
         _gamma = null;
     }
@@ -124,8 +124,9 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
                 _proof.setLeft(applyConstraintSubstitutions(_proof, _proof.getConstraint()));
                 newConstraint = freshSubstitutionsConstraint(_proof);
             }
-            Z3TermHandler z3 = new Z3TermHandler();
+            Z3TermHandler z3 = new Z3TermHandler(_proof.getLcTrs());
             _proof.setLeft(z3.simplify(_proof.getLeft()));
+            _proof.setConstraint(z3.simplify(_proof.getConstraint()));
         }
         //Case 1: Constraint TRUE
         else if (_pos != null && _ruleIndex >= 0 &&
@@ -143,7 +144,9 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
                         newConstraint, eq);
             }
             _proof.setConstraint(newConstraint.substitute(_gamma));
-            _proof.setLeft(lcTrs.queryRule(_ruleIndex).apply(_proof.getLeft()).substitute(_gamma));
+            Term applied = lcTrs.queryRule(_ruleIndex).apply(_proof.getLeft().querySubterm(_pos));
+            _proof.setLeft(_proof.getLeft().replaceSubterm(_pos, applied).substitute(_gamma));
+            //_proof.setLeft(lcTrs.queryRule(_ruleIndex).apply(_proof.getLeft().querySubterm(_pos)).substitute(_gamma));
             _proof.setRight(_proof.getRight().substitute(_gamma));
         }
     }

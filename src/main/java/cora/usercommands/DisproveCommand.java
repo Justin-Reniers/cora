@@ -34,7 +34,7 @@ public class DisproveCommand extends UserCommandInherit implements UserCommand {
         Term l = _proof.getLeft();
         Term r = _proof.getRight();
         Term c = _proof.getConstraint();
-        Z3TermHandler z3 = new Z3TermHandler();
+        Z3TermHandler z3 = new Z3TermHandler(_proof.getLcTrs());
         //s, t E Terms(Sigma_theory, V), i is a theory sort, and phi /\ s != t is satisfiable
         if ((l.queryType().equals(Sort.intSort) || l.queryType().equals(Sort.boolSort)) &&
             ((isNumeric(l.queryRoot().queryName()) && isNumeric(r.queryRoot().queryName()))) ||

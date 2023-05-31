@@ -2,11 +2,9 @@ package cora.z3;
 
 import com.microsoft.z3.*;
 import cora.exceptions.IndexingError;
+import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.UserCommand;
-import cora.interfaces.terms.Environment;
-import cora.interfaces.terms.Substitution;
-import cora.interfaces.terms.Term;
-import cora.interfaces.terms.Variable;
+import cora.interfaces.terms.*;
 import cora.interfaces.types.Type;
 import cora.loggers.Logger;
 import cora.terms.Constant;
@@ -16,6 +14,7 @@ import cora.terms.Var;
 import cora.types.ArrowType;
 import cora.types.Sort;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 import static cora.z3.Z3Helper.*;
@@ -24,14 +23,16 @@ public class Z3TermHandler {
     private Solver _s;
     private Context _ctx;
     private Z3Helper _z3Helper;
+    private TRS _lcTrs;
 
     private static final ArrayList<String> fsymbols = new ArrayList<>(Arrays.asList(
             "-", "*", "/", "%", "+"));
 
-    public Z3TermHandler() {
+    public Z3TermHandler(TRS lcTrs) {
         _ctx = new Context();
         _s = _ctx.mkSolver();
         _z3Helper = new Z3Helper();
+        _lcTrs = lcTrs;
     }
 
     public Expr deconstruct(Term t) {
@@ -115,13 +116,18 @@ public class Z3TermHandler {
     public Term simplify(Term t) {
         Environment env = t.vars();
         Expr e = deconstruct(t);
-        /**if (e.getSort().equals(_ctx.getBoolSort())) {
+        if (e.getSort().equals(_ctx.getBoolSort())) {
             Goal g = _ctx.mkGoal(true, false, false); //params: models, unsatCores, proofs
             g.add(e);
             Tactic css = _ctx.mkTactic("ctx-solver-simplify");
             ApplyResult ar = css.apply(g);
-            return reconstruct(ar.getSubgoals()[0].getFormulas()[0]);
-        }**/
+            Term s = reconstruct(ar.getSubgoals()[0].getFormulas()[0], env);
+            for (int i = 1; i < ar.getSubgoals()[0].getFormulas().length; i++) {
+                s = new FunctionalTerm(_lcTrs.lookupSymbol("/\\"), s,
+                        reconstruct(ar.getSubgoals()[0].getFormulas()[i], env));
+            }
+            return s;
+        }
         e = e.simplify();
         return reconstruct(e, env);
     }
@@ -137,97 +143,79 @@ public class Z3TermHandler {
 
     private Term reconstruct(Expr e, Environment env) {
         if (e.isUMinus()) {
-            Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.intSort));
-            return new FunctionalTerm(new Constant("-", type), new Constant("0", Sort.intSort),
-                    reconstruct(e.getArgs()[1], env));
+            return new FunctionalTerm(_lcTrs.lookupSymbol("-"), reconstruct(e.getArgs()[0], env));
         }
         if (e.isInt() && !e.isApp()) {
             if (isNumeric(e.toString())) return new Constant(e.toString(), Sort.intSort);
             return new Var(e.toString(), Sort.intSort);
         }
         if (e.isBool() && !e.isApp()) {
-            if (e.isTrue()) return new Constant("TRUE", Sort.boolSort);
-            if (e.isFalse()) return new Constant("FALSE", Sort.boolSort);
+            if (e.isTrue()) return _lcTrs.lookupSymbol("TRUE");
+            if (e.isFalse()) return _lcTrs.lookupSymbol("FALSE");
             return new Var(e.toString(), Sort.boolSort);
         }
         if (e.isNot()) {
             if (e.getArgs()[0].isEq()) {
-                Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.boolSort));
-                return new FunctionalTerm(new Constant("!=", type), reconstruct(e.getArgs()[0], env),
+                return new FunctionalTerm(_lcTrs.lookupSymbol("!="), reconstruct(e.getArgs()[0], env),
                         reconstruct(e.getArgs()[1], env));
             } else {
-                Type type = new ArrowType(Sort.boolSort, Sort.boolSort);
-                return new FunctionalTerm(new Constant("~", type), reconstruct(e.getArgs()[0], env));
+                return new FunctionalTerm(_lcTrs.lookupSymbol("~"), reconstruct(e.getArgs()[0], env));
             }
         }
         if (e.isAnd()) {
-            Type type = new ArrowType(Sort.boolSort, new ArrowType(Sort.boolSort, Sort.boolSort));
-            return new FunctionalTerm(new Constant("/\\", type), reconstruct(e.getArgs()[0], env),
+            return new FunctionalTerm(_lcTrs.lookupSymbol("/\\"), reconstruct(e.getArgs()[0], env),
                     reconstruct(e.getArgs()[1], env));
         }
         if (e.isOr()) {
-            Type type = new ArrowType(Sort.boolSort, new ArrowType(Sort.boolSort, Sort.boolSort));
-            return new FunctionalTerm(new Constant("\\/", type), reconstruct(e.getArgs()[0], env),
+            return new FunctionalTerm(_lcTrs.lookupSymbol("\\/"), reconstruct(e.getArgs()[0], env),
                     reconstruct(e.getArgs()[1], env));
         }
         if (e.isImplies()) {
-            Type type = new ArrowType(Sort.boolSort, new ArrowType(Sort.boolSort, Sort.boolSort));
-            return new FunctionalTerm(new Constant("-->", type), reconstruct(e.getArgs()[0], env),
+            return new FunctionalTerm(_lcTrs.lookupSymbol("-->"), reconstruct(e.getArgs()[0], env),
                     reconstruct(e.getArgs()[1], env));
         }
         if (e.isIff()) {
-            Type type = new ArrowType(Sort.boolSort, new ArrowType(Sort.boolSort, Sort.boolSort));
-            return new FunctionalTerm(new Constant("<-->", type), reconstruct(e.getArgs()[0], env),
+            return new FunctionalTerm(_lcTrs.lookupSymbol("<-->"), reconstruct(e.getArgs()[0], env),
                     reconstruct(e.getArgs()[1], env));
         }
         if (e.isLT()) {
-            Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.boolSort));
-            return new FunctionalTerm(new Constant("<", type), reconstruct(e.getArgs()[0], env),
+            return new FunctionalTerm(_lcTrs.lookupSymbol("<"), reconstruct(e.getArgs()[0], env),
                     reconstruct(e.getArgs()[1], env));
         }
         if (e.isLE()) {
-            Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.boolSort));
-            return new FunctionalTerm(new Constant("<=", type), reconstruct(e.getArgs()[0], env),
+            return new FunctionalTerm(_lcTrs.lookupSymbol("<="), reconstruct(e.getArgs()[0], env),
                     reconstruct(e.getArgs()[1], env));
         }
         if (e.isGT()) {
-            Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.boolSort));
-            return new FunctionalTerm(new Constant(">", type), reconstruct(e.getArgs()[0], env),
+            return new FunctionalTerm(_lcTrs.lookupSymbol(">"), reconstruct(e.getArgs()[0], env),
                     reconstruct(e.getArgs()[1], env));
         }
         if (e.isGE()) {
-            Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.boolSort));
-            return new FunctionalTerm(new Constant(">=", type), reconstruct(e.getArgs()[0], env),
+            return new FunctionalTerm(_lcTrs.lookupSymbol(">="), reconstruct(e.getArgs()[0], env),
                     reconstruct(e.getArgs()[1], env));
         }
         if (e.isEq()) {
-            Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.boolSort));
-            return new FunctionalTerm(new Constant("==", type), reconstruct(e.getArgs()[0], env),
+            return new FunctionalTerm(_lcTrs.lookupSymbol("=="), reconstruct(e.getArgs()[0], env),
                     reconstruct(e.getArgs()[1], env));
         }
         if (e.isMul()) {
-            Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.intSort));
-            return new FunctionalTerm(new Constant("*", type), reconstruct(e.getArgs()[0], env),
+            return new FunctionalTerm(_lcTrs.lookupSymbol("*"), reconstruct(e.getArgs()[0], env),
                     reconstruct(e.getArgs()[1], env));
         }
         if (e.isDiv()) {
-            Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.intSort));
-            return new FunctionalTerm(new Constant("/", type), reconstruct(e.getArgs()[0], env),
+            return new FunctionalTerm(_lcTrs.lookupSymbol("/"), reconstruct(e.getArgs()[0], env),
                     reconstruct(e.getArgs()[1], env));
         }
         if (e.isModulus()) {
-            Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.intSort));
-            return new FunctionalTerm(new Constant("%", type), reconstruct(e.getArgs()[0], env),
+            return new FunctionalTerm(_lcTrs.lookupSymbol("%"), reconstruct(e.getArgs()[0], env),
                     reconstruct(e.getArgs()[1], env));
         }
         if (e.isAdd()) {
-            Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.intSort));
-            return new FunctionalTerm(new Constant("+", type), reconstruct(e.getArgs()[0], env),
+            return new FunctionalTerm(_lcTrs.lookupSymbol("+"), reconstruct(e.getArgs()[0], env),
                     reconstruct(e.getArgs()[1], env));
         }
         if (e.isSub()) {
-            Type type = new ArrowType(Sort.intSort, new ArrowType(Sort.intSort, Sort.intSort));
-            return new FunctionalTerm(new Constant("-", type), reconstruct(e.getArgs()[0], env),
+            return new FunctionalTerm(_lcTrs.lookupSymbol("-"), reconstruct(e.getArgs()[0], env),
                     reconstruct(e.getArgs()[1], env));
         }
         if (e.isApp()) {
@@ -250,6 +238,7 @@ public class Z3TermHandler {
                     }
                 }
             }
+            if (_lcTrs.lookupSymbol(fSymbol) != null) return new FunctionalTerm(_lcTrs.lookupSymbol(fSymbol), args);
             return new FunctionalTerm(new Constant(fSymbol, type), args);
         }
         return null;

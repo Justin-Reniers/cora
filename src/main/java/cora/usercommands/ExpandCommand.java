@@ -57,7 +57,7 @@ public class ExpandCommand extends UserCommandInherit implements UserCommand {
             Term l = _proof.getLeft().replaceSubterm(_p, lpt).substitute(y);
             Term r = _proof.getRight().substitute(y);
             Term c = new FunctionalTerm(_proof.getLcTrs().lookupSymbol("/\\"),
-                    _proof.getConstraint(), rule.queryConstraint());
+                    _proof.getConstraint(), rule.queryConstraint()).substitute(y);
             Equation eq = new Equation(l, r, c);
             _equations.add(eq);
         }
