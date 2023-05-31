@@ -94,7 +94,7 @@ public class FirstOrderRule extends RuleInherit implements Rule {
     Environment rvars = right.vars();
     Environment cvars = _constraint.vars();
     for (Variable x : rvars) {
-      if (!lvars.contains(x)) {
+      if (!lvars.contains(x) && !cvars.contains(x)) {
         throw new IllegalRuleError("FirstOrderRule", "");
       }
     }
