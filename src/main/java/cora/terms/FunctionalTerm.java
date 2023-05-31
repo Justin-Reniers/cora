@@ -73,6 +73,19 @@ public class FunctionalTerm extends ApplicativeTermInherit implements Term {
     _outputType = outputType;
   }
 
+  private FunctionalTerm(FunctionalTerm f) {
+    _f = f.queryRoot();
+    for (int i = 0; i < f.numberImmediateSubterms(); i++) {
+      if (f.queryImmediateSubterm(i).isVariable()) _args.add(new Var((Var) f.queryImmediateSubterm(i)));
+      else if (f.queryImmediateSubterm(i).isFunctionalTerm()) {
+        _args.add(new FunctionalTerm((FunctionalTerm) f.queryImmediateSubterm(i)));
+      } else if (f.queryImmediateSubterm(i).isConstant()) {
+        _args.add(new Constant((Constant) f.queryImmediateSubterm(i)));
+      }
+    }
+    _outputType = f.queryType();
+  }
+
   /** This method is called by inherited functions, and calls the private constructor. */
   protected FunctionalTerm reconstruct(List<Term> args) {
     return new FunctionalTerm(args, _f, _outputType);

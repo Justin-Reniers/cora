@@ -5,6 +5,7 @@ import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
 import cora.interfaces.types.Type;
 import cora.smt.Equation;
+import cora.smt.ProofHistory;
 import cora.terms.Var;
 
 import java.io.IOException;
@@ -33,6 +34,10 @@ public interface Proof {
 
     Equation getCurrentEquation();
 
+    void setCurrentEquation();
+
+    void setCurrentEquation(Equation eq);
+
     ArrayList<Equation> getEquations();
 
     Var getFreshVar(Type expectedType);
@@ -44,6 +49,8 @@ public interface Proof {
     void applyNewUserCommand(String uCommand);
 
     void removeCurrentEquation();
+
+    void clearEquations();
 
     void addEquations(ArrayList<Equation> eqs);
 
@@ -57,9 +64,22 @@ public interface Proof {
 
     void setCompletenessEquationSet();
 
+    void addCompletenessEquations(ArrayList<Equation> cEqs);
+
+    void addCompletenessEquation(Equation eq);
+
     void emptyCompletenessEquationSet();
 
     void addRule(Rule r);
 
     void setBottom(boolean bottom);
+
+    void setLcTrs(TRS lcTrs);
+
+    ProofHistory getPreviousState();
+
+    void deletePreviousState();
+
+    void recordHistory();
+
 }

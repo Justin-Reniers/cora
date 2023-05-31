@@ -12,9 +12,11 @@ import cora.interfaces.types.Type;
 import cora.loggers.Logger;
 import cora.parsers.LcTrsInputReader;
 import cora.terms.Var;
+import cora.usercommands.UndoCommand;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
@@ -45,9 +47,21 @@ public class EquivalenceProof implements Proof {
         _completenessEquations = new ArrayList<Equation>();
         _cur_eq = equation;
         _history = new ArrayList<ProofHistory>();
-        _history.add(new ProofHistory(_equations, null, _completeness));
+        _history.add(new ProofHistory(_equations, null, _completeness, _completenessEquations, _bottom,
+                null));
         _varcounter = 0;
         _bottom = false;
+    }
+
+    public EquivalenceProof() {
+        _lcTrs = null;
+        _completeness = false;
+        _equations = null;
+        _completenessEquations = null;
+        _cur_eq = null;
+        _history = null;
+        _varcounter = 0;
+        _bottom = true;
     }
 
     /**
@@ -63,11 +77,12 @@ public class EquivalenceProof implements Proof {
             UserCommand uc = LcTrsInputReader.readUserInputFromString(uCommand, _lcTrs);
             uc.setProof(this);
             if (uc.applicable()) {
-                _history.add(new ProofHistory(_equations, uc, _completeness));
+                if (!(uc instanceof UndoCommand)) _history.add(new ProofHistory(_equations, uc, _completeness,
+                        _completenessEquations, _bottom, _lcTrs));
                 uc.apply();
             };
         } catch (ParserException | InvalidRuleApplicationException e) {
-            Logger.log(e.toString());
+            System.out.println(e);
             throw new InvalidRuleApplicationException(uCommand);
         }
     }
@@ -84,9 +99,16 @@ public class EquivalenceProof implements Proof {
     }
 
     @Override
+    public void clearEquations() {
+        _equations = new ArrayList<Equation>();
+        _cur_eq = null;
+    }
+
+    @Override
     public void addEquations(ArrayList<Equation> eqs) {
         _equations.addAll(eqs);
         if (_cur_eq == null && !_equations.isEmpty()) _cur_eq = _equations.get(0);
+        if (_cur_eq == null) _cur_eq = _equations.get(0);
     }
 
     @Override
@@ -113,8 +135,18 @@ public class EquivalenceProof implements Proof {
     }
 
     @Override
+    public void addCompletenessEquations(ArrayList<Equation> cEqs) {
+        _completenessEquations.addAll(cEqs);
+    }
+
+    @Override
+    public void addCompletenessEquation(Equation eq) {
+        _completenessEquations.add(eq);
+    }
+
+    @Override
     public void emptyCompletenessEquationSet() {
-        _completenessEquations.clear();
+        _completenessEquations = new ArrayList<Equation>();
     }
 
     @Override
@@ -125,6 +157,27 @@ public class EquivalenceProof implements Proof {
     @Override
     public void setBottom(boolean bottom) {
         if (!_bottom) _bottom = bottom;
+    }
+
+    @Override
+    public void setLcTrs(TRS lcTrs) {
+        _lcTrs = lcTrs;
+    }
+
+    @Override
+    public ProofHistory getPreviousState() {
+        return _history.get(_history.size()-1);
+    }
+
+    @Override
+    public void deletePreviousState() {
+        _history.remove(_history.size()-1);
+    }
+
+    @Override
+    public void recordHistory() {
+        _history.add(new ProofHistory(_equations, null, _completeness, _completenessEquations, _bottom,
+                _lcTrs));
     }
 
     @Override
@@ -210,6 +263,17 @@ public class EquivalenceProof implements Proof {
     @Override
     public Equation getCurrentEquation() {
         return _cur_eq;
+    }
+
+    @Override
+    public void setCurrentEquation() {
+        _cur_eq = _equations.get(0);
+    }
+
+    @Override
+    public void setCurrentEquation(Equation eq) {
+        _cur_eq = eq;
+        _equations.set(0, eq);
     }
 
     @Override

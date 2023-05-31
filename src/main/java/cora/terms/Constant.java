@@ -42,6 +42,12 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
     if (name.equals("")) throw new Error("Function Symbol created with empty name.");
     _infix = false;
   }
+
+  public Constant(Constant c) {
+    super(c.queryType());
+    _name = c.queryName();
+  }
+
   public Constant(String name, Type type, boolean infix) {
     super(type);
     _name = name;

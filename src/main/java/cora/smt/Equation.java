@@ -11,6 +11,12 @@ public class Equation implements ProofEquation {
         _constraint = c;
     }
 
+    public Equation(Equation eq) {
+        _left = eq.getLeft();
+        _right = eq.getRight();
+        _constraint = eq.getConstraint();
+    }
+
     @Override
     public Term getLeft() { return _left; }
 

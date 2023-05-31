@@ -72,6 +72,13 @@ public class Var extends LeafTermInherit implements Variable {
     COUNTER++;
   }
 
+  public Var(Var v) {
+    super(v.queryType());
+    _name = v.queryName();
+    _index = v.queryVariableIndex();
+    COUNTER++;
+  }
+
   /** @return true */
   public boolean isVariable() { return true; }
 
