@@ -1,5 +1,6 @@
 package hci.interfaces;
 
+import cora.exceptions.ParserException;
 import hci.InputModel;
 import hci.InputView;
 
@@ -15,4 +16,6 @@ public interface UserInputPresenter {
     void run();
 
     void handleFile(File file);
+
+    void enterProof(String proof) throws ParserException;
 }

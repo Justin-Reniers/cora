@@ -9,4 +9,10 @@ public interface UserInputView {
     void setPresenter(InputPresenter inputPresenter);
 
     void onEnterAction();
+
+    void invalidRuleAction();
+
+    void updateRulesField(String rules);
+
+    void updateEquationsField(String equations);
 }

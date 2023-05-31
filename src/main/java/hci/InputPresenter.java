@@ -1,10 +1,9 @@
 package hci;
 
+import cora.exceptions.ParserException;
 import hci.interfaces.UserInputModel;
 import hci.interfaces.UserInputPresenter;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 
 public class InputPresenter implements UserInputPresenter {
@@ -23,18 +22,23 @@ public class InputPresenter implements UserInputPresenter {
 
     @Override
     public UserInputModel getModel() {
-        return null;
+        return model;
     }
 
     @Override
     public void setModel(InputModel inputModel) {
-
+        model = inputModel;
     }
 
     @Override
     public void handleUserInput(String input) {
         if (model.addUserInput(input)) {
             view.onEnterAction();
+            view.updateRulesField(model.getRules());
+            view.updateEquationsField(model.getEquations());
+        } else {
+            view.onEnterAction();
+            view.invalidRuleAction();
         }
     }
 
@@ -45,6 +49,22 @@ public class InputPresenter implements UserInputPresenter {
 
     @Override
     public void handleFile(File file) {
-        model.openFile(file);
+        try {
+            model.openFile(file);
+            view.updateRulesField(model.getRules());
+        } catch (RuntimeException e) {
+            System.out.println(e.toString());
+        }
+
+    }
+
+    @Override
+    public void enterProof(String proof) {
+        try {
+            model.enterProof(proof);
+            view.updateEquationsField(model.getEquations());
+        } catch (ParserException e) {
+            System.out.println(e.toString());
+        }
     }
 }
