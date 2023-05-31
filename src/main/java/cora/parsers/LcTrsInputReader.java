@@ -163,11 +163,11 @@ public class LcTrsInputReader extends InputReader{
         Type boolOperation = new ArrowType(boolSort, new ArrowType(boolSort, boolSort));
         Type intOperation = new ArrowType(intSort, new ArrowType(intSort, intSort));
         Type intComparison = new ArrowType(intSort, new ArrowType(intSort, boolSort));
-        addFunctionsToData(data, unaryBoolOperators, unaryBool);
-        addFunctionsToData(data, binaryBoolOperators, boolOperation);
-        addFunctionsToData(data, unaryIntOperators, unaryInt);
-        addFunctionsToData(data, binaryIntOperators, intOperation);
-        addFunctionsToData(data, binaryIntComparison, intComparison);
+        addFunctionsToData(data, unaryBoolOperators, unaryBool, true);
+        addFunctionsToData(data, binaryBoolOperators, boolOperation, true);
+        addFunctionsToData(data, unaryIntOperators, unaryInt, true);
+        addFunctionsToData(data, binaryIntOperators, intOperation, true);
+        addFunctionsToData(data, binaryIntComparison, intComparison, true);
 
         addBooleanConstantsToData(data);
     }
@@ -178,14 +178,15 @@ public class LcTrsInputReader extends InputReader{
     }
 
     /**
-     *
      * @param data
      * @param functionSymbols
      * @param functionType
+     * @param infix
      */
-    public void addFunctionsToData(ParseData data, ArrayList<String> functionSymbols, Type functionType) {
+    public void addFunctionsToData(ParseData data, ArrayList<String> functionSymbols, Type functionType,
+                                   boolean infix) {
         for (String symbol : functionSymbols) {
-            data.addFunctionSymbol(new Constant(symbol, functionType));
+            data.addFunctionSymbol(new Constant(symbol, functionType, infix));
         }
     }
 
@@ -508,7 +509,7 @@ public class LcTrsInputReader extends InputReader{
             verifyChildIsRule(tree, 2, "term", "Right proof term");
             verifyChildIsRule(tree, 3, "logicalconstraint", "Logical constraint");
             Term l = readTermType(tree.getChild(1), data, null, true);
-            Term r = readTermType(tree.getChild(1), data, null, true);
+            Term r = readTermType(tree.getChild(2), data, null, true);
             Term c = readLogicalConstraint(tree.getChild(3), data, true);
             return new PostulateCommand(l, r, c);
         } if (kind.equals("token GENERALIZATION")) {
@@ -525,13 +526,20 @@ public class LcTrsInputReader extends InputReader{
             return new DisproveCommand();
         } if (kind.equals("token COMPLETENESS")) {
             verifyChildIsToken(tree, 0, "COMPLETENESS", "The completeness rule");
-            throw new UnsupportedRewritingRuleException("Completeness rule not yet supported");
+            return new CompletenessCommand();
         } if (kind.equals("token CLEAR")) {
             verifyChildIsToken(tree, 0, "CLEAR", "The clear command");
             throw new UnsupportedRewritingRuleException("Clear command not yet supported");
         } if (kind.equals("token SWAP")) {
             verifyChildIsToken(tree, 0, "SWAP", "The swap command");
-            return new SwapCommand();
+            if (tree.getChildCount() == 1) return new SwapCommand();
+            verifyChildIsToken(tree, 1, "NUM", "Numeral");
+            verifyChildIsToken(tree, 2, "NUM", "Numeral");
+            return new SwapCommand(Integer.parseInt(tree.getChild(1).getText()),
+                    Integer.parseInt(tree.getChild(2).getText()));
+        } if (kind.equals("token UNDO")) {
+            verifyChildIsToken(tree, 0, "UNDO", "The undo command");
+            return new UndoCommand();
         }
         return null;
     }

@@ -4,8 +4,11 @@ import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Position;
 import cora.interfaces.terms.Term;
 import cora.interfaces.types.Type;
+import cora.smt.Equation;
 import cora.smt.EquivalenceProof;
 import cora.terms.Var;
+
+import java.util.Collections;
 
 /**
  * Swap is a user command that switches the places of the left hand side and
@@ -14,10 +17,19 @@ import cora.terms.Var;
 public class SwapCommand extends UserCommandInherit implements UserCommand {
 
     private EquivalenceProof _proof;
+    private int _eq1, _eq2;
 
     public SwapCommand() {
         super();
+        _eq1 = -1;
+        _eq2 = -1;
     };
+
+    public SwapCommand(int eq1, int eq2) {
+        super();
+        _eq1 = eq1;
+        _eq2 = eq2;
+    }
 
     /**
      * Swap command has no position argument.
@@ -41,10 +53,13 @@ public class SwapCommand extends UserCommandInherit implements UserCommand {
      */
     @Override
     public void apply() {
-        Term l = _proof.getLeft();
-        Term r = _proof.getRight();
-        _proof.setLeft(r);
-        _proof.setRight(l);
+        if (_eq1 < 0 || _eq2 < 0) {
+            Equation eq = new Equation(_proof.getRight(), _proof.getLeft(), _proof.getConstraint());
+            _proof.setCurrentEquation(eq);
+        } else if (_eq1 < _proof.getEquations().size() && _eq2 < _proof.getEquations().size()) {
+            Collections.swap(_proof.getEquations(), _eq1, _eq2);
+            _proof.setCurrentEquation();
+        }
     }
 
     /**

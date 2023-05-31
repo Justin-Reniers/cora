@@ -77,7 +77,8 @@ rewritinginduction  : SIMPLIFICATION (pos NUM)?
                     | DISPROVE
                     | COMPLETENESS
                     | CLEAR
-                    | SWAP
+                    | SWAP (NUM NUM)?
+                    | UNDO
                     ;
 
 pos                 : NUM (DOT pos)* ;

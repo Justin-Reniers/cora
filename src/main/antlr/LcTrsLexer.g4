@@ -120,6 +120,8 @@ CLEAR               : C L E A R ;
 
 SWAP                : S W A P ;
 
+UNDO                : U N D O ;
+
 WORD                : [a-zA-Z]+ ;
 
 UNDERSCORE			: '_' ;
