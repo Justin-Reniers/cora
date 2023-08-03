@@ -30,7 +30,7 @@ public class UndoCommand extends UserCommandInherit implements UserCommand {
         ProofHistory ph = _proof.getPreviousState();
         _proof.clearEquations();
         for (Equation eq : ph.getEquations()) _proof.addEquation(new Equation(eq));
-        _proof.setCurrentEquation();
+        if (_proof.getEquations().size() > 0) _proof.setCurrentEquation();
         _proof.emptyCompletenessEquationSet();
         for (Equation ceq : ph.getCompletenessEquations()) _proof.addCompletenessEquation(new Equation(ceq));
         _proof.setCompleteness(ph.getCompleteness());

@@ -62,7 +62,7 @@ public class ExpandCommand extends UserCommandInherit implements UserCommand {
             _equations.add(eq);
         }
         if (_terminating) _proof.addRule(new FirstOrderRule(_proof.getLeft(), _proof.getRight(),
-                _proof.getConstraint()));
+                _proof.getConstraint(), true));
         _proof.removeCurrentEquation();
         _proof.addEquations(_equations);
     }
