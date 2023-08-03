@@ -122,7 +122,13 @@ SWAP                : S W A P ;
 
 UNDO                : U N D O ;
 
+REWRITE             : R E W R I T E ;
+
+RENAME              : R E N A M E ;
+
 WORD                : [a-zA-Z]+ ;
+
+CHAR                : ['a'..'Z'] ;
 
 UNDERSCORE			: '_' ;
 

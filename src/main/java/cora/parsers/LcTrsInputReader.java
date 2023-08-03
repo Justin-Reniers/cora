@@ -158,17 +158,28 @@ public class LcTrsInputReader extends InputReader{
      * @param data The data to be updated with all the basic signature declarations.
      */
     public void handleBasicSignature(ParseData data) {
+        boolean infix = true;
         Type unaryBool = new ArrowType(boolSort, boolSort);
         Type unaryInt = new ArrowType(intSort, intSort);
         Type boolOperation = new ArrowType(boolSort, new ArrowType(boolSort, boolSort));
         Type intOperation = new ArrowType(intSort, new ArrowType(intSort, intSort));
         Type intComparison = new ArrowType(intSort, new ArrowType(intSort, boolSort));
-        addFunctionsToData(data, unaryBoolOperators, unaryBool, true);
-        addFunctionsToData(data, binaryBoolOperators, boolOperation, true);
-        addFunctionsToData(data, unaryIntOperators, unaryInt, true);
-        addFunctionsToData(data, binaryIntOperators, intOperation, true);
-        addFunctionsToData(data, binaryIntComparison, intComparison, true);
-
+        data.addFunctionSymbol(new Constant("~", unaryBool, infix, 2));
+        data.addFunctionSymbol(new Constant("/\\", boolOperation, true, 11));
+        data.addFunctionSymbol(new Constant("\\/", boolOperation, true, 12));
+        data.addFunctionSymbol(new Constant("-->", boolOperation, true, 13));
+        data.addFunctionSymbol(new Constant("<-->", boolOperation, true, 14));
+        data.addFunctionSymbol(new Constant("-", unaryInt, true, 2));
+        data.addFunctionSymbol(new Constant("*", intOperation, true, 3));
+        data.addFunctionSymbol(new Constant("/", intOperation, true, 3));
+        data.addFunctionSymbol(new Constant("%", intOperation, true, 3));
+        data.addFunctionSymbol(new Constant("+", intOperation, true, 4));
+        data.addFunctionSymbol(new Constant("<", intComparison, true, 6));
+        data.addFunctionSymbol(new Constant("<=", intComparison, true, 6));
+        data.addFunctionSymbol(new Constant(">", intComparison, true, 6));
+        data.addFunctionSymbol(new Constant(">=", intComparison, true, 6));
+        data.addFunctionSymbol(new Constant("==", intComparison, true, 7));
+        data.addFunctionSymbol(new Constant("!=", intComparison, true, 7));
         addBooleanConstantsToData(data);
     }
 
@@ -184,9 +195,9 @@ public class LcTrsInputReader extends InputReader{
      * @param infix
      */
     public void addFunctionsToData(ParseData data, ArrayList<String> functionSymbols, Type functionType,
-                                   boolean infix) {
+                                   boolean infix, int precedence) {
         for (String symbol : functionSymbols) {
-            data.addFunctionSymbol(new Constant(symbol, functionType, infix));
+            data.addFunctionSymbol(new Constant(symbol, functionType, infix, precedence));
         }
     }
 
@@ -301,16 +312,20 @@ public class LcTrsInputReader extends InputReader{
         }
         String kind;
         Term ret = null;
-        if (tree.getChildCount() == 2) {
+        ArrayList<String> symbols = new ArrayList<>(Arrays.asList("token CONJUNCTION", "token DISJUNCTION",
+                "token CONDITIONAL", "token BICONDITIONAL", "token MULT", "token DIV", "token MOD",
+                "token PLUS", "token LT", "token LTEQ", "token GT", "token GTEQ", "token EQUALITY", "token NEQ"));
+        if (tree.getChildCount() == 4 && (checkChild(tree, 0).equals("token NEGATION") ||
+                checkChild(tree, 0).equals("token MINUS"))) {
+            ret = getNewFunctionalTermArityOne(tree, data, tree.getChild(0).getText(), mstrs);
+        }
+        else if (tree.getChildCount() == 2) {
             kind = checkChild(tree, 0);
             if (kind.equals("token NEGATION") || kind.equals("token MINUS")) {
                 ret = getNewFunctionalTermArityOne(tree, data, tree.getChild(0).getText(), mstrs);
             }
         }
-        ArrayList<String> symbols = new ArrayList<>(Arrays.asList("token CONJUNCTION", "token DISJUNCTION",
-                "token CONDITIONAL", "token BICONDITIONAL", "token MULT", "token DIV", "token MOD",
-                "token PLUS", "token LT", "token LTEQ", "token GT", "token GTEQ", "token EQUALITY", "token NEQ"));
-        if (tree.getChildCount() >= 3) {
+        else if (tree.getChildCount() >= 3) {
             kind = checkChild(tree, 1);
             if (kind.equals("token MINUS")) {
                 verifyChildIsToken(tree, 1, "MINUS", "Minus operator '-'");
@@ -354,8 +369,23 @@ public class LcTrsInputReader extends InputReader{
         Term child1 = null;
         FunctionSymbol f;
         f = data.lookupFunctionSymbol(functionSymbol);
-        if (unaryBoolOperators.contains(f.queryName())) child1 = readTermType(tree.getChild(1), data, boolSort, mstrs);
-        if (unaryIntOperators.contains(f.queryName())) child1 = readTermType(tree.getChild(1), data, intSort, mstrs);
+        if (tree.getChildCount() == 2) {
+            if (unaryBoolOperators.contains(f.queryName())) {
+                child1 = readTermType(tree.getChild(1), data, boolSort, mstrs);
+            }
+            if (unaryIntOperators.contains(f.queryName())) {
+                child1 = readTermType(tree.getChild(1), data, intSort, mstrs);
+            }
+        } else {
+            verifyChildIsToken(tree, 1, "BRACKETOPEN", "BRACKETOPEN");
+            verifyChildIsToken(tree, 3, "BRACKETCLOSE", "BRACKETCLOSE");
+            if (unaryBoolOperators.contains(f.queryName())) {
+                child1 = readTermType(tree.getChild(2), data, boolSort, mstrs);
+            }
+            if (unaryIntOperators.contains(f.queryName())) {
+                child1 = readTermType(tree.getChild(2), data, intSort, mstrs);
+            }
+        }
         return new FunctionalTerm(f, child1);
     }
 
@@ -476,8 +506,9 @@ public class LcTrsInputReader extends InputReader{
     /**
      * This function reads a user command from the given parse tree.
      */
-    private UserCommand readUserInput(ParseTree tree, TRS lcTrs) throws ParserException{
+    private UserCommand readUserInput(ParseTree tree, TRS lcTrs, TreeSet<Variable> env) throws ParserException{
         ParseData data = new ParseData();
+        for (Variable v : env) data.addVariable(v);
         for (FunctionSymbol f : lcTrs.querySymbols()) data.addFunctionSymbol(f);
         return handleUserInput(tree.getChild(0), data);
     }
@@ -486,19 +517,20 @@ public class LcTrsInputReader extends InputReader{
      * This function decides what user command was given from the given parse tree. If a user
      * command is not implemented yet, it throws an UnsupportedRewritingRuleException.
      */
-    private UserCommand handleUserInput(ParseTree tree, ParseData data) throws ParserException {
+    private UserCommand handleUserInput(ParseTree tree, ParseData data) throws ParserException,
+            InvalidPositionException {
         String kind = checkChild(tree, 0);
         if (kind.equals("token SIMPLIFICATION")) {
             verifyChildIsToken(tree, 0, "SIMPLIFICATION", "The simplification rule");
             if (tree.getChildCount() == 1) return new SimplifyCommand();
             verifyChildIsRule(tree, 1, "pos", "Position rule");
             verifyChildIsToken(tree, 2, "NUM", "Rule index numerical");
-            Position pos = parsePosition(tree.getChild(1));
+            Position pos = parsePosition(tree.getChild(1), false);
             return new SimplifyCommand(pos, Integer.parseInt(tree.getChild(2).getText()));
         } if (kind.equals("token EXPANSION")) {
             verifyChildIsToken(tree, 0, "EXPANSION", "The expand rule");
             verifyChildIsRule(tree, 1, "pos", "Position rule");
-            Position pos = parsePosition(tree.getChild(1));
+            Position pos = parsePosition(tree.getChild(1), false);
             return new ExpandCommand(pos);
         } if (kind.equals("token DELETION")) {
             verifyChildIsToken(tree, 0, "DELETION", "The delete rule");
@@ -540,6 +572,24 @@ public class LcTrsInputReader extends InputReader{
         } if (kind.equals("token UNDO")) {
             verifyChildIsToken(tree, 0, "UNDO", "The undo command");
             return new UndoCommand();
+        } if (kind.equals("token REWRITE")) {
+            verifyChildIsToken(tree, 0, "REWRITE", "The rewrite command");
+            verifyChildIsRule(tree, 1, "logicalconstraint", "Logical constraint");
+            verifyChildIsRule(tree, 2, "logicalconstraint", "Logical constraint");
+            Term old = readLogicalConstraint(tree.getChild(1), data, true);
+            Term n = readLogicalConstraint(tree.getChild(2), data, true);
+            return new RewriteConstraintCommand(old, n);
+        } if (kind.equals("token RENAME")) {
+            verifyChildIsRule(tree, 1, "term", "a term");
+            verifyChildIsRule(tree, 2, "term", "a term");
+            try {
+                Type expected = data.lookupVariable(tree.getChild(1).getText()).queryType();
+                Term old = data.lookupVariable(tree.getChild(1).getText()); //readTermType(tree.getChild(1), data, expected, true);
+                Term n = readTermType(tree.getChild(2), data, expected, true);
+                return new RenameCommand(old, n);
+            } catch (NullPointerException e) {
+                return new RenameCommand();
+            }
         }
         return null;
     }
@@ -548,13 +598,18 @@ public class LcTrsInputReader extends InputReader{
      *  This function reads a position from the given parse tree. A position is of the
      *  form x or x.a... where x and a are integers.
      */
-    private Position parsePosition(ParseTree tree) throws ParserException {
-        verifyChildIsToken(tree, 0, "NUM", "position numeral");
-        if (tree.getChildCount() > 2) {
+    private Position parsePosition(ParseTree tree, boolean subtree) throws ParserException {
+        if (Integer.parseInt(tree.getChild(0).getText()) != 0 && !subtree) {
+            throw new InvalidPositionException(tree.getChild(0).getText());
+        }
+        if (Integer.parseInt(tree.getChild(0).getText()) == 0 && subtree) {
+            throw new InvalidPositionException(tree.getChild(0).getText());
+        }
+        if (tree.getChildCount() > 1) {
             verifyChildIsToken(tree, 1, "DOT", "dot in between position numerals");
             verifyChildIsRule(tree, 2, "pos", "position rule");
             return new ArgumentPosition(Integer.parseInt(tree.getChild(0).getText()),
-                    parsePosition(tree.getChild(2)));
+                    parsePosition(tree.getChild(2), true));
         }
         return new EmptyPosition();
     }
@@ -597,14 +652,14 @@ public class LcTrsInputReader extends InputReader{
         return reader.readLCTRS(tree);
     }
 
-    public static UserCommand readUserInputFromString(String s, TRS lcTrs) throws ParserException {
+    public static UserCommand readUserInputFromString(String s, TRS lcTrs, TreeSet<Variable> env) throws ParserException {
         ErrorCollector collector = new ErrorCollector();
         LcTrsParser parser = createLcTrsParserFromString(s, collector);
         LcTrsInputReader reader = new LcTrsInputReader();
         ParseTree tree = parser.trs();
         collector.throwCollectedExceptions();
 
-        return reader.readUserInput(tree, lcTrs);
+        return reader.readUserInput(tree, lcTrs, env);
     }
 
     public static TRS readLcTrsFromFile(String filename) throws ParserException {

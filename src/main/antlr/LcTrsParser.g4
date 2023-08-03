@@ -43,8 +43,9 @@ trsrule             : term ARROW term logicalconstraint? ;
 term                : identifier
                     | identifier BRACKETOPEN BRACKETCLOSE
                     | identifier BRACKETOPEN termlist BRACKETCLOSE
-                    | numeric
-                    | (MINUS | NEGATION) term
+                    | MINUS term
+                    | MINUS (BRACKETOPEN term BRACKETCLOSE)
+                    | NEGATION (term | BRACKETOPEN term BRACKETCLOSE)
                     | term (MULT | DIV | MOD) term
                     | term (PLUS | MINUS) term
                     | term (LT | LTEQ | GT | GTEQ)*? term
@@ -52,6 +53,7 @@ term                : identifier
                     | term (CONJUNCTION | DISJUNCTION)*? term
                     | <assoc=right> term CONDITIONAL term
                     | term BICONDITIONAL term
+                    | numeric
                     ;
 
 termlist            : term
@@ -67,7 +69,7 @@ numeric             : NUM
 
 logicalconstraint   : SQUAREOPEN term SQUARECLOSE ;
 
-rewritinginduction  : SIMPLIFICATION (pos NUM)?
+rewritinginduction  : SIMPLIFICATION ((pos NUM)? | (pos CHAR)?)
                     | EXPANSION pos
                     | DELETION
                     | POSTULATE term term logicalconstraint
@@ -79,6 +81,8 @@ rewritinginduction  : SIMPLIFICATION (pos NUM)?
                     | CLEAR
                     | SWAP (NUM NUM)?
                     | UNDO
+                    | REWRITE logicalconstraint logicalconstraint
+                    | RENAME term term
                     ;
 
 pos                 : NUM (DOT pos)* ;
