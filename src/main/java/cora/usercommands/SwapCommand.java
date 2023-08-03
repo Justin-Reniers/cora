@@ -27,8 +27,8 @@ public class SwapCommand extends UserCommandInherit implements UserCommand {
 
     public SwapCommand(int eq1, int eq2) {
         super();
-        _eq1 = eq1;
-        _eq2 = eq2;
+        _eq1 = eq1 - 1;
+        _eq2 = eq2 - 1;
     }
 
     /**
