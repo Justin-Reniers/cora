@@ -8,16 +8,19 @@ import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.Proof;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Term;
+import cora.interfaces.terms.Variable;
 import cora.interfaces.types.Type;
 import cora.loggers.Logger;
 import cora.parsers.LcTrsInputReader;
 import cora.terms.Var;
 import cora.usercommands.UndoCommand;
+import org.apache.commons.lang3.ObjectUtils;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Array;
+import java.sql.Array;
 import java.util.ArrayList;
+import java.util.TreeSet;
 
 /**
  * An Equivalence Proof is a to-be-proven (or disproven) equivalence between two terms
@@ -30,6 +33,7 @@ public class EquivalenceProof implements Proof {
     private ArrayList<Equation> _equations, _completenessEquations;
     private Equation _cur_eq;
     private ArrayList<ProofHistory> _history;
+    private TreeSet<Variable> _env;
     private int _varcounter;
     private boolean _bottom;
 
@@ -51,6 +55,12 @@ public class EquivalenceProof implements Proof {
                 null));
         _varcounter = 0;
         _bottom = false;
+        _env = new TreeSet<Variable>();
+        try {
+            _env.addAll(_cur_eq.getLeft().vars().getVars());
+            _env.addAll(_cur_eq.getRight().vars().getVars());
+            _env.addAll(_cur_eq.getConstraint().vars().getVars());
+        } catch (NullPointerException ignored) {}
     }
 
     public EquivalenceProof() {
@@ -62,6 +72,23 @@ public class EquivalenceProof implements Proof {
         _history = null;
         _varcounter = 0;
         _bottom = true;
+        _env = null;
+    }
+
+    private void updateVariables() {
+        _env = new TreeSet<>();
+        try {
+            _env.addAll(_cur_eq.getLeft().vars().getVars());
+            _env.addAll(_cur_eq.getRight().vars().getVars());
+            _env.addAll(_cur_eq.getConstraint().vars().getVars());
+        } catch (NullPointerException ignored) {
+
+        }
+    }
+
+    @Override
+    public TreeSet<Variable> getVariables() {
+        return _env;
     }
 
     /**
@@ -74,15 +101,17 @@ public class EquivalenceProof implements Proof {
     public void applyNewUserCommand(String uCommand) {
         if (_bottom) throw new BottomException(uCommand);
         try {
-            UserCommand uc = LcTrsInputReader.readUserInputFromString(uCommand, _lcTrs);
+            UserCommand uc = LcTrsInputReader.readUserInputFromString(uCommand, _lcTrs, _env);
             uc.setProof(this);
             if (uc.applicable()) {
                 if (!(uc instanceof UndoCommand)) _history.add(new ProofHistory(_equations, uc, _completeness,
                         _completenessEquations, _bottom, _lcTrs));
                 uc.apply();
+                updateVariables();
+            } else {
+                throw new InvalidRuleApplicationException(uCommand);
             };
         } catch (ParserException | InvalidRuleApplicationException e) {
-            System.out.println(e);
             throw new InvalidRuleApplicationException(uCommand);
         }
     }
