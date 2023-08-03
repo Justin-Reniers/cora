@@ -26,6 +26,7 @@ import cora.interfaces.rewriting.Rule;
 abstract class RuleInherit {
   protected Term _left;
   protected Term _right;
+  protected boolean _completenessSet;
 
   /** Helper function to return the current classname for use in Errors. */
   private String queryMyClassName() {
@@ -36,7 +37,7 @@ abstract class RuleInherit {
    * Creates a rule with the given left- and right-hand side.
    * If the types don't match, a TypingError is thrown.
    */
-  protected RuleInherit(Term left, Term right) {
+  protected RuleInherit(Term left, Term right, boolean completenessSet) {
     if (left == null) throw new NullInitialisationError(queryMyClassName(), "left-hand side");
     if (right == null) throw new NullInitialisationError(queryMyClassName(), "right-hand side");
     // both sides should have the same type
@@ -46,6 +47,7 @@ abstract class RuleInherit {
     }
     _left = left;
     _right = right;
+    _completenessSet = completenessSet;
   }
 
   public Term queryLeftSide() {

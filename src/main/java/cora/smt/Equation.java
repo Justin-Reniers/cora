@@ -32,6 +32,12 @@ public class Equation implements ProofEquation {
     }
 
     @Override
+    public String toHTMLString() {
+        return _left.toHTMLString() + "\t≈" +
+                "\t" + _right.toHTMLString() + "\t\t[" + _constraint.toHTMLString() + "]";
+    }
+
+    @Override
     public void setLeft(Term left) { if (left != null) _left = left; }
 
     @Override

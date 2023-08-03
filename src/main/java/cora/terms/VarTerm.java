@@ -220,8 +220,13 @@ public class VarTerm extends ApplicativeTermInherit implements Term {
    * Unification of a Varterm and another term.
    * Not yet implemented.
    */
-  public Subst unify(Term other) {
+    public Subst unify(Term other) {
     throw new UnsupportedOperationException();
   }
+
+    @Override
+    public String toHTMLString() {
+        throw new UnsupportedOperationException();
+    }
 }
 

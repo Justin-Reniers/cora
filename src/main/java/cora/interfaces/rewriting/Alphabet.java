@@ -25,7 +25,9 @@ import java.util.List;
  * It is used for recognising (and typing) function symbols in various kinds of input.
  */
 public interface Alphabet {
-  /**
+    int precedence(String name);
+
+    /**
    * Returns the FunctionSymbol with the given name (there should be at most one) if it exists,
    * otherwise returns null.
    */

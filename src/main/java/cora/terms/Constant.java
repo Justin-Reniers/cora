@@ -30,6 +30,7 @@ import cora.interfaces.terms.*;
 public class Constant extends LeafTermInherit implements FunctionSymbol {
   private String _name;
   private boolean _infix;
+  private int _precedence;
 
   /**
    * A constant is always identified by the combination of its name and its type.
@@ -54,6 +55,15 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
     if (name == null) throw new NullInitialisationError("Constant", "name");
     if (name.equals("")) throw new Error("Function Symbol created with empty name.");
     _infix = infix;
+  }
+
+  public Constant(String name, Type type, boolean infix, int precedence) {
+    super(type);
+    _name = name;
+    if (name == null) throw new NullInitialisationError("Constant", "name");
+    if (name.equals("")) throw new Error("Function Symbol created with empty name.");
+    _infix = infix;
+    _precedence = precedence;
   }
 
   /** Returns the name of the current user-defined symbol. */
@@ -90,7 +100,12 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
     return _infix;
   }
 
-    /** @return false */
+  @Override
+  public int precedence() {
+    return 0;
+  }
+
+  /** @return false */
   public boolean isVariable() { return false; }
 
   /** @return false */
@@ -162,5 +177,11 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
     }
     return null;
   }
+
+    @Override
+    public String toHTMLString() {
+        if (this.queryArity() > 0) return "<font color=green>" + _name + "</font>";
+        return "<font color=blue>" + _name + "</font>";
+    }
 }
 

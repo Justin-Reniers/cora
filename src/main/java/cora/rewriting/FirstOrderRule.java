@@ -34,7 +34,7 @@ public class FirstOrderRule extends RuleInherit implements Rule {
   private Term _constraint;
 
   public FirstOrderRule(Term left, Term right) {
-    super(left, right);
+    super(left, right, false);
     // both sides need to be first-order
     if (!left.isFirstOrder() || !right.isFirstOrder()) {
       throw new IllegalRuleError("FirstOrderRule", "terms in rule [" + left.toString() + " → " +
@@ -84,7 +84,7 @@ public class FirstOrderRule extends RuleInherit implements Rule {
   }
 
   public FirstOrderRule(Term left, Term right, Term _constraint) {
-    super(left, right);
+    super(left, right, false);
     this._constraint = _constraint;
     if (!left.isFirstOrder() || !right.isFirstOrder()) {
       throw new IllegalRuleError("FirstOrderRule", "terms in rule [" + left.toString() + " → " +
@@ -103,14 +103,47 @@ public class FirstOrderRule extends RuleInherit implements Rule {
     }
   }
 
+  public FirstOrderRule(Term left, Term right, Term constraint, boolean completenessSet) {
+    super(left, right, completenessSet);
+    this._constraint = constraint;
+    if (!left.isFirstOrder() || !right.isFirstOrder()) {
+      throw new IllegalRuleError("FirstOrderRule", "terms in rule [" + left.toString() + " → " +
+              right.toString() + "] {" + constraint.toString() + "} are not first-order." );
+    }
+    Environment lvars = left.vars();
+    Environment rvars = right.vars();
+    Environment cvars = constraint.vars();
+    for (Variable x : rvars) {
+      if (!lvars.contains(x) && !cvars.contains(x)) {
+        throw new IllegalRuleError("FirstOrderRule", "");
+      }
+    }
+    if (!left.isFunctionalTerm()) {
+      throw new IllegalRuleError("FirstOrderRule", "");
+    }
+  }
+
   public String toString() {
     if (_constraint != null) {
-      return _left.toString() + " → " + _right.toString() + " [" + _constraint.toString() +"]";
+      return _left.toString() + " → " + _right.toString() + " [" + _constraint.toString() + "]";
     }
     return _left.toString() + " → " + _right.toString();
   }
 
-  public boolean equals(Object o) {
+    @Override
+    public String toHTMLString() {
+        if (_constraint != null) {
+          return _left.toHTMLString() + " → " + _right.toHTMLString() + " [" + _constraint.toHTMLString() + "]";
+        }
+        return _left.toHTMLString() + " → " + _right.toHTMLString();
+    }
+
+    @Override
+    public boolean inCompletenessSet() {
+        return _completenessSet;
+    }
+
+    public boolean equals(Object o) {
     if (o == this) return true;
     if (!(o instanceof FirstOrderRule)) return false;
     FirstOrderRule r = (FirstOrderRule) o;

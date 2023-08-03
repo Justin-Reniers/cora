@@ -18,6 +18,7 @@ package cora.interfaces.rewriting;
 import cora.interfaces.terms.FunctionSymbol;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Position;
+import cora.interfaces.terms.Variable;
 
 import java.util.List;
 

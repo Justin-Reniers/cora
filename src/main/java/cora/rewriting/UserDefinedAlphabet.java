@@ -59,6 +59,11 @@ public class UserDefinedAlphabet implements Alphabet {
     return _symbols.get(name).isInfix();
   }
 
+  @Override
+  public int precedence(String name) {
+    return _symbols.get(name).precedence();
+  }
+
   /**
    * Adds a symbol to the current Alphabet. ONLY to be called from constructors (or otherwise
    * during the setup of a UserDefinedAlphabet), since calling it later would violate immutability.

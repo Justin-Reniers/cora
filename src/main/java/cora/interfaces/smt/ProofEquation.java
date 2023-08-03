@@ -12,6 +12,8 @@ public interface ProofEquation {
 
     String toString();
 
+    String toHTMLString();
+
     void setLeft(Term l);
 
     void setRight(Term r);

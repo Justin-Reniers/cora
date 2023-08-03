@@ -165,6 +165,8 @@ public interface Term {
    * This method checks whether <this term> and other term can be unified; if they can, returns the
    * substitution for which they can; if it does not, returns null instead.
    */
-  public Substitution unify(Term other);
+  Substitution unify(Term other);
+
+  String toHTMLString();
 }
 

@@ -48,5 +48,9 @@ public interface Rule {
 
   /** Gives a string representation of the current rule. */
   String toString();
+
+  String toHTMLString();
+
+  boolean inCompletenessSet();
 }
 

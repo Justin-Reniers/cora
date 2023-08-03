@@ -3,6 +3,7 @@ package cora.interfaces.smt;
 import cora.interfaces.rewriting.Rule;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
+import cora.interfaces.terms.Variable;
 import cora.interfaces.types.Type;
 import cora.smt.Equation;
 import cora.smt.ProofHistory;
@@ -10,8 +11,11 @@ import cora.terms.Var;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.TreeSet;
 
 public interface Proof {
+
+    TreeSet<Variable> getVariables();
     boolean getBottom();
 
     public void saveStateToFile(String filePath) throws IOException;

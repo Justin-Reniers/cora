@@ -181,7 +181,12 @@ public class Var extends LeafTermInherit implements Variable {
     return new Subst(this, other);
   }
 
-  /** Implements a total ordering on variables using the index. */
+    @Override
+    public String toHTMLString() {
+        return "<font color=red>" + _name + "</font>";
+    }
+
+    /** Implements a total ordering on variables using the index. */
   public int compareTo(Variable other) {
     if (_index < other.queryVariableIndex()) return -1;
     if (_index > other.queryVariableIndex()) return 1;
