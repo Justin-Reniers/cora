@@ -1,9 +1,8 @@
 package hci;
 
-import cora.exceptions.InvalidRuleApplicationException;
-import cora.exceptions.InvalidUserInputException;
-import cora.exceptions.ParserException;
+import cora.exceptions.*;
 import cora.interfaces.rewriting.TRS;
+import cora.interfaces.smt.Proof;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
@@ -18,8 +17,9 @@ import java.util.ArrayList;
 import java.util.TreeSet;
 
 public class InputModel implements UserInputModel {
+    private InputPresenter inputPresenter;
     private final ArrayList<String> _userCommands;
-    private EquivalenceProof _eqp;
+    private Proof _eqp;
     private String _lastCommand;
     private int _commandIndex;
     private static LcTrsInputReader _lctrsIn;
@@ -39,13 +39,22 @@ public class InputModel implements UserInputModel {
     }
 
     @Override
+    public InputPresenter getPresenter() {
+        return inputPresenter;
+    }
+
+    @Override
+    public void setPresenter(InputPresenter inputPresenter) {
+        this.inputPresenter = inputPresenter;
+    }
+
+    @Override
     public String getUserInput() {
         return _lastCommand;
     }
 
     @Override
     public String getPreviousInput() {
-        System.out.println(_commandIndex);
         if (_commandIndex > 0 && !_userCommands.isEmpty()) {
             _commandIndex--;
             return _userCommands.get(_commandIndex);
@@ -55,7 +64,6 @@ public class InputModel implements UserInputModel {
 
     @Override
     public String getNextInput() {
-        System.out.println(_commandIndex + "\t" + (_userCommands.size()));
         if (_commandIndex >= 0 && _commandIndex < _userCommands.size()) {
             _commandIndex++;
             return _userCommands.get(_commandIndex-1);
@@ -86,16 +94,18 @@ public class InputModel implements UserInputModel {
                     line = in.readLine();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                getPresenter().displayWarning(e.getMessage());
             }
             try {
                 _lcTrs = LcTrsInputReader.readLcTrsFromString(content.toString());
                 _eqp.setLcTrs(_lcTrs);
             } catch (ParserException e) {
-                throw new RuntimeException(e);
+                getPresenter().displayWarning(e.getMessage());
             }
         } else {
-            System.out.println("Invalid file");
+            String[] s = file.getName().split("\\.");
+            String ex = s[s.length - 1];
+            throw new InvalidFileExtensionError(ex);
         }
     }
 
@@ -119,26 +129,79 @@ public class InputModel implements UserInputModel {
     @Override
     public String getRules() {
         StringBuilder s = new StringBuilder();
+        s.append("<html>");
+        ArrayList<Character> counter = new ArrayList<>();
+        counter.add('A');
         for (int i = 0; i < _eqp.getLcTrs().queryRuleCount(); i++) {
-            s.append(" ").append(i+1).append(": ").append(_eqp.getLcTrs().queryRule(i)).append("\n");
+            if (_eqp.getLcTrs().queryRule(i).inCompletenessSet()) {
+                s.append(" ");
+                for (Character c : counter) s.append(c);
+                s.append("\t: ").append(_eqp.getLcTrs().queryRule(i).toHTMLString()).append("<br>");
+                updateCounter(counter);
+            } else {
+                s.append(" ").append(i+1).append("\t: ")
+                        .append(_eqp.getLcTrs().queryRule(i).toHTMLString()).append("<br>");
+            }
         }
+        s.append("</html>");
         return s.toString();
+    }
+
+    private void updateCounter(ArrayList<Character> counter) {
+        if (counter.get(counter.size() - 1) == 'Z') {
+            boolean all = true;
+            for (Character c : counter)
+                if (c != 'Z') {
+                    all = false;
+                    break;
+                }
+            if (all) {
+                for (Character c : counter) counter.set(counter.indexOf(c), 'A');
+                counter.add('A');
+            } else {
+                for (int i = counter.size() - 1; i >= 0; i--) {
+                    if (counter.get(i) != 'Z') {
+                        counter.set(i, (char) (counter.get(i) + 1));
+                        break;
+                    }
+                }
+            }
+        } else {
+            for (int i = counter.size() - 1; i >= 0; i--) {
+                if (counter.get(i) != 'Z') {
+                    counter.set(i, (char) (counter.get(i) + 1));
+                    break;
+                }
+            }
+        }
     }
 
     @Override
     public String getEquations() {
         StringBuilder s = new StringBuilder();
         for (Equation eq : _eqp.getEquations()) {
-            s.append(" ").append(eq.toString()).append("\n");
+            s.append(" ").append(_eqp.getEquations().indexOf(eq)+1).append("\t: ")
+                    .append(eq.toHTMLString()).append("<br>");
         }
         return s.toString();
+    }
+
+    @Override
+    public boolean getCompleteness() {
+        return _eqp.getCompleteness();
+    }
+
+    @Override
+    public boolean getBottom() {
+        return _eqp.getBottom();
     }
 
     private boolean applyUserInput(String input) {
         try {
             _eqp.applyNewUserCommand(input);
             return true;
-        } catch (InvalidRuleApplicationException e) {
+        } catch (InvalidRuleApplicationException | InvalidPositionException e) {
+            getPresenter().displayWarning(e.getMessage());
             return false;
         }
     }

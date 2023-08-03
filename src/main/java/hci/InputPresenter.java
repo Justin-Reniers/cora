@@ -1,5 +1,6 @@
 package hci;
 
+import cora.exceptions.InvalidFileExtensionError;
 import cora.exceptions.ParserException;
 import hci.interfaces.UserInputModel;
 import hci.interfaces.UserInputPresenter;
@@ -36,14 +37,16 @@ public class InputPresenter implements UserInputPresenter {
             view.onEnterAction();
             view.updateRulesField(model.getRules());
             view.updateEquationsField(model.getEquations());
+            view.updateBottomField(model.getBottom());
+            view.updateCompletenessField(model.getCompleteness());
         } else {
             view.onEnterAction();
-            view.invalidRuleAction();
         }
     }
 
     @Override
     public void run() {
+        model.setPresenter(this);
         view.setPresenter(this);
     }
 
@@ -52,8 +55,8 @@ public class InputPresenter implements UserInputPresenter {
         try {
             model.openFile(file);
             view.updateRulesField(model.getRules());
-        } catch (RuntimeException e) {
-            System.out.println(e.toString());
+        } catch (RuntimeException | InvalidFileExtensionError e) {
+            displayWarning(e.getMessage());
         }
 
     }
@@ -64,7 +67,12 @@ public class InputPresenter implements UserInputPresenter {
             model.enterProof(proof);
             view.updateEquationsField(model.getEquations());
         } catch (ParserException e) {
-            System.out.println(e.toString());
+            displayWarning(e.getMessage());
         }
+    }
+
+    @Override
+    public void displayWarning(String ex) {
+        view.warningDialog(ex);
     }
 }

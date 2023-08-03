@@ -10,9 +10,13 @@ public interface UserInputView {
 
     void onEnterAction();
 
-    void invalidRuleAction();
-
     void updateRulesField(String rules);
 
     void updateEquationsField(String equations);
+
+    void updateCompletenessField(boolean completeness);
+
+    void updateBottomField(boolean bottom);
+
+    void warningDialog(String ex);
 }

@@ -18,4 +18,6 @@ public interface UserInputPresenter {
     void handleFile(File file);
 
     void enterProof(String proof) throws ParserException;
+
+    abstract void displayWarning(String ex);
 }

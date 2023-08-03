@@ -1,9 +1,14 @@
 package hci;
 
+import cora.exceptions.InvalidPositionException;
 import cora.exceptions.ParserException;
 import hci.interfaces.UserInputView;
 
 import javax.swing.*;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -16,8 +21,9 @@ public class InputView extends JFrame implements UserInputView {
     private JTextField userInput;
     private JMenuBar menuBar;
     private JMenu fileMenu, lcTrsMenu;
-    private JTextArea equationTextArea, ruleTextArea;
+    private JTextPane equationTextArea, ruleTextArea;
     private JMenuItem loadFile, enterProof;
+    private JCheckBox _bottom, _completeness;
 
     public InputView(String title) {
         initComponents(title);
@@ -29,6 +35,7 @@ public class InputView extends JFrame implements UserInputView {
         initUserInputBoxes();
         initMenu();
         initTextAreas();
+        initCheckBoxes();
         frame.setLayout(null);
         frame.setVisible(true);
     }
@@ -36,7 +43,8 @@ public class InputView extends JFrame implements UserInputView {
     private void initJFrame(String title) {
         frame = new JFrame(title);
         frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
-        frame.setSize(900, 400);
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        //frame.setSize(1500, 800);
     }
 
     private void initMenu() {
@@ -58,38 +66,57 @@ public class InputView extends JFrame implements UserInputView {
 
     private void initUserInputBoxes() {
         userInputLabel = new JLabel("Input: ");
-        userInputLabel.setBounds(5, 250, 40, 30);
+        userInputLabel.setBounds(5, 720, 40, 30);
         frame.add(userInputLabel);
         userInput = new JTextField();
-        userInput.setBounds(40, 250, 200, 30);
+        userInput.setBounds(5, 750, 1100, 30);
         frame.add(userInput);
     }
 
     private void initTextAreas() {
         Font font = new Font("LucidaSans", Font.PLAIN, 12);
 
-        equationLabel = new JLabel("Equations");
-        equationLabel.setBounds(5, 0, 80, 30);
-        equationTextArea = new JTextArea("Equations", 100, 60);
-        equationTextArea.setFont(font);
-        equationTextArea.setEditable(false);
-        JScrollPane equationScroll = new JScrollPane(equationTextArea);
-        equationScroll.setSize(400, 200);
-        equationScroll.setBounds(5, 40, 400, 200);
-
         ruleLabel = new JLabel("Rules");
-        ruleLabel.setBounds(450, 0, 80, 30);
-        ruleTextArea = new JTextArea("Rules", 50, 60);
+        ruleLabel.setBounds(5, 0, 80, 30);
+        ruleTextArea = new JTextPane();
+        ruleTextArea.setContentType("text/html;charset=UTF-8");
         ruleTextArea.setFont(font);
         ruleTextArea.setEditable(false);
         JScrollPane ruleScroll = new JScrollPane(ruleTextArea);
-        ruleScroll.setSize(400, 200);
-        ruleScroll.setBounds(450, 40, 400, 200);
+        ruleScroll.setSize(1100, 300);
+        ruleScroll.setBounds(5, 30, 1100, 300);
 
-        frame.add(equationLabel);
+        equationLabel = new JLabel("Equations");
+        equationLabel.setBounds(5, 375, 80, 30);
+        equationTextArea = new JTextPane();
+        equationTextArea.setContentType("text/html;charset=UTF-8");
+        equationTextArea.setFont(font);
+        equationTextArea.setEditable(false);
+        JScrollPane equationScroll = new JScrollPane(equationTextArea);
+        equationScroll.setSize(1100, 300);
+        equationScroll.setBounds(5, 405, 1100, 300);
+
         frame.add(ruleLabel);
-        frame.add(equationScroll);
+        frame.add(equationLabel);
         frame.add(ruleScroll);
+        frame.add(equationScroll);
+    }
+
+    private void initCheckBoxes() {
+        _bottom = new JCheckBox();
+        _completeness = new JCheckBox();
+        _bottom.setEnabled(false);
+        _completeness.setEnabled(false);
+        JLabel bottomLabel = new JLabel("Bottom: ");
+        JLabel completenessLabel = new JLabel("Completeness: ");
+        frame.add(_bottom);
+        frame.add(_completeness);
+        _bottom.setBounds(1300, 5, 20, 20);
+        _completeness.setBounds(1300, 35, 20, 20);
+        frame.add(bottomLabel);
+        frame.add(completenessLabel);
+        bottomLabel.setBounds(1200, 5, 100, 20);
+        completenessLabel.setBounds(1200, 35, 100, 20);
     }
 
     private void initEventListeners() {
@@ -122,6 +149,8 @@ public class InputView extends JFrame implements UserInputView {
         enterProof.addActionListener(e -> {
             String proof = JOptionPane.showInputDialog(frame, "Enter proof terms and constraint");
             getPresenter().enterProof(proof);
+            updateBottomField(getPresenter().getModel().getBottom());
+            updateCompletenessField(getPresenter().getModel().getCompleteness());
         });
     }
 
@@ -131,7 +160,10 @@ public class InputView extends JFrame implements UserInputView {
             public void keyTyped(KeyEvent e) {}
             @Override
             public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_UP) userInput.setText(getPresenter().getModel().getPreviousInput());
+                if (e.getKeyCode() == KeyEvent.VK_UP) {
+                    getPresenter().getModel().addUserInput(userInput.getText());
+                    userInput.setText(getPresenter().getModel().getPreviousInput());
+                }
             }
             @Override
             public void keyReleased(KeyEvent e) {}
@@ -171,9 +203,8 @@ public class InputView extends JFrame implements UserInputView {
     }
 
     @Override
-    public void invalidRuleAction() {
-        JOptionPane.showMessageDialog(frame, "Rule cannot be applied to current proof state",
-                "Warning", JOptionPane.WARNING_MESSAGE);
+    public void warningDialog(String ex) {
+        JOptionPane.showMessageDialog(frame, ex, "Warning", JOptionPane.WARNING_MESSAGE);
     }
 
     @Override
@@ -184,5 +215,15 @@ public class InputView extends JFrame implements UserInputView {
     @Override
     public void updateEquationsField(String equations) {
         equationTextArea.setText(equations);
+    }
+
+    @Override
+    public void updateCompletenessField(boolean completeness) {
+        _completeness.setSelected(completeness);
+    }
+
+    @Override
+    public void updateBottomField(boolean bottom) {
+        _bottom.setSelected(bottom);
     }
 }
