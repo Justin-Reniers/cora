@@ -1,5 +1,7 @@
 package smt;
 
+import cora.exceptions.InvalidPositionException;
+import cora.exceptions.InvalidRuleApplicationException;
 import cora.exceptions.ParserException;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
@@ -62,7 +64,7 @@ public class ExpandCommandSMTTest {
         assertEquals(rule, eq.getLcTrs().queryRule(eq.getLcTrs().queryRuleCount()-1));
     }
 
-    @Test
+    @Test (expected = InvalidPositionException.class)
     public void invalidExpandTest() throws ParserException {
         String t1 = "factrec(n)";
         String t2 = "iter(n, 1, 2)";

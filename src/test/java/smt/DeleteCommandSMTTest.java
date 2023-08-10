@@ -1,5 +1,6 @@
 package smt;
 
+import cora.exceptions.InvalidRuleApplicationException;
 import cora.exceptions.ParserException;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
@@ -91,7 +92,7 @@ public class DeleteCommandSMTTest {
         assertNull(eq.getCurrentEquation());
     }
 
-    @Test
+    @Test (expected = InvalidRuleApplicationException.class)
     public void testDeleteUnequalTerms() throws ParserException {
         String t1 = "f(0)";
         String t2 = "f(x)";
@@ -121,12 +122,11 @@ public class DeleteCommandSMTTest {
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("swap");
         eq.applyNewUserCommand("simplify");
-        System.out.println(eq.getCurrentEquation());
         eq.applyNewUserCommand("delete");
         assertNull(eq.getCurrentEquation());
     }
 
-    @Test
+    @Test (expected = InvalidRuleApplicationException.class)
     public void testDeleteVarUnequalReplacement() throws ParserException {
         String t1 = "f(x + 0)";
         String t2 = "f(y)";
@@ -140,6 +140,5 @@ public class DeleteCommandSMTTest {
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("simplify");
         eq.applyNewUserCommand("delete");
-        assertNotNull(eq.getCurrentEquation());
     }
 }

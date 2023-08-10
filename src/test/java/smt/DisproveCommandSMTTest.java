@@ -57,9 +57,7 @@ public class DisproveCommandSMTTest {
         vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("constructor");
-        System.out.println(eq.getEquations());
         eq.applyNewUserCommand("disprove");
-        System.out.println(eq.getBottom());
         eq.applyNewUserCommand("simplify");
     }
 }

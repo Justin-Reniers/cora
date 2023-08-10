@@ -55,8 +55,8 @@ public class EQDeleteCommandSMTTest {
         vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("eqdelete");
-        String nc = "n == y /\\ m == n - 1 /\\ y_1 == y + 1 /\\ x_1 == x * y /\\ n * x != x_1";
-        Term newC = LcTrsInputReader.readTermFromStringWithEnv(nc, lcTrs, vars);
+        String nc = "n == y /\\ m == n - 1 /\\ y_1 == y + 1 /\\ x_1 == x * y /\\ ~(x_1 == n*x)";
+        Term newC = LcTrsInputReader.readTermFromStringWithEnv(nc, lcTrs, eq.getVariables());
         assertEquals(eq.getConstraint(), newC);
     }
 

@@ -11,6 +11,7 @@ import cora.parsers.LcTrsInputReader;
 import cora.smt.EquivalenceProof;
 import org.junit.Test;
 
+import javax.swing.text.html.parser.Parser;
 import java.util.TreeSet;
 
 import static org.junit.Assert.*;

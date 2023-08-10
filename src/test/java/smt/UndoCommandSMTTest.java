@@ -60,8 +60,6 @@ public class UndoCommandSMTTest {
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("simplify");
         eq.applyNewUserCommand("undo");
-        System.out.println("Undid");
-        System.out.println(eq.getCurrentEquation());
     }
 
     @Test
@@ -82,6 +80,5 @@ public class UndoCommandSMTTest {
         eq.applyNewUserCommand("undo");
         eq.applyNewUserCommand("undo");
         assertNotNull(eq.getEquations());
-        System.out.println(eq.getEquations());
     }
 }

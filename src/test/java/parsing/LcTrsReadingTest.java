@@ -92,7 +92,7 @@ public class LcTrsReadingTest {
                 "(SIG\n" +
                 "(or    Bool Bool -> Bool))\n" +
                 "(RULES\n" +
-                "or(z, or(x, y)) -> z /\\ y \\/ x [1 == t+-3]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [-1 == t+-3]\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
@@ -104,6 +104,18 @@ public class LcTrsReadingTest {
                 "(or    Bool Bool -> Bool))\n" +
                 "(RULES\n" +
                 "or(z, or(x, y)) -> z /\\ y \\/ x [1 == t+-3]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 == t-3]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test
+    public void testMinusBracketsOperator() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [-1 == -(t+-3)]\n" +
                 "or(z, or(x, y)) -> z /\\ y \\/ x [1 == t-3]\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
@@ -383,6 +395,19 @@ public class LcTrsReadingTest {
     }
 
     @Test
+    public void testNegationOperatorBrackets() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [~(x /\\ y)]\n" +
+                "~~x -> x\n" +
+                "~~~x -> ~x\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test
     public void testConjunctionOperator() throws ParserException {
         String s = "(VAR x y z)\n" +
                 "(SIG\n" +
@@ -399,7 +424,7 @@ public class LcTrsReadingTest {
                 "(SIG\n" +
                 "(or    Bool Bool -> Bool))\n" +
                 "(RULES\n" +
-                "x /\\ y \\/ z -> z /\\ y \\/ x [-1 == -3]\n" +
+                "x /\\ y \\/ z -> z /\\ y \\/ x [-1 == -3 /\\ -2 > -3]\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }

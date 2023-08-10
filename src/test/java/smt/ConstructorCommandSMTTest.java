@@ -56,7 +56,8 @@ public class ConstructorCommandSMTTest {
         vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("constructor");
-        System.out.println(eq.getEquations());
+        assertEquals(1, eq.getEquations().size());
+        assertNotEquals(l, eq.getLeft());
     }
 
     @Test
@@ -73,6 +74,7 @@ public class ConstructorCommandSMTTest {
         vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("constructor");
-        System.out.println(eq.getEquations());
+        assertEquals(3, eq.getEquations().size());
+        assertNotEquals(l, eq.getLeft());
     }
 }

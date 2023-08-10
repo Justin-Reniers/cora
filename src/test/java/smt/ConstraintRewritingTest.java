@@ -59,8 +59,9 @@ public class ConstraintRewritingTest {
         vars.addAll(r.vars().getVars());
         Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
-        eq.applyNewUserCommand("simplify 1 0");
-        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("g(1)", lcTrs, vars);
+        eq.applyNewUserCommand("simplify");
+        eq.applyNewUserCommand("simplify 0 1");
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("g(1)", lcTrs, eq.getVariables());
         assertEquals(eq.getLeft(), l2);
     }
 
@@ -87,9 +88,8 @@ public class ConstraintRewritingTest {
         vars.addAll(r.vars().getVars());
         Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
-        eq.applyNewUserCommand("simplify 0 0");
-        vars.addAll(eq.getConstraint().vars().getVars());
-        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("return(1)", lcTrs, vars);
+        eq.applyNewUserCommand("simplify 0 1");
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("return(1)", lcTrs, eq.getVariables());
         assertEquals(eq.getLeft(), l2);
     }
 
@@ -117,11 +117,8 @@ public class ConstraintRewritingTest {
         Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
         vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
-        eq.applyNewUserCommand("simplify 0 1");
-        vars.addAll(eq.getConstraint().vars().getVars());
-        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("mul(x_0, factrec(x_0 - 1))", lcTrs, vars);
-        System.out.println(eq.getLeft());
-        System.out.println(l2);
+        eq.applyNewUserCommand("simplify 0 2");
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("mul(x_0, factrec(x_0 - 1))", lcTrs, eq.getVariables());
         assertEquals(eq.getLeft(), l2);
     }
 }

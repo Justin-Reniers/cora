@@ -128,8 +128,6 @@ RENAME              : R E N A M E ;
 
 WORD                : [a-zA-Z]+ ;
 
-CHAR                : ['a'..'Z'] ;
-
 UNDERSCORE			: '_' ;
 
 NUM                 : [0-9]+ ;

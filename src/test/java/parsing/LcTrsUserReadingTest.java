@@ -1,22 +1,23 @@
 package parsing;
 
-import cora.exceptions.AntlrParserException;
-import cora.exceptions.ParserException;
-import cora.exceptions.UnsupportedRewritingRuleException;
+import cora.exceptions.*;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.UserCommand;
+import cora.interfaces.terms.Variable;
 import cora.loggers.ConsoleLogger;
 import cora.loggers.Logger;
 import cora.parsers.LcTrsInputReader;
 import org.junit.Test;
 
 import javax.swing.text.html.parser.Parser;
+import java.util.TreeSet;
 
 public class LcTrsUserReadingTest {
 
     public static Logger l = new Logger(new ConsoleLogger());
 
     private final static TRS lcTrs;
+    private final static TreeSet<Variable> env = new TreeSet<>();
 
     private final static String s = "(SIG\n" +
             "    (factiter\tInt -> Int)\n" +
@@ -46,86 +47,111 @@ public class LcTrsUserReadingTest {
 
     @Test
     public void readSimplify() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("Simplify 2.2 1", lcTrs);
+        LcTrsInputReader.readUserInputFromString("Simplify 0.2.2 1", lcTrs, env);
+    }
+
+    @Test (expected = InvalidPositionException.class)
+    public void readIncorrectSimplify() throws ParserException {
+        LcTrsInputReader.readUserInputFromString("simpliFY 2.2 1", lcTrs, env);
     }
 
     @Test (expected = AntlrParserException.class)
     public void readPositionStartingDotSimplify() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("simplify .2 1", lcTrs);
+        LcTrsInputReader.readUserInputFromString("simplify .2 1", lcTrs, env);
     }
 
     @Test (expected = AntlrParserException.class)
     public void readPositionTrailingDotSimplify() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("simplify 2.3. 2", lcTrs);
+        LcTrsInputReader.readUserInputFromString("simplify 2.3. 2", lcTrs, env);
     }
 
     @Test (expected = AntlrParserException.class)
     public void readPositionDoubleDotSimplify() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("simplify 2..3 3", lcTrs);
+        LcTrsInputReader.readUserInputFromString("simplify 2..3 3", lcTrs, env);
     }
 
     @Test (expected = AntlrParserException.class)
     public void readPositionNonNumericRuleIndex() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("simplify 2.3 x", lcTrs);
+        LcTrsInputReader.readUserInputFromString("simplify 2.3 x", lcTrs, env);
     }
 
     @Test
     public void testEmptyArgsSimplify() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("simplify", lcTrs);
+        LcTrsInputReader.readUserInputFromString("simplify", lcTrs, env);
     }
 
     @Test
     public void readExpansion() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("ExpAnd 1.1", lcTrs);
+        LcTrsInputReader.readUserInputFromString("ExpAnd 0.1", lcTrs, env);
+    }
+
+    @Test (expected = InvalidPositionException.class)
+    public void readWrongExpansion() throws ParserException {
+        LcTrsInputReader.readUserInputFromString("expand 1.1", lcTrs, env);
     }
 
     @Test
     public void readDeletion() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("deleTe", lcTrs);
+        LcTrsInputReader.readUserInputFromString("deleTe", lcTrs, env);
     }
 
     @Test
     public void readPostulate() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("POSTUlate f(x+1) f(x+2) [x>=3]", lcTrs);
+        LcTrsInputReader.readUserInputFromString("POSTUlate f(x+1) f(x+2) [x>=3]", lcTrs, env);
     }
 
-    @Test //(expected = cora.exceptions.DeclarationException.class)
+    @Test (expected = cora.exceptions.DeclarationException.class)
     public void readPostulateUndeclaredFunctions() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("POSTUlate f(x+1) g(x+2) [x>=3]", lcTrs);
+        LcTrsInputReader.readUserInputFromString("POSTUlate f(x+1) g(x+2) [x>=3]", lcTrs, env);
     }
 
     @Test (expected = UnsupportedRewritingRuleException.class)
     public void readGeneralization() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("generaliZE", lcTrs);
+        LcTrsInputReader.readUserInputFromString("generaliZE", lcTrs, env);
     }
 
     @Test
     public void readEQDeletion() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("eqdelEte", lcTrs);
+        LcTrsInputReader.readUserInputFromString("eqdelEte", lcTrs, env);
     }
 
     @Test
     public void readConstructor() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("conSTRUCTOR", lcTrs);
+        LcTrsInputReader.readUserInputFromString("conSTRUCTOR", lcTrs, env);
     }
 
     @Test
     public void readDisprove() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("DISProve", lcTrs);
+        LcTrsInputReader.readUserInputFromString("DISProve", lcTrs, env);
     }
 
-    @Test (expected = UnsupportedRewritingRuleException.class)
+    @Test
     public void readCompleteness() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("completeness", lcTrs);
+        LcTrsInputReader.readUserInputFromString("completeness", lcTrs, env);
     }
 
     @Test (expected = UnsupportedRewritingRuleException.class)
     public void readClear() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("CLeAr", lcTrs);
+        LcTrsInputReader.readUserInputFromString("CLeAr", lcTrs, env);
     }
 
     @Test
     public void readSwap() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("SwAP", lcTrs);
+        LcTrsInputReader.readUserInputFromString("SwAP", lcTrs, env);
+    }
+
+    @Test
+    public void readRewrite() throws ParserException {
+        LcTrsInputReader.readUserInputFromString("rewrite [x > y] [x >= y]", lcTrs, env);
+    }
+
+    @Test (expected = ParserException.class)
+    public void readInvalidRewrite() throws ParserException {
+        LcTrsInputReader.readUserInputFromString("rewrite x > y x >= y", lcTrs, env);
+    }
+
+    @Test (expected = TypingException.class)
+    public void readInvalidRewriteTyping() throws ParserException {
+        LcTrsInputReader.readUserInputFromString("rewrite [3] [x>y]", lcTrs, env);
     }
 }

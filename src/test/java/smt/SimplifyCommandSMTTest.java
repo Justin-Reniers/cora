@@ -81,7 +81,7 @@ public class SimplifyCommandSMTTest {
         Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("simplify");
-        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("f(2)", lcTrs, vars);
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("f(2)", lcTrs, eq.getVariables());
         assertEquals(eq.getLeft().toString(), l2.toString());
     }
 
@@ -98,7 +98,7 @@ public class SimplifyCommandSMTTest {
         Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("simplify");
-        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("f(3)", lcTrs, vars);
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("f(3)", lcTrs, eq.getVariables());
         assertEquals(eq.getLeft().toString(), l2.toString());
     }
 
@@ -115,7 +115,7 @@ public class SimplifyCommandSMTTest {
         Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("simplify");
-        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("f(3)", lcTrs, vars);
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("f(3)", lcTrs, eq.getVariables());
         assertEquals(eq.getLeft().toString(), l2.toString());
     }
 
@@ -132,7 +132,7 @@ public class SimplifyCommandSMTTest {
         Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("simplify");
-        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("f(-3)", lcTrs, vars);
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("f(-3)", lcTrs, eq.getVariables());
         assertEquals(eq.getLeft().toString(), l2.toString());
     }
 
@@ -149,7 +149,7 @@ public class SimplifyCommandSMTTest {
         Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("simplify");
-        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("f(21)", lcTrs, vars);
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("f(21)", lcTrs, eq.getVariables());
         assertEquals(eq.getLeft().toString(), l2.toString());
     }
 
@@ -182,7 +182,6 @@ public class SimplifyCommandSMTTest {
         Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("simplify");
-        System.out.println(eq.getCurrentEquation());
     }
 
     @Test
@@ -197,8 +196,8 @@ public class SimplifyCommandSMTTest {
         vars.addAll(r.vars().getVars());
         Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
-        eq.applyNewUserCommand("simplify 1 0");
-        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("iter(n, 1, 1)", lcTrs, vars);
+        eq.applyNewUserCommand("simplify 0 1");
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("iter(n, 1, 1)", lcTrs, eq.getVariables());
         assertEquals(eq.getLeft().toString(), l2.toString());
     }
 
@@ -214,9 +213,8 @@ public class SimplifyCommandSMTTest {
         vars.addAll(r.vars().getVars());
         Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
-        eq.applyNewUserCommand("simplify 1 1");
-        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("iter(x_0, 1*1, 1+1)", lcTrs, vars);
-        System.out.println(eq.getCurrentEquation());
+        eq.applyNewUserCommand("simplify 0 2");
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("iter(x_0, 1*1, 1+1)", lcTrs, eq.getVariables());
         assertEquals(eq.getLeft().toString(), l2.toString());
     }
 
@@ -232,8 +230,8 @@ public class SimplifyCommandSMTTest {
         vars.addAll(r.vars().getVars());
         Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
-        eq.applyNewUserCommand("simplify 1 0");
-        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("iter(n, 1, 1)", lcTrs, vars);
+        eq.applyNewUserCommand("simplify 0 1");
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("iter(n, 1, 1)", lcTrs, eq.getVariables());
         assertEquals(eq.getLeft().toString(), l2.toString());
     }
 
@@ -260,8 +258,8 @@ public class SimplifyCommandSMTTest {
     public void equivalenceProofDemo() throws Exception {
         EquivalenceProof p = testProof();//testProof("D:\\Uni\\Master Thesis\\cora backup\\cora\\src\\test\\java\\smt\\utils\\recursive_fact.lctrs");
         p.applyNewUserCommand("swap");
-        p.applyNewUserCommand("simplify 1 0");
-        p.applyNewUserCommand("simplify 1 1");
+        p.applyNewUserCommand("simplify 0 1");
+        p.applyNewUserCommand("simplify 0 2");
         p.applyNewUserCommand("simPLIFY");
         p.saveStateToFile("savestate.out");
         //Logger.finalized();
