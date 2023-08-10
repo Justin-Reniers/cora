@@ -3,6 +3,7 @@ package cora.smt;
 import cora.exceptions.BottomException;
 import cora.exceptions.InvalidRuleApplicationException;
 import cora.exceptions.ParserException;
+import cora.exceptions.UnsatException;
 import cora.interfaces.rewriting.Rule;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.Proof;
@@ -113,6 +114,8 @@ public class EquivalenceProof implements Proof {
             };
         } catch (ParserException | InvalidRuleApplicationException e) {
             throw new InvalidRuleApplicationException(uCommand);
+        } catch (UnsatException e) {
+            throw new UnsatException(e.getMessage());
         }
     }
 

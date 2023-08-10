@@ -200,7 +200,7 @@ public class InputModel implements UserInputModel {
         try {
             _eqp.applyNewUserCommand(input);
             return true;
-        } catch (InvalidRuleApplicationException | InvalidPositionException e) {
+        } catch (InvalidRuleApplicationException | InvalidPositionException | UnsatException e) {
             getPresenter().displayWarning(e.getMessage());
             return false;
         }
