@@ -41,7 +41,7 @@ public class ExpandCommand extends UserCommandInherit implements UserCommand {
         for (int i = 0; i < _proof.getLcTrs().queryRuleCount(); i++) {
             Rule rule = _proof.getLcTrs().queryRule(i);
             // && rewriteConstraint(_proof, _p, i) != null
-            Substitution gamma = rewriteConstraint(_proof, _p, i);
+            Substitution gamma = rewrittenConstraintValid(_proof, i, _p);
             if (gamma != null && rule.applicable(lp)) _applicableRules.add(rule);
             //if (rule.applicable(lp)) _applicableRules.add(rule);
         }
