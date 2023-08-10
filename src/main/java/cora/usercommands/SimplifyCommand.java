@@ -63,7 +63,6 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
      * a valid user command. If position is null but arguments were given, simplify cannot be applied.
      * If invalid rule index is given returns false. Returns true if rule constraint is met, returns
      * false otherwise.
-     * TODO other cases, comparison of vars between proof constraint and rule constraint
      */
     @Override
     public boolean applicable() {
@@ -80,24 +79,9 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
         if (fSymbol.queryRoot().equals(lcTrs.lookupSymbol("TRUE"))) return true;
         if (fSymbol.queryRoot().equals(lcTrs.lookupSymbol("FALSE"))) return false;
         else {
-            _gamma = rewriteConstraint(_proof, _pos, _ruleIndex);
+            _gamma = rewrittenConstraintValid(_proof, _ruleIndex, _pos);
             return _gamma != null;
         }
-    }
-
-    private void equalitiesFromSubstitution(Substitution s, ArrayList<Term> eqs) {
-        for (Variable v : s.domain()) {
-            eqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("=="), v, s.getReplacement(v)));
-        }
-    }
-
-    private Substitution freshVariables(FirstOrderRule r) {
-        Subst s = new Subst();
-        for (Variable v : r.queryLeftSide().vars()) {
-            Var fresh = getFreshVar(Sort.intSort);
-            s.extend(v, fresh);
-        }
-        return s;
     }
 
     /**
@@ -112,21 +96,9 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
      */
     @Override
     public void apply() {
-        //TODO If constraint of rule unifies with constraint of proof or
-        //TODO subconstraint of proof, apply rule.
-        TRS lcTrs = _proof.getLcTrs();
         //Case 3: Calculation rules
         if (_noArgs) {
-            _proof.setLeft(applyConstraintSubstitutions(_proof, _proof.getConstraint()));
-            Term newConstraint = freshSubstitutionsConstraint(_proof);
-            while(!_proof.getConstraint().equals(newConstraint)) {
-                _proof.setConstraint(freshSubstitutionsConstraint(_proof));
-                _proof.setLeft(applyConstraintSubstitutions(_proof, _proof.getConstraint()));
-                newConstraint = freshSubstitutionsConstraint(_proof);
-            }
-            Z3TermHandler z3 = new Z3TermHandler(_proof.getLcTrs());
-            _proof.setLeft(z3.simplify(_proof.getLeft()));
-            _proof.setConstraint(z3.simplify(_proof.getConstraint()));
+            rewriteConstraintCalc(_proof);
         }
         //Case 1: Constraint TRUE
         else if (_pos != null && _ruleIndex >= 0 &&
@@ -135,19 +107,7 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
         }
         //Case 2: Constraint met
         else if (_pos != null && _ruleIndex >= 0) {
-            ArrayList<Term> ceqs = new ArrayList<>();
-            getEqualities(lcTrs.queryRule(_ruleIndex).queryConstraint(), ceqs);
-            Term newConstraint = _proof.getConstraint();
-            for (Term eq : ceqs) {
-                if (eq.queryImmediateSubterm(2).isConstant()) continue;
-                newConstraint = new FunctionalTerm(lcTrs.lookupSymbol("/\\"),
-                        newConstraint, eq);
-            }
-            _proof.setConstraint(newConstraint.substitute(_gamma));
-            Term applied = lcTrs.queryRule(_ruleIndex).apply(_proof.getLeft().querySubterm(_pos));
-            _proof.setLeft(_proof.getLeft().replaceSubterm(_pos, applied).substitute(_gamma));
-            //_proof.setLeft(lcTrs.queryRule(_ruleIndex).apply(_proof.getLeft().querySubterm(_pos)).substitute(_gamma));
-            _proof.setRight(_proof.getRight().substitute(_gamma));
+            rewriteConstraintConstrainedRule(_proof, _pos, _ruleIndex, _gamma);
         }
     }
 

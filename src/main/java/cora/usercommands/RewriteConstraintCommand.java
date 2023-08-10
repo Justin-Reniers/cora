@@ -1,5 +1,7 @@
 package cora.usercommands;
 
+import cora.exceptions.InvalidRuleApplicationException;
+import cora.exceptions.UnsatException;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Position;
 import cora.interfaces.terms.Substitution;
@@ -16,9 +18,10 @@ import java.util.ArrayList;
 
 public class RewriteConstraintCommand extends UserCommandInherit implements UserCommand {
     private EquivalenceProof _proof;
-    private Term _old, _new;
+    private Term _old, _new, _newConstraint;
     private ArrayList<Term> _proofComponents, _oldConstraintComponents;
     private Substitution _s;
+    private boolean _completeness;
 
     public RewriteConstraintCommand(Term old, Term n) {
         super();
@@ -27,6 +30,8 @@ public class RewriteConstraintCommand extends UserCommandInherit implements User
         _proofComponents = new ArrayList<>();
         _oldConstraintComponents = new ArrayList<>();
         _s = new Subst();
+        _newConstraint = null;
+        _completeness = true;
     }
     @Override
     public Position queryPosition() {
@@ -43,7 +48,9 @@ public class RewriteConstraintCommand extends UserCommandInherit implements User
                 Substitution s = t.unify(l);
                 if (s != null) {
                     for (Variable v : s.domain()) {
-                        if (!(s.getReplacement(v) instanceof Var)) return false;
+                        if (!(s.getReplacement(v) instanceof Var)) {
+                            return false;
+                        }
                         _s.extend(v, s.getReplacement(v));
                     }
                 }
@@ -51,17 +58,31 @@ public class RewriteConstraintCommand extends UserCommandInherit implements User
             }
             if (!inProof) return false;
         }
+        Term c = _proof.getConstraint();
+
+        _oldConstraintComponents.replaceAll(term -> term.substitute(_s));
+        _proofComponents.removeAll(_oldConstraintComponents);
+        _proofComponents.add(_new.substitute(_s));
+        Term nc = reconstructConstraint(_proofComponents);
         Z3TermHandler z3 = new Z3TermHandler(_proof.getLcTrs());
-        Term verify = new FunctionalTerm(_proof.getLcTrs().lookupSymbol("/\\"), _old, _new);
-        return z3.satisfiable(verify);
+        Term valid = new FunctionalTerm(_proof.getLcTrs().lookupSymbol("<-->"), c, nc);
+        if (!z3.validity(valid)) {
+            valid = new FunctionalTerm(_proof.getLcTrs().lookupSymbol("-->"), c, nc);
+            if (!z3.validity(valid)) throw new UnsatException(valid.toString());
+            _completeness = false;
+        }
+        _newConstraint = nc;
+        return true;
     }
 
     @Override
     public void apply() {
-        _oldConstraintComponents.replaceAll(term -> term.substitute(_s));
+        _proof.setConstraint(_newConstraint);
+        if (!_completeness) _proof.setCompleteness(_completeness);
+        /**_oldConstraintComponents.replaceAll(term -> term.substitute(_s));
         _proofComponents.removeAll(_oldConstraintComponents);
         _proofComponents.add(_new.substitute(_s));
-        _proof.setConstraint(reconstructConstraint(_proofComponents));
+        _proof.setConstraint(reconstructConstraint(_proofComponents));**/
     }
 
     @Override

@@ -244,12 +244,11 @@ public class Z3TermHandler {
         return null;
     }
 
-    public boolean validity(Term proofConstraint, Term ruleConstraintPhi) {
-        Expr pc = deconstruct(proofConstraint);
-        Expr rc = deconstruct(ruleConstraintPhi);
-        Expr e = getAnd(_ctx, pc, getNot(_ctx, rc));
-        _s.add(e);
-        return true;
+    public boolean validity(Term constraint) {
+        Expr c = deconstruct(constraint);
+        Expr e = getNot(_ctx, c);
+        boolean satisfiable = satisfiable(e);
+        return !satisfiable;
     }
 
     public void constraintCheck(Term ruleConstraint, Term proofConstraint, Substitution s) {
@@ -327,6 +326,11 @@ public class Z3TermHandler {
     public boolean satisfiable(Term constraint) {
         Expr e = deconstruct(constraint);
         _s.add(e);
+        return getModel() != null;
+    }
+
+    public boolean satisfiable(Expr constraint) {
+        _s.add(constraint);
         return getModel() != null;
     }
 }
