@@ -28,6 +28,7 @@ import cora.provingstrategies.LocalConfluence;
 import cora.provingstrategies.LocalConfluenceExtended;
 import cora.provingstrategies.Orthogonality;
 import cora.provingstrategies.StrategyInherit;
+import cora.smt.EquivalenceProof;
 import hci.InputPresenter;
 import hci.InputModel;
 import hci.InputView;

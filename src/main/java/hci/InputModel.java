@@ -147,6 +147,49 @@ public class InputModel implements UserInputModel {
         return s.toString();
     }
 
+    @Override
+    public String getRulesLeft() {
+        StringBuilder s = new StringBuilder();
+        s.append("<html>");
+        ArrayList<Character> counter = new ArrayList<>();
+        counter.add('A');
+        for (int i = 0; i < _eqp.getLcTrs().queryRuleCount(); i++) {
+            if (_eqp.getLcTrs().queryRule(i).inCompletenessSet()) {
+                s.append(" ");
+                for (Character c : counter) s.append(c);
+                s.append("\t: ").append(_eqp.getLcTrs().queryRule(i).queryLeftSide().toHTMLString()).append("<br>");
+                updateCounter(counter);
+            } else {
+                s.append(" ").append(i+1).append("\t: ")
+                        .append(_eqp.getLcTrs().queryRule(i).queryLeftSide().toHTMLString()).append("<br>");
+            }
+        }
+        s.append("</html>");
+        return s.toString();
+    }
+
+    @Override
+    public String getRulesRight() {
+        StringBuilder s = new StringBuilder();
+        s.append("<html>");
+        for (int i = 0; i < _eqp.getLcTrs().queryRuleCount(); i++) {
+            s.append(" ").append(_eqp.getLcTrs().queryRule(i).queryRightSide().toHTMLString()).append("<br>");
+        }
+        s.append("</html>");
+        return s.toString();
+    }
+
+    @Override
+    public String getRulesConstraint() {
+        StringBuilder s = new StringBuilder();
+        s.append("<html>");
+        for (int i = 0; i < _eqp.getLcTrs().queryRuleCount(); i++) {
+            s.append(" ").append(_eqp.getLcTrs().queryRule(i).queryConstraint().toHTMLString()).append("<br>");
+        }
+        s.append("</html>");
+        return s.toString();
+    }
+
     private void updateCounter(ArrayList<Character> counter) {
         if (counter.get(counter.size() - 1) == 'Z') {
             boolean all = true;
@@ -182,6 +225,34 @@ public class InputModel implements UserInputModel {
         for (Equation eq : _eqp.getEquations()) {
             s.append(" ").append(_eqp.getEquations().indexOf(eq)+1).append("\t: ")
                     .append(eq.toHTMLString()).append("<br>");
+        }
+        return s.toString();
+    }
+
+    @Override
+    public String getEquationsLeft() {
+        StringBuilder s = new StringBuilder();
+        for (Equation eq : _eqp.getEquations()) {
+            s.append(" ").append(_eqp.getEquations().indexOf(eq)+1).append("\t: ")
+                    .append(eq.getLeft().toHTMLString()).append("<br>");
+        }
+        return s.toString();
+    }
+
+    @Override
+    public String getEquationsRight() {
+        StringBuilder s = new StringBuilder();
+        for (Equation eq : _eqp.getEquations()) {
+            s.append(" ").append(eq.getRight().toHTMLString()).append("<br>");
+        }
+        return s.toString();
+    }
+
+    @Override
+    public String getEquationsConstraint() {
+        StringBuilder s = new StringBuilder();
+        for (Equation eq : _eqp.getEquations()) {
+            s.append(" ").append(eq.getConstraint().toHTMLString()).append("<br>");
         }
         return s.toString();
     }

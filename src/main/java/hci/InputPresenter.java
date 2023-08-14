@@ -35,8 +35,15 @@ public class InputPresenter implements UserInputPresenter {
     public void handleUserInput(String input) {
         if (model.addUserInput(input)) {
             view.onEnterAction();
-            view.updateRulesField(model.getRules());
-            view.updateEquationsField(model.getEquations());
+            //view.updateRulesField(model.getRules());
+            view.updateRulesLeftField(model.getRulesLeft());
+            view.updateRulesRightField(model.getRulesRight());
+            view.updateRulesConstraintField(model.getRulesConstraint());
+
+            view.updateEquationsLeftField(model.getEquationsLeft());
+            view.updateEquationsRightField(model.getEquationsRight());
+            view.updateEquationsConstraintField(model.getEquationsConstraint());
+
             view.updateBottomField(model.getBottom());
             view.updateCompletenessField(model.getCompleteness());
         } else {
@@ -54,7 +61,10 @@ public class InputPresenter implements UserInputPresenter {
     public void handleFile(File file) {
         try {
             model.openFile(file);
-            view.updateRulesField(model.getRules());
+            //view.updateRulesField(model.getRules());
+            view.updateRulesLeftField(model.getRulesLeft());
+            view.updateRulesRightField(model.getRulesRight());
+            view.updateRulesConstraintField(model.getRulesConstraint());
         } catch (RuntimeException | InvalidFileExtensionError e) {
             displayWarning(e.getMessage());
         }
@@ -65,7 +75,10 @@ public class InputPresenter implements UserInputPresenter {
     public void enterProof(String proof) {
         try {
             model.enterProof(proof);
-            view.updateEquationsField(model.getEquations());
+            //view.updateEquationsField(model.getEquations());
+            view.updateEquationsLeftField(model.getEquationsLeft());
+            view.updateEquationsRightField(model.getEquationsRight());
+            view.updateEquationsConstraintField(model.getEquationsConstraint());
         } catch (ParserException e) {
             displayWarning(e.getMessage());
         }

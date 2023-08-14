@@ -24,7 +24,19 @@ public interface UserInputModel {
     
     String getRules();
 
+    String getRulesLeft();
+
+    String getRulesRight();
+
+    String getRulesConstraint();
+
     String getEquations();
+
+    String getEquationsLeft();
+
+    String getEquationsRight();
+
+    String getEquationsConstraint();
 
     boolean getCompleteness();
 

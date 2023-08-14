@@ -10,6 +10,8 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import java.awt.*;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
@@ -21,7 +23,8 @@ public class InputView extends JFrame implements UserInputView {
     private JTextField userInput;
     private JMenuBar menuBar;
     private JMenu fileMenu, lcTrsMenu;
-    private JTextPane equationTextArea, ruleTextArea;
+    private JTextPane ruleTextAreaLeft, ruleTextAreaRight, ruleTextAreaConstraint;
+    private JTextPane equationTextAreaLeft, equationTextAreaRight, equationTextAreaConstraint;
     private JMenuItem loadFile, enterProof;
     private JCheckBox _bottom, _completeness;
 
@@ -78,28 +81,75 @@ public class InputView extends JFrame implements UserInputView {
 
         ruleLabel = new JLabel("Rules");
         ruleLabel.setBounds(5, 0, 80, 30);
-        ruleTextArea = new JTextPane();
-        ruleTextArea.setContentType("text/html;charset=UTF-8");
-        ruleTextArea.setFont(font);
-        ruleTextArea.setEditable(false);
-        JScrollPane ruleScroll = new JScrollPane(ruleTextArea);
-        ruleScroll.setSize(1100, 300);
-        ruleScroll.setBounds(5, 30, 1100, 300);
+        ruleTextAreaLeft = new JTextPane();
+        ruleTextAreaLeft.setContentType("text/html;charset=UTF-8");
+        ruleTextAreaLeft.setFont(font);
+        ruleTextAreaLeft.setEditable(false);
+        ruleTextAreaRight = new JTextPane();
+        ruleTextAreaRight.setContentType("text/html;charset=UTF-8");
+        ruleTextAreaRight.setFont(font);
+        ruleTextAreaRight.setEditable(false);
+        ruleTextAreaConstraint = new JTextPane();
+        ruleTextAreaConstraint.setContentType("text/html;charset=UTF-8");
+        ruleTextAreaConstraint.setFont(font);
+        ruleTextAreaConstraint.setEditable(false);
+        JScrollPane ruleScroll1 = new JScrollPane(ruleTextAreaLeft);
+        ruleScroll1.setSize(400, 300);
+        ruleScroll1.setBounds(5, 30, 400, 300);
+        JScrollPane ruleScroll2 = new JScrollPane(ruleTextAreaRight);
+        ruleScroll2.setSize(400, 300);
+        ruleScroll2.setBounds(405, 30, 400, 300);
+        JScrollPane ruleScroll3 = new JScrollPane(ruleTextAreaConstraint);
+        ruleScroll3.setSize(400, 300);
+        ruleScroll3.setBounds(805, 30, 400, 300);
+        Synchronizer sync = new Synchronizer(ruleScroll1, ruleScroll2, ruleScroll3);
+        ruleScroll1.getVerticalScrollBar().addAdjustmentListener(sync);
+        ruleScroll1.getHorizontalScrollBar().addAdjustmentListener(sync);
+        ruleScroll2.getVerticalScrollBar().addAdjustmentListener(sync);
+        ruleScroll2.getHorizontalScrollBar().addAdjustmentListener(sync);
+        ruleScroll3.getVerticalScrollBar().addAdjustmentListener(sync);
+        ruleScroll3.getHorizontalScrollBar().addAdjustmentListener(sync);
 
         equationLabel = new JLabel("Equations");
         equationLabel.setBounds(5, 375, 80, 30);
-        equationTextArea = new JTextPane();
-        equationTextArea.setContentType("text/html;charset=UTF-8");
-        equationTextArea.setFont(font);
-        equationTextArea.setEditable(false);
-        JScrollPane equationScroll = new JScrollPane(equationTextArea);
-        equationScroll.setSize(1100, 300);
-        equationScroll.setBounds(5, 405, 1100, 300);
+
+        equationTextAreaLeft = new JTextPane();
+        equationTextAreaLeft.setContentType("text/html;charset=UTF-8");
+        equationTextAreaLeft.setFont(font);
+        equationTextAreaLeft.setEditable(false);
+        equationTextAreaRight = new JTextPane();
+        equationTextAreaRight.setContentType("text/html;charset=UTF-8");
+        equationTextAreaRight.setFont(font);
+        equationTextAreaRight.setEditable(false);
+        equationTextAreaConstraint = new JTextPane();
+        equationTextAreaConstraint.setContentType("text/html;charset=UTF-8");
+        equationTextAreaConstraint.setFont(font);
+        equationTextAreaConstraint.setEditable(false);
+        JScrollPane equationScroll1 = new JScrollPane(equationTextAreaLeft);
+        equationScroll1.setSize(400, 300);
+        equationScroll1.setBounds(5, 405, 400, 300);
+        JScrollPane equationScroll2 = new JScrollPane(equationTextAreaRight);
+        equationScroll2.setSize(400, 300);
+        equationScroll2.setBounds(405, 405, 400, 300);
+        JScrollPane equationScroll3 = new JScrollPane(equationTextAreaConstraint);
+        equationScroll3.setSize(400, 300);
+        equationScroll3.setBounds(805, 405, 400, 300);
+        Synchronizer sync2 = new Synchronizer(ruleScroll1, ruleScroll2, ruleScroll3);
+        equationScroll1.getVerticalScrollBar().addAdjustmentListener(sync);
+        equationScroll1.getHorizontalScrollBar().addAdjustmentListener(sync);
+        equationScroll2.getVerticalScrollBar().addAdjustmentListener(sync);
+        equationScroll2.getHorizontalScrollBar().addAdjustmentListener(sync);
+        equationScroll3.getVerticalScrollBar().addAdjustmentListener(sync);
+        equationScroll3.getHorizontalScrollBar().addAdjustmentListener(sync);
 
         frame.add(ruleLabel);
         frame.add(equationLabel);
-        frame.add(ruleScroll);
-        frame.add(equationScroll);
+        frame.add(ruleScroll1);
+        frame.add(ruleScroll2);
+        frame.add(ruleScroll3);
+        frame.add(equationScroll1);
+        frame.add(equationScroll2);
+        frame.add(equationScroll3);
     }
 
     private void initCheckBoxes() {
@@ -111,12 +161,12 @@ public class InputView extends JFrame implements UserInputView {
         JLabel completenessLabel = new JLabel("Completeness: ");
         frame.add(_bottom);
         frame.add(_completeness);
-        _bottom.setBounds(1300, 5, 20, 20);
-        _completeness.setBounds(1300, 35, 20, 20);
+        _bottom.setBounds(1350, 5, 20, 20);
+        _completeness.setBounds(1350, 35, 20, 20);
         frame.add(bottomLabel);
         frame.add(completenessLabel);
-        bottomLabel.setBounds(1200, 5, 100, 20);
-        completenessLabel.setBounds(1200, 35, 100, 20);
+        bottomLabel.setBounds(1250, 5, 100, 20);
+        completenessLabel.setBounds(1250, 35, 100, 20);
     }
 
     private void initEventListeners() {
@@ -161,7 +211,7 @@ public class InputView extends JFrame implements UserInputView {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_UP) {
-                    getPresenter().getModel().addUserInput(userInput.getText());
+                    //getPresenter().getModel().addUserInput(userInput.getText());
                     userInput.setText(getPresenter().getModel().getPreviousInput());
                 }
             }
@@ -209,12 +259,42 @@ public class InputView extends JFrame implements UserInputView {
 
     @Override
     public void updateRulesField(String rules) {
-        ruleTextArea.setText(rules);
+        //ruleTextArea.setText(rules);
+    }
+
+    @Override
+    public void updateRulesLeftField(String left) {
+        ruleTextAreaLeft.setText(left);
+    }
+
+    @Override
+    public void updateRulesRightField(String right) {
+        ruleTextAreaRight.setText(right);
+    }
+
+    @Override
+    public void updateRulesConstraintField(String constraint) {
+        ruleTextAreaConstraint.setText(constraint);
     }
 
     @Override
     public void updateEquationsField(String equations) {
-        equationTextArea.setText(equations);
+        //equationTextArea.setText(equations);
+    }
+
+    @Override
+    public void updateEquationsLeftField(String left) {
+        equationTextAreaLeft.setText(left);
+    }
+
+    @Override
+    public void updateEquationsRightField(String right) {
+        equationTextAreaRight.setText(right);
+    }
+
+    @Override
+    public void updateEquationsConstraintField(String constraint) {
+        equationTextAreaConstraint.setText(constraint);
     }
 
     @Override
@@ -225,5 +305,56 @@ public class InputView extends JFrame implements UserInputView {
     @Override
     public void updateBottomField(boolean bottom) {
         _bottom.setSelected(bottom);
+    }
+}
+
+class Synchronizer implements AdjustmentListener {
+    JScrollBar v1, h1, v2, h2, v3, h3;
+
+    public Synchronizer(JScrollPane sp1, JScrollPane sp2, JScrollPane sp3) {
+        v1 = sp1.getVerticalScrollBar();
+        h1 = sp1.getHorizontalScrollBar();
+        v2 = sp2.getVerticalScrollBar();
+        h2 = sp2.getHorizontalScrollBar();
+        v3 = sp3.getVerticalScrollBar();
+        h3 = sp3.getHorizontalScrollBar();
+    }
+
+    @Override
+    public void adjustmentValueChanged(AdjustmentEvent e) {
+        JScrollBar bar = (JScrollBar) e.getSource();
+        int val = bar.getValue();
+        JScrollBar target1 = null;
+        JScrollBar target2 = null;
+        if (bar == v1) {
+            target1 = v2;
+            target2 = v3;
+        }
+        if (bar == h1) {
+            target1 = h2;
+            target2 = h3;
+        }
+        if (bar == v2) {
+            target1 = v1;
+            target2 = v3;
+        }
+        if (bar == h2) {
+            target1 = h1;
+            target2 = h3;
+        }
+        if (bar == v3) {
+            target1 = v1;
+            target2 = v2;
+        }
+        if (bar == h3) {
+            target1 = h1;
+            target2 = h2;
+        }
+        try {
+            target1.setValue(val);
+            target2.setValue(val);
+        } catch (NullPointerException ex) {
+
+        }
     }
 }

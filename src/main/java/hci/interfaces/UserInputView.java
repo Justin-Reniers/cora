@@ -12,7 +12,19 @@ public interface UserInputView {
 
     void updateRulesField(String rules);
 
+    void updateRulesLeftField(String left);
+
+    void updateRulesRightField(String right);
+
+    void updateRulesConstraintField(String constraint);
+
     void updateEquationsField(String equations);
+
+    void updateEquationsLeftField(String left);
+
+    void updateEquationsRightField(String right);
+
+    void updateEquationsConstraintField(String constraint);
 
     void updateCompletenessField(boolean completeness);
 
