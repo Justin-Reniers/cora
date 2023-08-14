@@ -16,9 +16,6 @@
 package cora.rewriting;
 
 import cora.exceptions.IllegalRuleError;
-import cora.exceptions.NullInitialisationError;
-import cora.exceptions.TypingError;
-import cora.interfaces.types.Type;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Substitution;
 import cora.interfaces.terms.Environment;
@@ -34,8 +31,10 @@ public class FirstOrderRule extends RuleInherit implements Rule {
    * Creates a rule with the given left- and right-hand side.
    * If the types don't match, a TypingError is thrown.
    */
+  private Term _constraint;
+
   public FirstOrderRule(Term left, Term right) {
-    super(left, right);
+    super(left, right, false);
     // both sides need to be first-order
     if (!left.isFirstOrder() || !right.isFirstOrder()) {
       throw new IllegalRuleError("FirstOrderRule", "terms in rule [" + left.toString() + " → " +
@@ -58,14 +57,97 @@ public class FirstOrderRule extends RuleInherit implements Rule {
     }
   }
 
+  @Override
+  public Term queryConstraint() {
+    if (_constraint != null) return _constraint;
+    return null;
+  }
+
   public boolean applicable(Term t) {
+    //TODO if constraint, throw error
+    //if (_constraint != null) return false;
     return _left.match(t) != null;
+  }
+
+  public boolean applicable(Term t, Term c, Substitution y) {
+    if (_constraint.queryRoot().queryName().equals("TRUE")) return true;
+    if (_constraint.queryRoot().queryName().equals("FALSE")) return false;
+    return _left.match(t) != null;
+    //y = rewriteConstraint(_proof, _pos, _ruleIndex);
+    //return y != null;
   }
 
   public Term apply(Term t) {
     Substitution subst = _left.match(t);
     if (subst == null) return null;
     return _right.substitute(subst);
+  }
+
+  public FirstOrderRule(Term left, Term right, Term _constraint) {
+    super(left, right, false);
+    this._constraint = _constraint;
+    if (!left.isFirstOrder() || !right.isFirstOrder()) {
+      throw new IllegalRuleError("FirstOrderRule", "terms in rule [" + left.toString() + " → " +
+              right.toString() + "] {" + _constraint.toString()+ "} are not first-order." );
+    }
+    Environment lvars = left.vars();
+    Environment rvars = right.vars();
+    Environment cvars = _constraint.vars();
+    for (Variable x : rvars) {
+      if (!lvars.contains(x) && !cvars.contains(x)) {
+        throw new IllegalRuleError("FirstOrderRule", "");
+      }
+    }
+    if (!left.isFunctionalTerm()) {
+      throw new IllegalRuleError("FirstOrderRule", "");
+    }
+  }
+
+  public FirstOrderRule(Term left, Term right, Term constraint, boolean completenessSet) {
+    super(left, right, completenessSet);
+    this._constraint = constraint;
+    if (!left.isFirstOrder() || !right.isFirstOrder()) {
+      throw new IllegalRuleError("FirstOrderRule", "terms in rule [" + left.toString() + " → " +
+              right.toString() + "] {" + constraint.toString() + "} are not first-order." );
+    }
+    Environment lvars = left.vars();
+    Environment rvars = right.vars();
+    Environment cvars = constraint.vars();
+    for (Variable x : rvars) {
+      if (!lvars.contains(x) && !cvars.contains(x)) {
+        throw new IllegalRuleError("FirstOrderRule", "");
+      }
+    }
+    if (!left.isFunctionalTerm()) {
+      throw new IllegalRuleError("FirstOrderRule", "");
+    }
+  }
+
+  public String toString() {
+    if (_constraint != null) {
+      return _left.toString() + " → " + _right.toString() + " [" + _constraint.toString() + "]";
+    }
+    return _left.toString() + " → " + _right.toString();
+  }
+
+    @Override
+    public String toHTMLString() {
+        if (_constraint != null) {
+          return _left.toHTMLString() + " → " + _right.toHTMLString() + " [" + _constraint.toHTMLString() + "]";
+        }
+        return _left.toHTMLString() + " → " + _right.toHTMLString();
+    }
+
+    @Override
+    public boolean inCompletenessSet() {
+        return _completenessSet;
+    }
+
+    public boolean equals(Object o) {
+    if (o == this) return true;
+    if (!(o instanceof FirstOrderRule)) return false;
+    FirstOrderRule r = (FirstOrderRule) o;
+    return this._left.equals(r._left) && this._right.equals(r._right) && this._constraint.equals(r._constraint);
   }
 }
 

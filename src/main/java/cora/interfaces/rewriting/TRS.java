@@ -18,6 +18,7 @@ package cora.interfaces.rewriting;
 import cora.interfaces.terms.FunctionSymbol;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Position;
+import cora.interfaces.terms.Variable;
 
 import java.util.List;
 
@@ -55,5 +56,9 @@ public interface TRS {
    * if no such positions exist returns the empty list.
    */
   List<Term> breadthFirstReduce(Term s);
+
+  void addRule(Rule r);
+
+  List<FunctionSymbol> querySymbols();
 }
 

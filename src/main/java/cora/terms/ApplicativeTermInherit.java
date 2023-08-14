@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.ArrayList;
 import cora.exceptions.ArityError;
 import cora.exceptions.IndexingError;
-import cora.exceptions.InappropriatePatternDataError;
 import cora.exceptions.NullInitialisationError;
 import cora.exceptions.TypingError;
 import cora.interfaces.types.Type;
@@ -194,6 +193,24 @@ abstract class ApplicativeTermInherit extends TermInherit implements Term {
         throw new Error("Substituting " + args.get(i).toString() + " results in null!");
       }
       args.set(i, t);
+    }
+    return args;
+  }
+
+  protected List<Term> reverseSubstitute(Substitution gamma) {
+    List<Term> args = new ArrayList<>(_args);
+    for (Variable v : gamma.domain()) {
+      for (int i = 0; i < args.size(); i++) {
+        if (gamma.getReplacement(v) == null) {
+          throw new Error("Unsubstituting " + args.get(i).toString() + " results in null!");
+        }
+        Term r = gamma.getReplacement(v);
+        Term n = args.get(i);
+        Substitution s = r.match(n);
+        if (r.equals(n.substitute(s))) {
+          args.set(i, v);
+        }
+      }
     }
     return args;
   }

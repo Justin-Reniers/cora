@@ -31,6 +31,10 @@ public class Orthogonality extends StrategyInherit implements Strategy{
         return true;
     }
 
+    /**
+     * Applies the Weak Orthogonality method. Checks if the TRS is left-linear and
+     * has only trivial Critical Pairs (which are already discarded)
+     */
     @Override
     public Result apply() {
         boolean left_linear = true;

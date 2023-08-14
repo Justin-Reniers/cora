@@ -17,13 +17,17 @@ package cora.interfaces.rewriting;
 
 import cora.interfaces.terms.FunctionSymbol;
 
+import java.util.List;
+
 /**
  * An Alphabet is a (possibly infinite) set of function symbols, which does not have any duplicate
  * name uses.
  * It is used for recognising (and typing) function symbols in various kinds of input.
  */
 public interface Alphabet {
-  /**
+    int precedence(String name);
+
+    /**
    * Returns the FunctionSymbol with the given name (there should be at most one) if it exists,
    * otherwise returns null.
    */
@@ -34,5 +38,9 @@ public interface Alphabet {
    * immutable).
    */
   Alphabet copy();
+
+  List<FunctionSymbol> queryAlphabetSymbols();
+
+  boolean infix(String name);
 }
 

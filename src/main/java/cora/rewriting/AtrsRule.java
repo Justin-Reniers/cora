@@ -33,7 +33,7 @@ public class AtrsRule extends RuleInherit implements Rule {
    * If the types don't match, a TypingError is thrown.
    */
   public AtrsRule(Term left, Term right) {
-    super(left, right);
+    super(left, right, false);
   }
 
   /**
@@ -77,8 +77,24 @@ public class AtrsRule extends RuleInherit implements Rule {
     return righthead.apply(args);
   }
 
+  /** Atrs Rule does not have constraints */
+  @Override
+  public Term queryConstraint() {
+    return null;
+  }
+
   public String toString() {
     return _left.toString() + " → " + _right.toString();
   }
+
+    @Override
+    public String toHTMLString() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean inCompletenessSet() {
+        throw new UnsupportedOperationException();
+    }
 }
 

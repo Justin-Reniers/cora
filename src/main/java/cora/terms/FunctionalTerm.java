@@ -73,6 +73,19 @@ public class FunctionalTerm extends ApplicativeTermInherit implements Term {
     _outputType = outputType;
   }
 
+  private FunctionalTerm(FunctionalTerm f) {
+    _f = f.queryRoot();
+    for (int i = 0; i < f.numberImmediateSubterms(); i++) {
+      if (f.queryImmediateSubterm(i).isVariable()) _args.add(new Var((Var) f.queryImmediateSubterm(i)));
+      else if (f.queryImmediateSubterm(i).isFunctionalTerm()) {
+        _args.add(new FunctionalTerm((FunctionalTerm) f.queryImmediateSubterm(i)));
+      } else if (f.queryImmediateSubterm(i).isConstant()) {
+        _args.add(new Constant((Constant) f.queryImmediateSubterm(i)));
+      }
+    }
+    _outputType = f.queryType();
+  }
+
   /** This method is called by inherited functions, and calls the private constructor. */
   protected FunctionalTerm reconstruct(List<Term> args) {
     return new FunctionalTerm(args, _f, _outputType);
@@ -157,6 +170,11 @@ public class FunctionalTerm extends ApplicativeTermInherit implements Term {
     return reconstruct(newargs);
   }
 
+  public Term unsubstitute(Substitution gamma) {
+    List<Term> newargs = reverseSubstitute(gamma);
+    return reconstruct(newargs);
+  }
+
   /** 
    * This method checks that other has the same root symbol as we do, and if so, that all the
    * parameters match (updating the substitution as we go along).
@@ -177,11 +195,28 @@ public class FunctionalTerm extends ApplicativeTermInherit implements Term {
 
   /** This method gives a string representation of the term. */
   public String toString() {
-    String ret = _f.toString();
-    if (_args.size() > 0) {
-      ret += "(" + _args.get(0).toString();
-      for (int i = 1; i < _args.size(); i++) ret += ", " + _args.get(i).toString();
-      ret += ")";
+    String ret = "";
+    if (_args.size() == 0) return _f.toString();
+    else if (_args.size() == 1 && _f.isInfix()) {
+      ret += _f.toString() + _args.get(0);
+    }
+    else if (_args.size() == 2 && _f.isInfix()) {
+      if (_f.isInfix()) {
+        Term l = _args.get(0);
+        Term r = _args.get(1);
+        if (l.isFunctionalTerm() && _f.precedence() < l.queryRoot().precedence()) {
+          ret += "(" + l + ")";
+        } else ret += l;
+        ret += _f.toString();
+        if (r.isFunctionalTerm() && _f.precedence() < r.queryRoot().precedence()) {
+          ret += "(" + r + ")";
+        } else ret += r;
+      }
+    }
+    else {
+        ret += _f.toString() + "(" + _args.get(0).toString();
+        for (int i = 1; i < _args.size(); i++) ret += ", " + _args.get(i).toString();
+        ret += ")";
     }
     return ret;
   }
@@ -198,6 +233,9 @@ public class FunctionalTerm extends ApplicativeTermInherit implements Term {
     return true;
   }
 
+  /**
+   *
+   */
   public Substitution unify(Term other) {
     if (other.isVariable()) {
       if (this.vars().contains(other.queryVariable())) return null;
@@ -208,8 +246,8 @@ public class FunctionalTerm extends ApplicativeTermInherit implements Term {
       for (int i = 0; i < _args.size(); i++) {
         Substitution sigma_i = _args.get(i).substitute(sigma).unify(other.queryImmediateSubterm(i+1));
         if (sigma_i == null) return null;
-        for (var x : sigma_i.domain()) {
-          var sigma_i_x = sigma_i.get(x).substitute(sigma);
+        for (Variable x : sigma_i.domain()) {
+          Term sigma_i_x = sigma_i.get(x).substitute(sigma);
           if (!sigma.extend(x, sigma_i_x) && sigma.get(x) != null && !sigma.get(x).equals(sigma_i_x)) return null;
           other = other.substitute(sigma);
           for (Variable v : new HashSet<>(sigma.domain())) {
@@ -226,9 +264,38 @@ public class FunctionalTerm extends ApplicativeTermInherit implements Term {
     return null;
   }
 
+    @Override
+    public String toHTMLString() {
+      String ret = "";
+      if (_args.size() == 0) return _f.toHTMLString();
+      else if (_args.size() == 1 && _f.isInfix()) {
+        ret += _f.toHTMLString() + _args.get(0).toHTMLString();
+      }
+      else if (_args.size() == 2 && _f.isInfix()) {
+        if (_f.isInfix()) {
+          Term l = _args.get(0);
+          Term r = _args.get(1);
+          if (l.isFunctionalTerm() && _f.precedence() < l.queryRoot().precedence()) {
+            ret += "(" + l.toHTMLString() + ")";
+          } else ret += l.toHTMLString();
+          ret += _f.toHTMLString();
+          if (r.isFunctionalTerm() && _f.precedence() < r.queryRoot().precedence()) {
+            ret += "(" + r.toHTMLString() + ")";
+          } else ret += r.toHTMLString();
+        }
+      }
+      else {
+        ret += _f.toHTMLString() + "(" + _args.get(0).toHTMLString();
+        for (int i = 1; i < _args.size(); i++) ret += ", " + _args.get(i).toHTMLString();
+        ret += ")";
+      }
+      return ret;
+    }
+
+    /** Hashcode for FunctionalTerm based on its root symbol and its arguments */
   @Override
   public int hashCode() {
-    return Objects.hash(_f);
+    return Objects.hash(_f, _args);
   }
 }
 

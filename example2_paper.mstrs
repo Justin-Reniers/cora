@@ -1,0 +1,28 @@
+(SIG
+  (0     -> Int)
+  (s     List (Int) -> Int)
+  (p     List (Int) -> Int)
+  (plus  List (Int Int) -> Int)
+  (sum   List (Int) -> Int)
+  (geq   List (Int Int) -> Bool)
+  (geq2  (Int Int Int Int) -> Bool)
+  (sum2  (Bool Int) -> Int)
+)
+(RULES
+  sum(x) -> sum2(geq(0, x), x)
+  sum2(true, x) -> 0
+  sum2(false, s(x)) -> plus(s(x), sum(x))
+  plus(s(x), y) -> s(plus(x, y))
+  plus(p(x), y) -> p(plus(x, y))
+  plus(0, y) -> y
+  s(p(x)) -> x
+  p(s(x)) -> x
+  geq(x, y) -> geq2(x, y, 0, 0)
+  geq2(s(x), y, z, u) -> geq2(x, y, s(z), u)
+  geq2(p(x), y, z, u) -> geq2(x, y, p(z), u)
+  geq2(0, s(x), y, z) -> geq2(0, x, y, s(z))
+  geq2(0, p(x), y, z) -> geq2(0, x, s(y), z)
+  geq2(0, 0, s(x), s(y)) -> geq2(0, 0, x, y)
+  geq2(0, 0, x, 0) -> true
+  geq2(0, 0, 0, s(x)) -> false
+)

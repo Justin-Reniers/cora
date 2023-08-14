@@ -15,7 +15,9 @@
 
 package cora.rewriting;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.TreeMap;
 import cora.exceptions.NullInitialisationError;
 import cora.exceptions.TypingError;
@@ -43,6 +45,23 @@ public class UserDefinedAlphabet implements Alphabet {
   public UserDefinedAlphabet copy() {
     return this;  // the current implementation is immutable, so we can safely do this;
                   // change to do a deep copy if this alphabet is ever made mutable!
+  }
+
+  @Override
+  public List<FunctionSymbol> queryAlphabetSymbols() {
+    List<FunctionSymbol> fs = new ArrayList<>();
+      for (FunctionSymbol f : _symbols.values()) fs.add(f);
+    return fs;
+  }
+
+  @Override
+  public boolean infix(String name) {
+    return _symbols.get(name).isInfix();
+  }
+
+  @Override
+  public int precedence(String name) {
+    return _symbols.get(name).precedence();
   }
 
   /**

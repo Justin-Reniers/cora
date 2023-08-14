@@ -51,6 +51,14 @@ public class TermRewritingSystem implements TRS {
     _rules = new ArrayList<Rule>(rules);
   }
 
+  public TermRewritingSystem(TRS trs) {
+    _alphabet = new UserDefinedAlphabet(trs.querySymbols());
+    _rules = new ArrayList<>();
+    for (int i = 0; i < trs.queryRuleCount(); i++) {
+      _rules.add(trs.queryRule(i));
+    }
+  }
+
   /** Gives a human-readable representation of the term rewriting system. */
   public String toString() {
     String ret = _alphabet.toString() + "\n";
@@ -76,6 +84,10 @@ public class TermRewritingSystem implements TRS {
   /** Returns the corresponding symbol in the underlying alphabet (if any). */
   public FunctionSymbol lookupSymbol(String name) {
     return _alphabet.lookup(name);
+  }
+
+  public boolean isInfix(String name) {
+    return _alphabet.infix(name);
   }
 
   /**
@@ -132,5 +144,15 @@ public class TermRewritingSystem implements TRS {
     }
     return reductions;
   }
+
+    @Override
+    public void addRule(Rule r) {
+        _rules.add(r);
+    }
+
+    @Override
+    public List<FunctionSymbol> querySymbols() {
+        return _alphabet.queryAlphabetSymbols();
+    }
 }
 

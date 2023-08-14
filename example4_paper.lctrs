@@ -1,0 +1,12 @@
+(SIG
+  (true     -> Bool)
+  (false    -> Bool)
+  (n        -> Int)
+  (+        Int x Int -> Int)
+  (>=       Int x Int -> Bool)
+  (=        Int x Int -> Bool
+  (^        List (Bool x Bool) -> Bool)
+  (~        List (Bool) -> Bool)
+
+  (sum      List (Int) -> Int)
+)

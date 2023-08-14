@@ -136,6 +136,9 @@ public interface Term {
    */
   Term substitute(Substitution gamma);
 
+
+  Term unsubstitute(Substitution cSub);
+
   /**
    * This method either extends gamma so that <this term> gamma = other and returns null, or
    * returns a string describing why other is not an instance of gamma.
@@ -162,6 +165,8 @@ public interface Term {
    * This method checks whether <this term> and other term can be unified; if they can, returns the
    * substitution for which they can; if it does not, returns null instead.
    */
-  public Substitution unify(Term other);
+  Substitution unify(Term other);
+
+  String toHTMLString();
 }
 

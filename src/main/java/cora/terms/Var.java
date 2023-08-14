@@ -22,6 +22,7 @@ import cora.exceptions.NullCallError;
 import cora.exceptions.NullInitialisationError;
 import cora.interfaces.types.Type;
 import cora.interfaces.terms.*;
+import cora.loggers.Logger;
 import cora.types.Sort;
 
 /**
@@ -35,7 +36,7 @@ import cora.types.Sort;
 public class Var extends LeafTermInherit implements Variable {
   private static int COUNTER = 0;
   private String _name;
-  private int _index;
+  public int _index;
 
   /** Create a variable with the given name and type. */
   public Var(String name, Type type) {
@@ -68,6 +69,13 @@ public class Var extends LeafTermInherit implements Variable {
     super(Sort.unitSort);
     _name = "x[" + COUNTER + "]";
     _index = COUNTER;
+    COUNTER++;
+  }
+
+  public Var(Var v) {
+    super(v.queryType());
+    _name = v.queryName();
+    _index = v.queryVariableIndex();
     COUNTER++;
   }
 
@@ -124,6 +132,11 @@ public class Var extends LeafTermInherit implements Variable {
     return gamma.getReplacement(this);
   }
 
+  public Term unsubstitute(Substitution gamma) {
+    if (gamma == null) throw new NullCallError("Var", "substitute", "substitution gamma");
+    return this;
+  }
+
   /** 
    * This method updates gamma by adding the extension from x to the given other term, if x is not
    * yet mapped to anything.
@@ -161,19 +174,26 @@ public class Var extends LeafTermInherit implements Variable {
     return equals(other.queryVariable());
   }
 
+  /** Applies the unification algorithm between Variable and another term */
   public Substitution unify(Term other) {
-    //if (other.isVariable() && this.equals(other)) return new Subst();
+    if (other.isVariable()) return new Subst(this, other);
     if (other.vars().contains(this)) return null;
     return new Subst(this, other);
   }
 
-  /** Implements a total ordering on variables using the index. */
+    @Override
+    public String toHTMLString() {
+        return "<font color=red>" + _name + "</font>";
+    }
+
+    /** Implements a total ordering on variables using the index. */
   public int compareTo(Variable other) {
     if (_index < other.queryVariableIndex()) return -1;
     if (_index > other.queryVariableIndex()) return 1;
     return 0;
   }
 
+  /** Creates a Hashcode for Variable based on its name and index */
   @Override
   public int hashCode() {
     return Objects.hash(_name, _index);

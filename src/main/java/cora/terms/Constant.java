@@ -29,6 +29,8 @@ import cora.interfaces.terms.*;
  */
 public class Constant extends LeafTermInherit implements FunctionSymbol {
   private String _name;
+  private boolean _infix;
+  private int _precedence;
 
   /**
    * A constant is always identified by the combination of its name and its type.
@@ -39,6 +41,29 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
     _name = name;
     if (name == null) throw new NullInitialisationError("Constant", "name");
     if (name.equals("")) throw new Error("Function Symbol created with empty name.");
+    _infix = false;
+  }
+
+  public Constant(Constant c) {
+    super(c.queryType());
+    _name = c.queryName();
+  }
+
+  public Constant(String name, Type type, boolean infix) {
+    super(type);
+    _name = name;
+    if (name == null) throw new NullInitialisationError("Constant", "name");
+    if (name.equals("")) throw new Error("Function Symbol created with empty name.");
+    _infix = infix;
+  }
+
+  public Constant(String name, Type type, boolean infix, int precedence) {
+    super(type);
+    _name = name;
+    if (name == null) throw new NullInitialisationError("Constant", "name");
+    if (name.equals("")) throw new Error("Function Symbol created with empty name.");
+    _infix = infix;
+    _precedence = precedence;
   }
 
   /** Returns the name of the current user-defined symbol. */
@@ -68,6 +93,16 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
     if (symbol == null) return false;
     if (!_name.equals(symbol.queryName())) return false;
     return queryType().equals(symbol.queryType());
+  }
+
+    @Override
+  public boolean isInfix() {
+    return _infix;
+  }
+
+  @Override
+  public int precedence() {
+    return 0;
   }
 
   /** @return false */
@@ -106,6 +141,10 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
     return this;
   }
 
+  public Term unsubstitute(Substitution gamma) {
+    return this;
+  }
+
   /**
    * This method checks that other is the same constant. If so, null is returned, otherwise a
    * description of the instantiation failure.
@@ -116,17 +155,20 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
     return "constant " + _name + " is not instantiated by " + other.toString() + ".";
   }
 
+  /** This method verifies equality to another Term. */
   public boolean equals(Term term) {
     if (term == null) return false;
     if (!term.isConstant()) return false;
     return equals(term.queryRoot());
   }
 
+  /** Hashcode for Varterms based on the Variable */
   @Override
   public int hashCode() {
     return Objects.hash(_name);
   }
 
+  /** Applies the unification algorithm between Variable and another term */
   public Substitution unify(Term other) {
     if (other.isConstant() && !this.equals(other)) return null; // Conflict
     if (this.equals(other)) return new Subst(); // Delete
@@ -135,5 +177,11 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
     }
     return null;
   }
+
+    @Override
+    public String toHTMLString() {
+        if (this.queryArity() > 0) return "<font color=green>" + _name + "</font>";
+        return "<font color=blue>" + _name + "</font>";
+    }
 }
 

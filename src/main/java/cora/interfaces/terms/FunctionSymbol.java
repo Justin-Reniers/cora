@@ -42,5 +42,9 @@ public interface FunctionSymbol extends Term {
    * This is the case if they have the same name, typing and other properties.
    */
   public boolean equals(FunctionSymbol other);
+
+  public boolean isInfix();
+
+  int precedence();
 }
 

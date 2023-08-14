@@ -157,6 +157,10 @@ public class VarTerm extends ApplicativeTermInherit implements Term {
     else return gamma.get(_x).apply(newargs);
   }
 
+  public Term unsubstitute(Substitution gamma) {
+    throw new UnsupportedOperationException("Not yet implemented");
+  }
+
   /**
    * This does matching in an APPLICATIVE way: x(sk,...,sn) is instantiated by head(t1,...,tn) if
    * ti instantiates si for k ≤ i ≤ n (with x mapped to f(t1,...,t{k-1}).
@@ -207,12 +211,22 @@ public class VarTerm extends ApplicativeTermInherit implements Term {
   }
 
   @Override
+  /** Hashcode for Varterms based on the Variable */
   public int hashCode() {
     return Objects.hash(_x);
   }
 
-  public Subst unify(Term other) {
-    return null;
+  /**
+   * Unification of a Varterm and another term.
+   * Not yet implemented.
+   */
+    public Subst unify(Term other) {
+    throw new UnsupportedOperationException();
   }
+
+    @Override
+    public String toHTMLString() {
+        throw new UnsupportedOperationException();
+    }
 }
 
