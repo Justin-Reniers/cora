@@ -46,7 +46,7 @@ a constraint is of the boolean type.
 The included basic operations (as functions) included in the theory are all used
 as infix, and are the following functions:
 
-```math
+```
     Unary math operators        :   -
     Unary boolean operators     :   ~
     Binary integer operators    :   -, +, *, /, %, 
@@ -58,8 +58,8 @@ When using the tool, after loading a `.lctrs` file with an LCTRS
 adhering to the aforementioned format, you can enter an initial
 proof state by pressing the `proof` button with the following format:
 
-```math
-    term term [term]
+```
+    term term term
 ```
 
 The last term is of course the initial constraint of the proof, and
@@ -75,11 +75,11 @@ input format, as well as some additional rules to help the user.
 ### Simplification
 The simplification rule follows a simple format:
 
-```math
+```
     simplify q i
     with q a position, 0 denoting the empty position,
          0.1 denoting the first subterm of a term etc.
-         i \ge 1, the index of the rewriting rule to be applied
+         i >= 1, the index of the rewriting rule to be applied
 ```
 
 The simplification rule can also be applied to rewrite calculation
@@ -90,7 +90,7 @@ constraint.
 ### Expansion
 The expansion rule follows a similar format to simplification:
 
-```math
+```
     expand q
     with q a position, 0 denoting the empty position,
          0.1 denoting the first subterm of a term etc.
