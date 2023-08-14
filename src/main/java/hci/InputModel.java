@@ -3,7 +3,6 @@ package hci;
 import cora.exceptions.*;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.Proof;
-import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
 import cora.parsers.LcTrsInputReader;
@@ -120,9 +119,9 @@ public class InputModel implements UserInputModel {
         vars.addAll(r.vars().getVars());
         Term c = LcTrsInputReader.readTermFromStringWithEnv(strs[2], _lcTrs, vars);
         vars.addAll(c.vars().getVars());
-        _eqp.setLeft(l);
-        _eqp.setRight(r);
-        _eqp.setConstraint(c);
+        Equation eq = new Equation(l, r, c);
+        _eqp.addEquation(eq);
+        _eqp.setCurrentEquation();
         _eqp.recordHistory();
     }
 
@@ -265,6 +264,36 @@ public class InputModel implements UserInputModel {
     @Override
     public boolean getBottom() {
         return _eqp.getBottom();
+    }
+
+    @Override
+    public void saveProofToFile(File file) {
+        try {
+            _eqp.saveStateToFile(file.getPath());
+        } catch (IOException e) {
+            getPresenter().displayWarning(e.getMessage());
+        }
+    }
+
+    @Override
+    public void loadProofFromFile(File file) {
+        StringBuilder content = new StringBuilder();
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(file));
+            String line = in.readLine();
+            while (line != null) {
+                content.append(line).append("\n");
+                line = in.readLine();
+            }
+        } catch (IOException e) {
+            getPresenter().displayWarning(e.getMessage());
+        }
+        if (!content.toString().equals("")) {
+            String[] lines = content.toString().split("\n");
+            for (int i = 0; i < lines.length; i++) {
+                if (i % 2 == 0) applyUserInput(lines[i]);
+            }
+        }
     }
 
     private boolean applyUserInput(String input) {

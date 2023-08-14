@@ -15,7 +15,7 @@ import cora.loggers.Logger;
 import cora.parsers.LcTrsInputReader;
 import cora.terms.Var;
 import cora.usercommands.UndoCommand;
-import org.apache.commons.lang3.ObjectUtils;
+//import org.apache.commons.lang3.ObjectUtils;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -46,14 +46,16 @@ public class EquivalenceProof implements Proof {
         _lcTrs = lcTrs;
         //TODO add flag reading for confluence of lctrs yes or no.
         _completeness = true;
-        Equation equation = new Equation(left, right, constraint);
         _equations = new ArrayList<Equation>();
-        _equations.add(equation);
-        _completenessEquations = new ArrayList<Equation>();
-        _cur_eq = equation;
         _history = new ArrayList<ProofHistory>();
-        _history.add(new ProofHistory(_equations, null, _completeness, _completenessEquations, _bottom,
-                null));
+        if (!(left == null || right == null || constraint == null)) {
+            Equation equation = new Equation(left, right, constraint);
+            _cur_eq = equation;
+            _equations.add(equation);
+            _history.add(new ProofHistory(_equations, null, _completeness, _completenessEquations, _bottom,
+                    null));
+        }
+        _completenessEquations = new ArrayList<Equation>();
         _varcounter = 0;
         _bottom = false;
         _env = new TreeSet<Variable>();
@@ -67,13 +69,13 @@ public class EquivalenceProof implements Proof {
     public EquivalenceProof() {
         _lcTrs = null;
         _completeness = false;
-        _equations = null;
-        _completenessEquations = null;
+        _equations = new ArrayList<Equation>();
+        _completenessEquations = new ArrayList<Equation>();
         _cur_eq = null;
-        _history = null;
+        _history = new ArrayList<ProofHistory>();
         _varcounter = 0;
         _bottom = true;
-        _env = null;
+        _env = new TreeSet<Variable>();
     }
 
     private void updateVariables() {

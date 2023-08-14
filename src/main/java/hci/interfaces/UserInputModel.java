@@ -4,6 +4,7 @@ import cora.exceptions.ParserException;
 import hci.InputPresenter;
 
 import java.io.File;
+import java.io.IOException;
 
 public interface UserInputModel {
 
@@ -41,4 +42,8 @@ public interface UserInputModel {
     boolean getCompleteness();
 
     boolean getBottom();
+
+    void saveProofToFile(File file);
+
+    void loadProofFromFile(File file);
 }

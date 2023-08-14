@@ -19,5 +19,9 @@ public interface UserInputPresenter {
 
     void enterProof(String proof) throws ParserException;
 
-    abstract void displayWarning(String ex);
+    void displayWarning(String ex);
+
+    void saveProof(File file);
+
+    void loadProof(File file);
 }

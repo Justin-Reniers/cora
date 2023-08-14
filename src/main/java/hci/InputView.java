@@ -25,7 +25,7 @@ public class InputView extends JFrame implements UserInputView {
     private JMenu fileMenu, lcTrsMenu;
     private JTextPane ruleTextAreaLeft, ruleTextAreaRight, ruleTextAreaConstraint;
     private JTextPane equationTextAreaLeft, equationTextAreaRight, equationTextAreaConstraint;
-    private JMenuItem loadFile, enterProof;
+    private JMenuItem loadFile, enterProof, saveProof, loadProof;
     private JCheckBox _bottom, _completeness;
 
     public InputView(String title) {
@@ -59,6 +59,10 @@ public class InputView extends JFrame implements UserInputView {
         //TODO add more File menu options (if necessary)
 
         lcTrsMenu = new JMenu("LcTrs");
+        saveProof = new JMenuItem("Save proof");
+        loadProof = new JMenuItem("Load proof");
+        lcTrsMenu.add(saveProof);
+        lcTrsMenu.add(loadProof);
         //TODO add more LcTrs menu options (like state saving)
 
         menuBar = new JMenuBar();
@@ -173,6 +177,8 @@ public class InputView extends JFrame implements UserInputView {
         userInputEnterActionPerformed();
         loadFileActionPerformed();
         enterEquivalenceProofActionPerformed();
+        saveProofActionPerformed();
+        loadProofActionPerformed();
         upArrowKeyActionPerformed();
         downArrowKeyActionPerformed();
     }
@@ -201,6 +207,28 @@ public class InputView extends JFrame implements UserInputView {
             getPresenter().enterProof(proof);
             updateBottomField(getPresenter().getModel().getBottom());
             updateCompletenessField(getPresenter().getModel().getCompleteness());
+        });
+    }
+
+    private void saveProofActionPerformed() {
+        saveProof.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            int option = fileChooser.showOpenDialog(frame);
+            if (option == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                getPresenter().saveProof(file);
+            }
+        });
+    }
+
+    private void loadProofActionPerformed() {
+        loadProof.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            int option = fileChooser.showOpenDialog(frame);
+            if (option == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                getPresenter().loadProof(file);
+            }
         });
     }
 

@@ -39,7 +39,7 @@ public class ProofHistory implements History {
      * This function gives a String representation of a proof history record.
      */
     public String toString() {
-        return _eqs.toString() + "\tCompleteness: " + _completeness +
+        return _eqs.toString() + //"\tCompleteness: " + _completeness +
                 (_uCommand != null ? "\n" + _uCommand.toString() : "");
     }
 
