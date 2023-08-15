@@ -47,6 +47,7 @@ public class EquivalenceProof implements Proof {
         //TODO add flag reading for confluence of lctrs yes or no.
         _completeness = true;
         _equations = new ArrayList<Equation>();
+        _completenessEquations = new ArrayList<Equation>();
         _history = new ArrayList<ProofHistory>();
         if (!(left == null || right == null || constraint == null)) {
             Equation equation = new Equation(left, right, constraint);
@@ -55,7 +56,6 @@ public class EquivalenceProof implements Proof {
             _history.add(new ProofHistory(_equations, null, _completeness, _completenessEquations, _bottom,
                     null));
         }
-        _completenessEquations = new ArrayList<Equation>();
         _varcounter = 0;
         _bottom = false;
         _env = new TreeSet<Variable>();
