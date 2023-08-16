@@ -22,6 +22,7 @@ import cora.exceptions.NullInitialisationError;
 import cora.exceptions.NullCallError;
 import cora.interfaces.types.Type;
 import cora.interfaces.terms.*;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 /**
  * Constants are the default kind of FunctionSymbol.
@@ -180,7 +181,7 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
 
     @Override
     public String toHTMLString() {
-        if (this.queryArity() > 0) return "<font color=green>" + _name + "</font>";
+        if (this.queryArity() > 0) return "<font color=green>" + StringEscapeUtils.escapeHtml4(_name) + "</font>";
         return "<font color=blue>" + _name + "</font>";
     }
 }
