@@ -124,6 +124,13 @@ public class LcTrsLexerTest {
     }
 
     @Test
+    public void testLexerAssignment() {
+        ArrayList<Token> ts = tokenize(":=");
+        assertEquals(ts.size(), 1);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.ASSIGNMENT);
+    }
+
+    @Test
     public void testLexerNegation() {
         ArrayList<Token> ts = tokenize("~");
          assertEquals(ts.size(), 1);

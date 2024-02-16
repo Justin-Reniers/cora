@@ -21,3 +21,5 @@ out/artifacts/cora_main_jar/cora.main.jar
 out/artifacts/cora_main_jar/cora.main.zip
 
 lib/*
+notes
+*.jar

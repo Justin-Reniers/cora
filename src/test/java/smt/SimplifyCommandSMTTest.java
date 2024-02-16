@@ -38,6 +38,7 @@ public class SimplifyCommandSMTTest {
             "\tfactrec(x) -> return(1)\t\t\t\t[x <= 1]\n" +
             "\tfactrec(x) -> mul(x, factrec(x-1))\t[x > 1]\n" +
             "\tmul(x, return(y)) -> return(x*1)\n" +
+            "\titer(n, a, b) -> mul(n, iter(m, x, y))\t[n>=1 /\\ m == n - 1 /\\ b == y + 1 /\\ a == x * y]" +
             ")\n";
 
     static {
@@ -154,6 +155,11 @@ public class SimplifyCommandSMTTest {
     }
 
     @Test
+    public void testSimplifyNestedPosition() throws ParserException {
+
+    }
+
+    @Test
     public void testSimplifyVarInConstraint() throws ParserException {
         String t1 = "f(x + 0)";
         String t2 = "f(z)";
@@ -214,7 +220,7 @@ public class SimplifyCommandSMTTest {
         Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("simplify 0 2");
-        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("iter(x_0, 1*1, 1+1)", lcTrs, eq.getVariables());
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("iter(n, 1*1, 1+1)", lcTrs, eq.getVariables());
         assertEquals(eq.getLeft().toString(), l2.toString());
     }
 
@@ -232,6 +238,40 @@ public class SimplifyCommandSMTTest {
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("simplify 0 1");
         Term l2 = LcTrsInputReader.readTermFromStringWithEnv("iter(n, 1, 1)", lcTrs, eq.getVariables());
+        assertEquals(eq.getLeft().toString(), l2.toString());
+    }
+
+    @Test
+    public void testSimplifyEmptyPositionSymbol() throws ParserException {
+        String t1 = "factiter(n)";
+        String t2 = "factrec(n)";
+        String c1 = "n >= 1";
+        Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
+        TreeSet<Variable> vars = new TreeSet<>();
+        vars.addAll(l.vars().getVars());
+        Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
+        vars.addAll(r.vars().getVars());
+        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
+        eq.applyNewUserCommand("simplify ε 1");
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("iter(n, 1, 1)", lcTrs, eq.getVariables());
+        assertEquals(eq.getLeft().toString(), l2.toString());
+    }
+
+    @Test
+    public void testSimplifyUnusedVariables() throws ParserException {
+        String t1 = "iter(k, 2, 3)";
+        String t2 = "mul(k, iter(l, 1, 2))";
+        String c1 = "~(k <= 1) /\\ l == k - 1";
+        Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
+        TreeSet<Variable> vars = new TreeSet<>();
+        vars.addAll(l.vars().getVars());
+        Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
+        vars.addAll(r.vars().getVars());
+        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
+        eq.applyNewUserCommand("simplify ε 7");
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("mul(k, iter(n-1, 1, 2))", lcTrs, eq.getVariables());
         assertEquals(eq.getLeft().toString(), l2.toString());
     }
 

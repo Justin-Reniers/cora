@@ -118,7 +118,7 @@ public class ConstraintRewritingTest {
         vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("simplify 0 2");
-        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("mul(x_0, factrec(x_0 - 1))", lcTrs, eq.getVariables());
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("mul(n, factrec(n - 1))", lcTrs, eq.getVariables());
         assertEquals(eq.getLeft(), l2);
     }
 }

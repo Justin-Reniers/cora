@@ -47,12 +47,17 @@ public class LcTrsUserReadingTest {
 
     @Test
     public void readSimplify() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("Simplify 0.2.2 1", lcTrs, env);
+        LcTrsInputReader.readUserInputFromString("Simplify 2.2.0 1", lcTrs, env);
     }
 
     @Test (expected = InvalidPositionException.class)
     public void readIncorrectSimplify() throws ParserException {
         LcTrsInputReader.readUserInputFromString("simpliFY 2.2 1", lcTrs, env);
+    }
+
+    @Test (expected = InvalidPositionException.class)
+    public void readIncorrectPosition() throws ParserException {
+        LcTrsInputReader.readUserInputFromString("expand 2.2", lcTrs, env);
     }
 
     @Test (expected = AntlrParserException.class)
@@ -80,9 +85,41 @@ public class LcTrsUserReadingTest {
         LcTrsInputReader.readUserInputFromString("simplify", lcTrs, env);
     }
 
+    @Test (expected = DeclarationException.class)
+    public void testSingleAssignmentIncorrectArgSimplify() throws ParserException {
+        UserCommand uc = LcTrsInputReader.readUserInputFromString("simplify 2.3.0 2 [x := y]", lcTrs, env);
+    }
+
+    @Test (expected = DeclarationException.class)
+    public void testMultipleAssignmentIncorrectArgSimplify() throws ParserException {
+        UserCommand uc = LcTrsInputReader.readUserInputFromString("simplify 2.3.0 2 [x := y, z := d]", lcTrs, env);
+    }
+
+    @Test
+    public void testSingleAssignmentArgSimplify() throws ParserException {
+        UserCommand uc = LcTrsInputReader.readUserInputFromString("simplify 2.3.0 2 [x := j - 1]", lcTrs, env);
+    }
+
+    @Test
+    public void testMultipleAssignmentArgSimplify() throws ParserException {
+        UserCommand uc = LcTrsInputReader.readUserInputFromString("simplify 2.3.0 2 [x := y - 1, z := d /\\ e]",
+                lcTrs, env);
+    }
+
+    @Test (expected = DeclarationException.class)
+    public void testMultipleAssignmentOneIncorrectArgSimplify() throws ParserException {
+        UserCommand uc = LcTrsInputReader.readUserInputFromString("simplify 2.3.0 2 [x := y - 1, z := d]",
+                lcTrs, env);
+    }
+
+    @Test (expected = AntlrParserException.class)
+    public void testMissingCommaAssignmentSimplify() throws ParserException {
+        UserCommand uc = LcTrsInputReader.readUserInputFromString("simplify 2.3.0 2 [x := y := z]", lcTrs, env);
+    }
+
     @Test
     public void readExpansion() throws ParserException {
-        LcTrsInputReader.readUserInputFromString("ExpAnd 0.1", lcTrs, env);
+        LcTrsInputReader.readUserInputFromString("ExpAnd 1.1.0", lcTrs, env);
     }
 
     @Test (expected = InvalidPositionException.class)
