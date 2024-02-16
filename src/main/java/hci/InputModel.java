@@ -120,9 +120,11 @@ public class InputModel implements UserInputModel {
         Term c = LcTrsInputReader.readTermFromStringWithEnv(strs[2], _lcTrs, vars);
         vars.addAll(c.vars().getVars());
         Equation eq = new Equation(l, r, c);
+        //_eqp.clearEquations();
         _eqp.addEquation(eq);
         _eqp.setCurrentEquation();
-        _eqp.recordHistory();
+        //System.out.println(_eqp);
+        //_eqp.recordHistory();
     }
 
     @Override
@@ -276,7 +278,7 @@ public class InputModel implements UserInputModel {
     }
 
     @Override
-    public void loadProofFromFile(File file) {
+    public void loadProofFromFile(File file) throws ParserException {
         StringBuilder content = new StringBuilder();
         try {
             BufferedReader in = new BufferedReader(new FileReader(file));
@@ -290,8 +292,14 @@ public class InputModel implements UserInputModel {
         }
         if (!content.toString().equals("")) {
             String[] lines = content.toString().split("\n");
+            enterProof(lines[0]);
+            System.out.println("test");
+            System.out.println(_eqp.currentState());
             for (int i = 0; i < lines.length; i++) {
-                if (i % 2 == 0) applyUserInput(lines[i]);
+                if (i % 2 == 1) {
+                    System.out.println(lines[i]);
+                    applyUserInput(lines[i]);
+                }
             }
         }
     }

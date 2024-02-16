@@ -36,14 +36,8 @@ public class InputPresenter implements UserInputPresenter {
     public void handleUserInput(String input) {
         if (model.addUserInput(input)) {
             view.onEnterAction();
-            //view.updateRulesField(model.getRules());
-            view.updateRulesLeftField(model.getRulesLeft());
-            view.updateRulesRightField(model.getRulesRight());
-            view.updateRulesConstraintField(model.getRulesConstraint());
-
-            view.updateEquationsLeftField(model.getEquationsLeft());
-            view.updateEquationsRightField(model.getEquationsRight());
-            view.updateEquationsConstraintField(model.getEquationsConstraint());
+            updateRules();
+            updateEquations();
 
             view.updateBottomField(model.getBottom());
             view.updateCompletenessField(model.getCompleteness());
@@ -62,10 +56,7 @@ public class InputPresenter implements UserInputPresenter {
     public void handleFile(File file) {
         try {
             model.openFile(file);
-            //view.updateRulesField(model.getRules());
-            view.updateRulesLeftField(model.getRulesLeft());
-            view.updateRulesRightField(model.getRulesRight());
-            view.updateRulesConstraintField(model.getRulesConstraint());
+            updateRules();
         } catch (RuntimeException | InvalidFileExtensionError e) {
             displayWarning(e.getMessage());
         }
@@ -76,10 +67,7 @@ public class InputPresenter implements UserInputPresenter {
     public void enterProof(String proof) {
         try {
             model.enterProof(proof);
-            //view.updateEquationsField(model.getEquations());
-            view.updateEquationsLeftField(model.getEquationsLeft());
-            view.updateEquationsRightField(model.getEquationsRight());
-            view.updateEquationsConstraintField(model.getEquationsConstraint());
+            updateEquations();
         } catch (ParserException | InvalidUserInputException e) {
             displayWarning(e.getMessage());
         }
@@ -97,6 +85,24 @@ public class InputPresenter implements UserInputPresenter {
 
     @Override
     public void loadProof(File file) {
-        getModel().loadProofFromFile(file);
+        try {
+            model.loadProofFromFile(file);
+            updateEquations();
+            updateRules();
+        } catch (ParserException e) {
+            displayWarning(e.getMessage());
+        }
+    }
+
+    private void updateEquations() {
+        view.updateEquationsLeftField(model.getEquationsLeft());
+        view.updateEquationsRightField(model.getEquationsRight());
+        view.updateEquationsConstraintField(model.getEquationsConstraint());
+    }
+
+    private void updateRules() {
+        view.updateRulesLeftField(model.getRulesLeft());
+        view.updateRulesRightField(model.getRulesRight());
+        view.updateRulesConstraintField(model.getRulesConstraint());
     }
 }
