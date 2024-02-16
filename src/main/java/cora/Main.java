@@ -18,7 +18,6 @@ package cora;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import cora.interfaces.rewriting.TRS;
-import cora.interfaces.terms.Term;
 import cora.loggers.ConsoleLogger;
 import cora.loggers.Logger;
 import cora.parsers.CoraInputReader;
@@ -28,11 +27,9 @@ import cora.provingstrategies.LocalConfluence;
 import cora.provingstrategies.LocalConfluenceExtended;
 import cora.provingstrategies.Orthogonality;
 import cora.provingstrategies.StrategyInherit;
-import cora.smt.EquivalenceProof;
 import hci.InputPresenter;
 import hci.InputModel;
 import hci.InputView;
-
 import java.util.ArrayList;
 import java.util.List;
 

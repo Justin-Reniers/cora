@@ -2,7 +2,6 @@ package cora.usercommands;
 
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Position;
-import cora.interfaces.terms.Substitution;
 import cora.interfaces.types.Type;
 import cora.smt.EquivalenceProof;
 import cora.terms.Var;
@@ -44,5 +43,10 @@ public class DeleteCommand extends UserCommandInherit implements UserCommand {
     @Override
     public EquivalenceProof getProof() {
         return _proof;
+    }
+
+    @Override
+    public String toString() {
+        return "delete";
     }
 }

@@ -2,7 +2,6 @@ package cora.usercommands;
 
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Position;
-import cora.interfaces.terms.Term;
 import cora.interfaces.types.Type;
 import cora.smt.Equation;
 import cora.smt.EquivalenceProof;
@@ -17,12 +16,12 @@ import java.util.Collections;
 public class SwapCommand extends UserCommandInherit implements UserCommand {
 
     private EquivalenceProof _proof;
-    private int _eq1, _eq2;
+    private Integer _eq1, _eq2;
 
     public SwapCommand() {
         super();
-        _eq1 = -1;
-        _eq2 = -1;
+        _eq1 = null;
+        _eq2 = null;
     };
 
     public SwapCommand(int eq1, int eq2) {
@@ -44,7 +43,9 @@ public class SwapCommand extends UserCommandInherit implements UserCommand {
      */
     @Override
     public boolean applicable() {
-        return true;
+        int numberEquations =  _proof.getEquations().size();
+        return (_eq1 == null && _eq2 == null) || (_eq1 >= 0 && _eq2 >= 0 &&
+                _eq1 < numberEquations && _eq2 < numberEquations);
     }
 
     /**
@@ -53,7 +54,7 @@ public class SwapCommand extends UserCommandInherit implements UserCommand {
      */
     @Override
     public void apply() {
-        if (_eq1 < 0 || _eq2 < 0) {
+        if (_eq1 == null && _eq2 == null) {
             Equation eq = new Equation(_proof.getRight(), _proof.getLeft(), _proof.getConstraint());
             _proof.setCurrentEquation(eq);
         } else if (_eq1 < _proof.getEquations().size() && _eq2 < _proof.getEquations().size()) {
@@ -88,6 +89,7 @@ public class SwapCommand extends UserCommandInherit implements UserCommand {
      */
     @Override
     public String toString() {
-        return "swap";
+        if (_eq1 == null || _eq2 == null) return "swap";
+        else return "swap " + (_eq1 + 1) + " " + (_eq2 + 1);
     }
 }

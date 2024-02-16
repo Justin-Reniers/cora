@@ -11,15 +11,11 @@ import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
 import cora.interfaces.types.Type;
-import cora.loggers.Logger;
 import cora.parsers.LcTrsInputReader;
 import cora.terms.Var;
 import cora.usercommands.UndoCommand;
-//import org.apache.commons.lang3.ObjectUtils;
-
 import java.io.FileWriter;
 import java.io.IOException;
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.TreeSet;
 
@@ -127,7 +123,6 @@ public class EquivalenceProof implements Proof {
         try {
             _cur_eq = _equations.get(0);
         } catch (IndexOutOfBoundsException e) {
-            //Logger.log("No more equations in proof");
             _cur_eq = null;
         }
     }

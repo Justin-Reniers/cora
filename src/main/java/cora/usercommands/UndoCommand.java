@@ -53,4 +53,9 @@ public class UndoCommand extends UserCommandInherit implements UserCommand {
     public EquivalenceProof getProof() {
         return _proof;
     }
+
+    @Override
+    public String toString() {
+        return "undo";
+    }
 }

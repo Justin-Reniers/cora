@@ -87,4 +87,9 @@ public class EQDeleteCommand extends UserCommandInherit implements UserCommand {
     public EquivalenceProof getProof() {
         return _proof;
     }
+
+    @Override
+    public String toString() {
+        return "eq-delete";
+    }
 }

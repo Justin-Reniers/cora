@@ -2,19 +2,12 @@ package cora.z3;
 
 import com.microsoft.z3.*;
 import cora.interfaces.terms.Term;
-import cora.loggers.Logger;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
  * The Z3Helper is a class that acts as a bridge between
  */
 public class Z3Helper {
-
-    public Expr<BoolSort> deconstructTerm(Term t) {
-        return null;
-    }
 
     public static IntExpr getIntVar(Context ctx, String varName) {
         return ctx.mkIntConst(varName);
@@ -96,6 +89,12 @@ public class Z3Helper {
         return ctx.mkImplies(e1, e2);
     }
 
+    public static BoolExpr getExists(Context ctx, ArrayList<Expr> vars, Expr<BoolSort> e2) {
+        Expr<?>[] exprVars = vars.toArray(new Expr[0]);
+        return ctx.mkExists(exprVars, e2, 1, null, null, null,
+                null);
+    }
+
     public static BoolExpr getIff(Context ctx, Expr<BoolSort> e1, Expr<BoolSort> e2) {
         return ctx.mkIff(e1, e2);
     }
@@ -117,18 +116,8 @@ public class Z3Helper {
     public static Model getModel(Solver s) {
         Status q = s.check();
         if (q == Status.SATISFIABLE) {
-            //Logger.log("SAT");
             return s.getModel();
         }
-        //if (q == Status.UNSATISFIABLE) Logger.log("UNSAT");
         return null;
-    }
-
-    public void addExprToSolver(Solver s, ArrayList<BoolExpr> exprs) {
-        for (BoolExpr e : exprs) s.add(e);
-    }
-
-    public static Expr<?> getModelConst(Model m, Expr<?> e) {
-        return m.getConstInterp(e);
     }
 }

@@ -55,4 +55,9 @@ public class ConstructorCommand extends UserCommandInherit implements UserComman
     public EquivalenceProof getProof() {
         return _proof;
     }
+
+    @Override
+    public String toString() {
+        return "constructor";
+    }
 }

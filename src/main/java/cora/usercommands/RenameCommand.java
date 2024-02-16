@@ -65,4 +65,9 @@ public class RenameCommand extends UserCommandInherit implements UserCommand {
     public EquivalenceProof getProof() {
         return _proof;
     }
+
+    @Override
+    public String toString() {
+        return "rename " + _old + " " + _new;
+    }
 }

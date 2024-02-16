@@ -45,4 +45,9 @@ public class CompletenessCommand extends UserCommandInherit implements UserComma
 
     @Override
     public EquivalenceProof getProof() { return _proof; }
+
+    @Override
+    public String toString() {
+        return "completeness";
+    }
 }

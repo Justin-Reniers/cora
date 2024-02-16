@@ -4,13 +4,8 @@ import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.*;
 import cora.interfaces.types.Type;
-import cora.rewriting.FirstOrderRule;
 import cora.smt.EquivalenceProof;
-import cora.terms.FunctionalTerm;
-import cora.terms.Subst;
 import cora.terms.Var;
-import cora.types.Sort;
-import cora.z3.Z3TermHandler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -156,7 +151,8 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
     @Override
     public String toString() {
         if (_noArgs) return "simplify";
-        return "simplify " + _pos.toString() + " " + _ruleIndex;
+        return "simplify " + _pos.toString() + " " + (_ruleIndex + 1)
+                + (_gamma != null ? _gamma.toString() : "");
     }
 
     /**

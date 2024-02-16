@@ -100,6 +100,11 @@ public class RewriteConstraintCommand extends UserCommandInherit implements User
         return _proof;
     }
 
+    @Override
+    public String toString() {
+        return "rewrite " + _old + " " + _new;
+    }
+
     private void listifyConstraint(ArrayList<Term> components, Term c) {
         if (c.isFunctionalTerm() && c.queryRoot().queryName().equals("/\\")) {
             for (int i = 0; i < c.numberImmediateSubterms(); i++) {
