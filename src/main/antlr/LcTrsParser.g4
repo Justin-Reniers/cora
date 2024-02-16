@@ -69,8 +69,8 @@ numeric             : NUM
 
 logicalconstraint   : SQUAREOPEN term SQUARECLOSE ;
 
-rewritinginduction  : SIMPLIFICATION (pos NUM)?
-                    | EXPANSION pos
+rewritinginduction  : SIMPLIFICATION (pos NUM subst?)?
+                    | EXPANSION pos termination?
                     | DELETION
                     | POSTULATE term term logicalconstraint
                     | GENERALIZATION
@@ -85,4 +85,12 @@ rewritinginduction  : SIMPLIFICATION (pos NUM)?
                     | RENAME term term
                     ;
 
-pos                 : NUM (DOT pos)* ;
+pos                 : EMPTYPOS
+                    | NUM (DOT pos)* ;
+
+termination         : TERMINATING
+                    | NONTERMINATING ;
+
+subst               : SQUAREOPEN repl (COMMA repl)* SQUARECLOSE ;
+
+repl                : term ASSIGNMENT term ;

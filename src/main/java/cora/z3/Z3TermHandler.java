@@ -6,15 +6,12 @@ import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.*;
 import cora.interfaces.types.Type;
-import cora.loggers.Logger;
 import cora.terms.Constant;
 import cora.terms.FunctionalTerm;
 import cora.terms.Subst;
 import cora.terms.Var;
 import cora.types.ArrowType;
 import cora.types.Sort;
-
-import java.lang.reflect.Array;
 import java.util.*;
 
 import static cora.z3.Z3Helper.*;
@@ -100,8 +97,7 @@ public class Z3TermHandler {
                         return getUnaryMinusExpr(_ctx, deconstruct(t.queryImmediateSubterm(1)));
                     }
                 default:
-                    boolean boolSort = false;
-                    if (t.queryType().equals(Sort.boolSort)) boolSort = true;
+                    boolean boolSort = t.queryType().equals(Sort.boolSort);
                     if (t.queryType().equals(Sort.intSort)) boolSort = false;
                     ArrayList<Expr> subExprs = new ArrayList<>();
                     for (int i = 1; i < t.numberImmediateSubterms() + 1; i++) {
@@ -246,81 +242,31 @@ public class Z3TermHandler {
 
     public boolean validity(Term constraint) {
         Expr c = deconstruct(constraint);
+        System.out.println(c);
         Expr e = getNot(_ctx, c);
         boolean satisfiable = satisfiable(e);
         return !satisfiable;
     }
 
-    public void constraintCheck(Term ruleConstraint, Term proofConstraint, Substitution s) {
-        Expr rc = deconstruct(ruleConstraint);
-        Expr pc = deconstruct(proofConstraint);
-        Expr e = getAnd(_ctx, rc, pc);
-        for (Variable v : s.domain()) {
-            Expr ass = getEqExpr(_ctx, deconstruct(v), deconstruct(s.getReplacement(v)));
-            e = getAnd(_ctx, e, ass);
+    public boolean validity(Term left, Term right, FunctionSymbol f) {
+        TreeSet<Variable> rightVars = right.vars().getVars();
+        ArrayList<Expr> freeVars = new ArrayList<>();
+        for (Variable v : rightVars) if (!left.vars().getVars().contains(v)) freeVars.add(this.deconstruct(v));
+        Expr l = deconstruct(left);
+        Expr r = deconstruct(right);
+        if (!freeVars.isEmpty()) r = getExists(_ctx, freeVars, r);
+        Expr e;
+        if (f.queryName().equals("-->")) {
+            e = getNot(_ctx, (getImplies(_ctx, l, r)));
+        } else {
+            e = getNot(_ctx, (getIff(_ctx, l, r)));
         }
-        _s.add(e);
-    }
-
-    public Context getContext() {
-        return _ctx;
+        return !satisfiable(e);
     }
 
     public Model getModel() {
         if (Z3Helper.getModel(_s) == null) return null;
         return Z3Helper.getModel(_s);
-    }
-
-    public void printContext(Context ctx) {
-
-    }
-
-    public Substitution getEqualities(Term c) {
-        Set<Expr> equalities = new HashSet<>();
-        getEqualities(c, equalities);
-        Substitution s = new Subst();
-        Environment env = c.vars();
-        for (Expr e : equalities) {
-            Term arg1 = reconstruct(e.getArgs()[0], env);
-            Term arg2 = reconstruct(e.getArgs()[1], env);
-            if (arg1 instanceof Var) s.extend((Var) arg1, arg2);
-            else if (arg2 instanceof Var) s.extend((Var) arg2, arg1);
-        }
-        return s;
-    }
-
-    private void getEqualities(Term c, Set equalities) {
-        if (c.isFunctionalTerm() && c.queryRoot().queryName().equals("==")) {
-            equalities.add(deconstruct(c));
-        } else {
-            for (int i = 1; i < c.numberImmediateSubterms() + 1; i++) {
-                getEqualities(c.queryImmediateSubterm(i), equalities);
-            }
-        }
-    }
-
-    public Substitution getSubstitutionsFreshVars(Term c, UserCommand uc) {
-        Set<Expr> calcVar = new HashSet<>();
-        containsCalcVar(c, calcVar, null);
-        Substitution s = new Subst();
-        Environment env = c.vars();
-        for (Expr e : calcVar) {
-            Term arg1 = reconstruct(e.getArgs()[0], env);
-            Term arg2 = reconstruct(e.getArgs()[1], env);
-            if (arg1 instanceof Var) s.extend(uc.getFreshVar(Sort.intSort), reconstruct(e, env));
-            else if (arg2 instanceof Var) s.extend(uc.getFreshVar(Sort.intSort), reconstruct(e, env));
-        }
-        return s;
-    }
-
-    private void containsCalcVar(Term c, Set calcVar, Term parent) {
-        if (c.isVariable() && fsymbols.contains(parent.queryRoot().queryName())) {
-            calcVar.add(deconstruct(parent));
-        } else {
-            for (int i = 1; i < c.numberImmediateSubterms() + 1; i++) {
-                containsCalcVar(c.queryImmediateSubterm(i), calcVar, c);
-            }
-        }
     }
 
     public boolean satisfiable(Term constraint) {
@@ -331,6 +277,10 @@ public class Z3TermHandler {
 
     public boolean satisfiable(Expr constraint) {
         _s.add(constraint);
+        if (getModel()!= null) {
+            Model m = getModel();
+            System.out.println(m);
+        }
         return getModel() != null;
     }
 }

@@ -27,6 +27,14 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
     private Substitution _gamma;
     private EquivalenceProof _proof;
 
+    public SimplifyCommand(Position pos, int ruleIndex, Substitution gamma) {
+        super();
+        _pos = pos;
+        _ruleIndex = ruleIndex - 1;
+        _noArgs = false;
+        _gamma = gamma;
+    }
+
     public SimplifyCommand(Position pos, int ruleIndex) {
         super();
         _pos = pos;
@@ -74,7 +82,7 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
         if (fSymbol.queryRoot().equals(lcTrs.lookupSymbol("TRUE"))) return true;
         if (fSymbol.queryRoot().equals(lcTrs.lookupSymbol("FALSE"))) return false;
         else {
-            _gamma = rewrittenConstraintValid(_proof, _ruleIndex, _pos);
+            _gamma = rewrittenConstraintValid(_proof, _ruleIndex, _pos, _gamma);
             return _gamma != null;
         }
     }

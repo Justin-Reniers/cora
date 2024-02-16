@@ -1,6 +1,5 @@
 package cora.usercommands;
 
-import cora.exceptions.InvalidRuleApplicationException;
 import cora.exceptions.UnsatException;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Position;
@@ -65,10 +64,10 @@ public class RewriteConstraintCommand extends UserCommandInherit implements User
         _proofComponents.add(_new.substitute(_s));
         Term nc = reconstructConstraint(_proofComponents);
         Z3TermHandler z3 = new Z3TermHandler(_proof.getLcTrs());
-        Term valid = new FunctionalTerm(_proof.getLcTrs().lookupSymbol("<-->"), c, nc);
-        if (!z3.validity(valid)) {
-            valid = new FunctionalTerm(_proof.getLcTrs().lookupSymbol("-->"), c, nc);
-            if (!z3.validity(valid)) throw new UnsatException(valid.toString());
+        if (!z3.validity(c, nc, _proof.getLcTrs().lookupSymbol("<-->"))) {
+            if (!z3.validity(c, nc, _proof.getLcTrs().lookupSymbol("-->"))) {
+                throw new UnsatException(c.toString(), nc.toString(), "<-->");
+            }
             _completeness = false;
         }
         _newConstraint = nc;

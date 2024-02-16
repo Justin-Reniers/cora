@@ -34,6 +34,8 @@ EQUALITY            : '=' '=' ;
 
 COMMA               : ',' ;
 
+ASSIGNMENT          : ':' '=' ;
+
 
 
 /* Logical Operators */
@@ -126,6 +128,10 @@ REWRITE             : R E W R I T E ;
 
 RENAME              : R E N A M E ;
 
+TERMINATING         : T E R M I N A T I N G ;
+
+NONTERMINATING      : N O N T E R M I N A T I N G ;
+
 WORD                : [a-zA-Z]+ ;
 
 UNDERSCORE			: '_' ;
@@ -133,3 +139,5 @@ UNDERSCORE			: '_' ;
 NUM                 : [0-9]+ ;
 
 DOT                 : '.' ;
+
+EMPTYPOS            : 'ε' ;

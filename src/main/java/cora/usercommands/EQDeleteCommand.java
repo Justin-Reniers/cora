@@ -44,7 +44,7 @@ public class EQDeleteCommand extends UserCommandInherit implements UserCommand {
     }
 
     private void compareTerms(Term l, Term r, ArrayList<Term> ineqs, TreeSet<Variable> vars) {
-        for (int i = 1; i <= l.numberImmediateSubterms(); i++) {
+        for (int i = 1; i <= l.numberImmediateSubterms() || i <= r.numberImmediateSubterms(); i++) {
             Term lt = l.queryImmediateSubterm(i);
             Term rt = r.queryImmediateSubterm(i);
             if (lt.equals(rt)) continue;

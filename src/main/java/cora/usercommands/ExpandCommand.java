@@ -13,20 +13,28 @@ import cora.terms.FunctionalTerm;
 import cora.terms.Var;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class ExpandCommand extends UserCommandInherit implements UserCommand {
     private EquivalenceProof _proof;
     private Position _p;
     private ArrayList<Equation> _equations;
     private ArrayList<Rule> _applicableRules;
-    private boolean _terminating;
+    private Boolean _terminating;
 
     public ExpandCommand(Position p) {
         super();
         _p = p;
         _equations = new ArrayList<>();
         _applicableRules = new ArrayList<>();
-        _terminating = true;
+    }
+
+    public ExpandCommand(Position p, Boolean terminating) {
+        super();
+        _p = p;
+        _equations = new ArrayList<>();
+        _applicableRules = new ArrayList<>();
+        _terminating = terminating;
     }
 
     @Override
@@ -41,7 +49,8 @@ public class ExpandCommand extends UserCommandInherit implements UserCommand {
         for (int i = 0; i < _proof.getLcTrs().queryRuleCount(); i++) {
             Rule rule = _proof.getLcTrs().queryRule(i);
             // && rewriteConstraint(_proof, _p, i) != null
-            Substitution gamma = rewrittenConstraintValid(_proof, i, _p);
+            Substitution gamma = rule.queryLeftSide().unify(lp);
+            gamma = rewrittenConstraintValid(_proof, i, _p, gamma);
             if (gamma != null && rule.applicable(lp)) _applicableRules.add(rule);
             //if (rule.applicable(lp)) _applicableRules.add(rule);
         }
@@ -61,8 +70,13 @@ public class ExpandCommand extends UserCommandInherit implements UserCommand {
             Equation eq = new Equation(l, r, c);
             _equations.add(eq);
         }
-        if (_terminating) _proof.addRule(new FirstOrderRule(_proof.getLeft(), _proof.getRight(),
-                _proof.getConstraint(), true));
+        if (_terminating == null || _terminating) {
+            Rule rule = new FirstOrderRule(_proof.getLeft(), _proof.getRight(), _proof.getConstraint(), true);
+            if (_terminating == null) _terminating = isTerminating(rule);
+            if (_terminating || isTerminating(rule))
+                _proof.addRule(new FirstOrderRule(_proof.getLeft(), _proof.getRight(),
+                        _proof.getConstraint(), true));
+        }
         _proof.removeCurrentEquation();
         _proof.addEquations(_equations);
     }
@@ -80,5 +94,18 @@ public class ExpandCommand extends UserCommandInherit implements UserCommand {
     @Override
     public EquivalenceProof getProof() {
         return _proof;
+    }
+
+    @Override
+    public String toString() {
+        return "expand " + _p; // + (_terminating ? "\n" + true : "");
+    }
+
+    private boolean isTerminating(Rule r) {
+        HashSet<Rule> rules = new HashSet<>();
+        for (int i = 0; i < _proof.getLcTrs().queryRuleCount(); i++) rules.add(_proof.getLcTrs().queryRule(i));
+        rules.add(r);
+        throw new UnsupportedOperationException("Checking termination of ruleset not yet implemented!");
+        //TODO termination check on set of rules
     }
 }

@@ -8,6 +8,7 @@ import cora.interfaces.terms.*;
 import cora.interfaces.types.Type;
 import cora.rewriting.FirstOrderRule;
 import cora.rewriting.TermRewritingSystem;
+import cora.terms.Subst;
 import cora.usercommands.*;
 import cora.terms.Constant;
 import cora.terms.FunctionalTerm;
@@ -526,11 +527,21 @@ public class LcTrsInputReader extends InputReader{
             verifyChildIsRule(tree, 1, "pos", "Position rule");
             verifyChildIsToken(tree, 2, "NUM", "Rule index numerical");
             Position pos = parsePosition(tree.getChild(1), false);
+            if (tree.getChildCount() == 4) {
+                Substitution s = parseSubstitution(tree.getChild(3), data);
+                return new SimplifyCommand(pos, Integer.parseInt(tree.getChild(2).getText()), s);
+            }
             return new SimplifyCommand(pos, Integer.parseInt(tree.getChild(2).getText()));
         } if (kind.equals("token EXPANSION")) {
             verifyChildIsToken(tree, 0, "EXPANSION", "The expand rule");
             verifyChildIsRule(tree, 1, "pos", "Position rule");
             Position pos = parsePosition(tree.getChild(1), false);
+            if (tree.getChildCount() > 2) {
+                verifyChildIsRule(tree, 2, "termination", "Termination rule");
+                Boolean b = readTermination(tree.getChild(2), data);
+                System.out.println(b);
+                return new ExpandCommand(pos, b);
+            }
             return new ExpandCommand(pos);
         } if (kind.equals("token DELETION")) {
             verifyChildIsToken(tree, 0, "DELETION", "The delete rule");
@@ -594,11 +605,20 @@ public class LcTrsInputReader extends InputReader{
         return null;
     }
 
+    private Boolean readTermination(ParseTree tree, ParseData data) {
+        String kind = checkChild(tree, 0);
+        System.out.println(kind);
+        if (kind.equals("token TERMINATING")) return true;
+        else if (kind.equals("token NONTERMINATING")) return false;
+        return null;
+    }
+
     /**
      *  This function reads a position from the given parse tree. A position is of the
      *  form x or x.a... where x and a are integers.
      */
-    private Position parsePosition(ParseTree tree, boolean subtree) throws ParserException {
+    /**private Position parsePosition(ParseTree tree, boolean subtree) throws ParserException {
+        if (tree.getChild(0).getText().equals("ε")) return new EmptyPosition();
         if (Integer.parseInt(tree.getChild(0).getText()) != 0 && !subtree) {
             throw new InvalidPositionException(tree.getChild(0).getText());
         }
@@ -612,6 +632,46 @@ public class LcTrsInputReader extends InputReader{
                     parsePosition(tree.getChild(2), true));
         }
         return new EmptyPosition();
+    }**/
+
+    private Position parsePosition(ParseTree tree, boolean subtree) throws ParserException {
+        if (tree.getChild(0).getText().equals("ε")) return new EmptyPosition();
+        verifyChildIsToken(tree, 0, "NUM", "numeral in position");
+        if (tree.getChildCount() > 1) {
+            verifyChildIsToken(tree, 1, "DOT", "dot in between position numerals");
+            verifyChildIsRule(tree, 2, "pos", "position rule");
+            return new ArgumentPosition(Integer.parseInt(tree.getChild(0).getText()),
+                    parsePosition(tree.getChild(2), true));
+        } else if (Integer.parseInt(tree.getChild(0).getText()) != 0) {
+            throw new InvalidPositionException(tree.getText());
+        }
+        return new EmptyPosition();
+    }
+
+    private Substitution parseSubstitution(ParseTree tree, ParseData data) throws ParserException {
+        verifyChildIsToken(tree, 0, "SQUAREOPEN", "opening square bracket");
+        verifyChildIsToken(tree, tree.getChildCount() - 1, "SQUARECLOSE",
+                "closing square bracket");
+        Substitution s = new Subst();
+        for (int i = 1; i <= tree.getChildCount() - 2; i++) {
+            if (i % 2 == 1) {
+                verifyChildIsRule(tree, i, "repl", "replacement rule");
+                ParseTree t = tree.getChild(i);
+                verifyChildIsToken(t, 1, "ASSIGNMENT", "assignment");
+                verifyChildIsRule(t, 2, "term", "a term");
+                verifyChildIsRule(t, 0, "term", "a term");
+                Term r = readTermType(t.getChild(2), data, null, true);
+                Term l = readTermType(t.getChild(0), data, r.queryType(), true);
+                if (l instanceof Variable) s.extend((Variable) l, r);
+                else {
+                    throw new TypingException(firstToken(tree), t.getText(), l.queryType().toString(),
+                            r.queryType().toString());
+                }
+            } else {
+                verifyChildIsToken(tree, i, "COMMA", "comma");
+            }
+        }
+        return s;
     }
 
     /* ========= STATIC ACCESS METHODS ========= */
