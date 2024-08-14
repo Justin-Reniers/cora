@@ -43,5 +43,7 @@ public interface Position {
 
   /** Represents the Position as a sequence of integers. */
   public String toString();
+
+  public String toHTMLString();
 }
 

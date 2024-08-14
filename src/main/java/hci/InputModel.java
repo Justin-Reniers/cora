@@ -3,6 +3,7 @@ package hci;
 import cora.exceptions.*;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.Proof;
+import cora.interfaces.terms.Position;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
 import cora.parsers.LcTrsInputReader;
@@ -113,18 +114,15 @@ public class InputModel implements UserInputModel {
         TreeSet<Variable> vars = new TreeSet<Variable>();
         String[] strs = proof.split("\\s+");
         if (strs.length != 3) throw new InvalidUserInputException(proof);
-        Term l = LcTrsInputReader.readTermFromStringWithEnv(strs[0], _lcTrs, vars);
+        Term l = LcTrsInputReader.readTermFromString(strs[0], _lcTrs);
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(strs[1], _lcTrs, vars);
         vars.addAll(r.vars().getVars());
         Term c = LcTrsInputReader.readTermFromStringWithEnv(strs[2], _lcTrs, vars);
         vars.addAll(c.vars().getVars());
         Equation eq = new Equation(l, r, c);
-        //_eqp.clearEquations();
         _eqp.addEquation(eq);
         _eqp.setCurrentEquation();
-        //System.out.println(_eqp);
-        //_eqp.recordHistory();
     }
 
     @Override
@@ -259,6 +257,17 @@ public class InputModel implements UserInputModel {
     }
 
     @Override
+    public String getPositions() {
+        StringBuilder s = new StringBuilder();
+        if (_eqp.getCurrentEquation() == null) return "";
+        Term l = _eqp.getCurrentEquation().getLeft();
+        for (Position p : l.queryAllPositions()) {
+            s.append(" ").append(p.toHTMLString()).append("\t").append(l.querySubterm(p).toHTMLString()).append("<br>");
+        }
+        return s.toString();
+    }
+
+    @Override
     public boolean getCompleteness() {
         return _eqp.getCompleteness();
     }
@@ -293,11 +302,8 @@ public class InputModel implements UserInputModel {
         if (!content.toString().equals("")) {
             String[] lines = content.toString().split("\n");
             enterProof(lines[0]);
-            System.out.println("test");
-            System.out.println(_eqp.currentState());
             for (int i = 0; i < lines.length; i++) {
                 if (i % 2 == 1) {
-                    System.out.println(lines[i]);
                     applyUserInput(lines[i]);
                 }
             }

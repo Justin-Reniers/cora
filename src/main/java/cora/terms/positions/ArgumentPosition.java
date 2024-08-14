@@ -52,5 +52,10 @@ public class ArgumentPosition implements Position {
   public String toString() {
     return "" + _argPos + "." + _tail.toString();
   }
+
+  @Override
+  public String toHTMLString() {
+        return this.toString();
+    }
 }
 

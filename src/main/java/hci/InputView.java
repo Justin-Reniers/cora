@@ -13,12 +13,13 @@ import java.io.File;
 public class InputView extends JFrame implements UserInputView {
     private InputPresenter inputPresenter;
     private JFrame frame;
-    private JLabel userInputLabel, equationLabel, ruleLabel;
+    private JLabel userInputLabel, equationLabel, ruleLabel, positionsLabel;
     private JTextField userInput;
     private JMenuBar menuBar;
     private JMenu fileMenu, lcTrsMenu;
     private JTextPane ruleTextAreaLeft, ruleTextAreaRight, ruleTextAreaConstraint;
     private JTextPane equationTextAreaLeft, equationTextAreaRight, equationTextAreaConstraint;
+    private JTextPane positionTextArea;
     private JMenuItem loadFile, enterProof, saveProof, loadProof;
     private JCheckBox _bottom, _completeness;
 
@@ -125,13 +126,13 @@ public class InputView extends JFrame implements UserInputView {
         equationTextAreaConstraint.setEditable(false);
         JScrollPane equationScroll1 = new JScrollPane(equationTextAreaLeft);
         equationScroll1.setSize(400, 300);
-        equationScroll1.setBounds(5, 405, 400, 300);
+        equationScroll1.setBounds(5, 405, 300, 300);
         JScrollPane equationScroll2 = new JScrollPane(equationTextAreaRight);
-        equationScroll2.setSize(400, 300);
-        equationScroll2.setBounds(405, 405, 400, 300);
+        equationScroll2.setSize(300, 300);
+        equationScroll2.setBounds(305, 405, 300, 300);
         JScrollPane equationScroll3 = new JScrollPane(equationTextAreaConstraint);
-        equationScroll3.setSize(400, 300);
-        equationScroll3.setBounds(805, 405, 400, 300);
+        equationScroll3.setSize(300, 300);
+        equationScroll3.setBounds(605, 405, 300, 300);
         Synchronizer sync2 = new Synchronizer(ruleScroll1, ruleScroll2, ruleScroll3);
         equationScroll1.getVerticalScrollBar().addAdjustmentListener(sync);
         equationScroll1.getHorizontalScrollBar().addAdjustmentListener(sync);
@@ -148,6 +149,20 @@ public class InputView extends JFrame implements UserInputView {
         frame.add(equationScroll1);
         frame.add(equationScroll2);
         frame.add(equationScroll3);
+
+        positionsLabel = new JLabel("Positions and sub-terms");
+        positionsLabel.setBounds(950, 375, 80, 30);
+
+        positionTextArea = new JTextPane();
+        positionTextArea.setContentType("text/html;charset=UTF-8");
+        positionTextArea.setFont(font);
+        positionTextArea.setEditable(false);
+        JScrollPane positionScroll = new JScrollPane(positionTextArea);
+        positionScroll.setSize(300, 300);
+        positionScroll.setBounds(950, 405, 300, 300);
+
+        frame.add(positionsLabel);
+        frame.add(positionScroll);
     }
 
     private void initCheckBoxes() {
@@ -280,11 +295,6 @@ public class InputView extends JFrame implements UserInputView {
     }
 
     @Override
-    public void updateRulesField(String rules) {
-        //ruleTextArea.setText(rules);
-    }
-
-    @Override
     public void updateRulesLeftField(String left) {
         ruleTextAreaLeft.setText(left);
     }
@@ -297,11 +307,6 @@ public class InputView extends JFrame implements UserInputView {
     @Override
     public void updateRulesConstraintField(String constraint) {
         ruleTextAreaConstraint.setText(constraint);
-    }
-
-    @Override
-    public void updateEquationsField(String equations) {
-        //equationTextArea.setText(equations);
     }
 
     @Override
@@ -327,6 +332,11 @@ public class InputView extends JFrame implements UserInputView {
     @Override
     public void updateBottomField(boolean bottom) {
         _bottom.setSelected(bottom);
+    }
+
+    @Override
+    public void updatePositionsField(String positions) {
+        positionTextArea.setText(positions);
     }
 }
 

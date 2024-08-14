@@ -10,15 +10,11 @@ public interface UserInputView {
 
     void onEnterAction();
 
-    void updateRulesField(String rules);
-
     void updateRulesLeftField(String left);
 
     void updateRulesRightField(String right);
 
     void updateRulesConstraintField(String constraint);
-
-    void updateEquationsField(String equations);
 
     void updateEquationsLeftField(String left);
 
@@ -31,4 +27,6 @@ public interface UserInputView {
     void updateBottomField(boolean bottom);
 
     void warningDialog(String ex);
+
+    void updatePositionsField(String positions);
 }

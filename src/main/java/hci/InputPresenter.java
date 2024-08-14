@@ -98,6 +98,7 @@ public class InputPresenter implements UserInputPresenter {
         view.updateEquationsLeftField(model.getEquationsLeft());
         view.updateEquationsRightField(model.getEquationsRight());
         view.updateEquationsConstraintField(model.getEquationsConstraint());
+        view.updatePositionsField(model.getPositions());
     }
 
     private void updateRules() {

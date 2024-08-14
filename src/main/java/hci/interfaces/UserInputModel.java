@@ -46,4 +46,6 @@ public interface UserInputModel {
     void saveProofToFile(File file);
 
     void loadProofFromFile(File file) throws ParserException;
+
+    String getPositions();
 }

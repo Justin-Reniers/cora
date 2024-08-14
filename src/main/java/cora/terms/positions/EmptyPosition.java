@@ -38,5 +38,10 @@ public class EmptyPosition implements Position {
   public String toString() {
     return "ε";
   }
+
+  @Override
+  public String toHTMLString() {
+        return this.toString();
+    }
 }
 
