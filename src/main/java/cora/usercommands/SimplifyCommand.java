@@ -4,7 +4,9 @@ import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.*;
 import cora.interfaces.types.Type;
+import cora.rewriting.FirstOrderRule;
 import cora.smt.EquivalenceProof;
+import cora.terms.FunctionalTerm;
 import cora.terms.Var;
 
 import java.util.ArrayList;
@@ -75,6 +77,7 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
         Term subTerm;
         if (_pos == null) return false;
         subTerm = t.querySubterm(_pos);
+        if (_gamma != null) subTerm = subTerm.substitute(_gamma);
         if (!lcTrs.queryRule(_ruleIndex).applicable(subTerm)) {
             return false;
         }
@@ -103,10 +106,16 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
         if (_noArgs) {
             rewriteConstraintCalc(_proof);
         }
+        else if (_gamma != null && _pos != null && _ruleIndex >= 0 &&
+                _proof.getLcTrs().queryRule(_ruleIndex).queryConstraint().queryRoot().queryName().equals("TRUE")) {
+            rewriteConstraintConstrainedRule(_proof, _pos, _ruleIndex, _gamma);
+        }
         //Case 1: Constraint TRUE
         else if (_pos != null && _ruleIndex >= 0 &&
                 _proof.getLcTrs().queryRule(_ruleIndex).queryConstraint().queryRoot().queryName().equals("TRUE")) {
-            _proof.setLeft(_proof.getLcTrs().queryRule(_ruleIndex).apply(_proof.getLeft()));
+            Term temp = _proof.getLeft().querySubterm(_pos);
+            temp = _proof.getLcTrs().queryRule(_ruleIndex).apply(temp);
+            _proof.setLeft(_proof.getLeft().replaceSubterm(_pos, temp));
         }
         //Case 2: Constraint met
         else if (_pos != null && _ruleIndex >= 0) {
@@ -116,7 +125,9 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
 
     @Override
     protected void getEqualities(Term c, ArrayList<Term> equalities) {
-        if (c.isFunctionalTerm() && c.queryRoot().queryName().equals("==")) {
+        if (c.isFunctionalTerm() && c.queryRoot().queryName().equals("==i")) {
+            equalities.add(c);
+        } else if (c.isFunctionalTerm() && c.queryRoot().queryName().equals("==b")) {
             equalities.add(c);
         } else {
             for (int i = 1; i < c.numberImmediateSubterms() + 1; i++) {
@@ -159,8 +170,8 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
     @Override
     public String toString() {
         if (_noArgs) return "simplify";
-        return "simplify " + _pos.toString() + " " + (_ruleIndex + 1)
-                + (_gamma != null ? _gamma.toString() : "");
+        return "simplify " + _pos.toString() + " " + (_ruleIndex + 1) + " "
+                + (_gamma != null ? _gamma.toReplString() : "");
     }
 
     /**

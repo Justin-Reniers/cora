@@ -23,8 +23,6 @@ public class SimplifyCommandSMTTest {
 
     private final static TRS lcTrs;
 
-    //private static ILogger il = (ILogger) (ILogger) new Logger(new ConsoleLogger());
-
     private final static String s = "(SIG\n" +
             "    (factiter\tInt -> Int)\n" +
             "    (iter\t\tInt Int Int -> Int)\n" +
@@ -302,7 +300,6 @@ public class SimplifyCommandSMTTest {
     }
 
     private static EquivalenceProof testProof() throws Exception {
-        //TRS rec_fac = readInput(filePath);
         Term l = LcTrsInputReader.readTermFromString("factrec(n)", lcTrs);
         TreeSet<Variable> vars = new TreeSet<Variable>();
         vars.addAll(l.vars().getVars());
@@ -314,12 +311,11 @@ public class SimplifyCommandSMTTest {
 
     @Test
     public void equivalenceProofDemo() throws Exception {
-        EquivalenceProof p = testProof();//testProof("D:\\Uni\\Master Thesis\\cora backup\\cora\\src\\test\\java\\smt\\utils\\recursive_fact.lctrs");
+        EquivalenceProof p = testProof();
         p.applyNewUserCommand("swap");
         p.applyNewUserCommand("simplify 0 1");
         p.applyNewUserCommand("simplify 0 2");
         p.applyNewUserCommand("simPLIFY");
         p.saveStateToFile("savestate.out");
-        //Logger.finalized();
     }
 }

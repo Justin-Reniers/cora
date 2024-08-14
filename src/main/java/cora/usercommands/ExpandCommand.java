@@ -51,7 +51,7 @@ public class ExpandCommand extends UserCommandInherit implements UserCommand {
             // && rewriteConstraint(_proof, _p, i) != null
             Substitution gamma = rule.queryLeftSide().unify(lp);
             gamma = rewrittenConstraintValid(_proof, i, _p, gamma);
-            if (gamma != null && rule.applicable(lp)) _applicableRules.add(rule);
+            if (gamma != null && rule.applicable(lp.substitute(gamma))) _applicableRules.add(rule);
             //if (rule.applicable(lp)) _applicableRules.add(rule);
         }
         return !_applicableRules.isEmpty();
@@ -61,8 +61,9 @@ public class ExpandCommand extends UserCommandInherit implements UserCommand {
     public void apply() {
         Term lp = _proof.getLeft().querySubterm(_p);
         for (Rule rule : _applicableRules) {
-            Substitution y = lp.unify(rule.queryLeftSide());
-            Term lpt = rule.apply(_proof.getLeft().querySubterm(_p));
+            //Substitution y = lp.unify(rule.queryLeftSide());
+            Substitution y = rule.queryLeftSide().unify(lp);
+            Term lpt = rule.apply(_proof.getLeft().querySubterm(_p).substitute(y));
             Term l = _proof.getLeft().replaceSubterm(_p, lpt).substitute(y);
             Term r = _proof.getRight().substitute(y);
             Term c = new FunctionalTerm(_proof.getLcTrs().lookupSymbol("/\\"),
@@ -98,7 +99,7 @@ public class ExpandCommand extends UserCommandInherit implements UserCommand {
 
     @Override
     public String toString() {
-        return "expand " + _p; // + (_terminating ? "\n" + true : "");
+        return "expand " + _p + (_terminating ? "terminating" : "nonterminating");
     }
 
     private boolean isTerminating(Rule r) {

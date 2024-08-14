@@ -19,8 +19,6 @@ public class SwapCommandSMTTest {
 
     private final static TRS lcTrs;
 
-    //private static ILogger il = (ILogger) (ILogger) new Logger(new ConsoleLogger());
-
     private final static String s = "(SIG\n" +
             "    (factiter\tInt -> Int)\n" +
             "    (iter\t\tInt Int Int -> Int)\n" +

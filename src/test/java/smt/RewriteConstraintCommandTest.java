@@ -31,7 +31,7 @@ public class RewriteConstraintCommandTest {
             "\titer(x, z, i) -> return(z)\t\t\t[i > x]\n" +
             "\tfactrec(x) -> return(1)\t\t\t\t[x <= 1]\n" +
             "\tfactrec(x) -> mul(x, factrec(x-1))\t[x > 1]\n" +
-            "\tmul(x, return(y)) -> return(x*1)\n" +
+            "\tmul(x, return(y)) -> return(x*y)\n" +
             ")\n";
 
     static {
@@ -54,8 +54,8 @@ public class RewriteConstraintCommandTest {
         vars.addAll(r.vars().getVars());
         Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
-        eq.applyNewUserCommand("rewrite [n >= 1 /\\ n > 2 /\\ n < 4] [n==3]");
-        Term c2 = LcTrsInputReader.readTermFromStringWithEnv("n == 3", lcTrs, eq.getVariables());
+        eq.applyNewUserCommand("rewrite [n >= 1 /\\ n > 2 /\\ n < 4] [n ==i 3]");
+        Term c2 = LcTrsInputReader.readTermFromStringWithEnv("n ==i 3", lcTrs, eq.getVariables());
         assertEquals(eq.getConstraint().toString(), c2.toString());
     }
 
@@ -71,8 +71,8 @@ public class RewriteConstraintCommandTest {
         vars.addAll(r.vars().getVars());
         Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
-        eq.applyNewUserCommand("rewrite [n > 2 /\\ n < 4] [n==3]");
-        Term c2 = LcTrsInputReader.readTermFromStringWithEnv("n >= 1 /\\ n == 3", lcTrs, eq.getVariables());
+        eq.applyNewUserCommand("rewrite [n > 2 /\\ n < 4] [n==i3]");
+        Term c2 = LcTrsInputReader.readTermFromStringWithEnv("n >= 1 /\\ n ==i 3", lcTrs, eq.getVariables());
         assertEquals(eq.getConstraint().toString(), c2.toString());
     }
 
@@ -118,7 +118,7 @@ public class RewriteConstraintCommandTest {
         vars.addAll(r.vars().getVars());
         Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
-        eq.applyNewUserCommand("rewrite [n >= 1 /\\ n > 2 /\\ n < 4] [n==5]");
+        eq.applyNewUserCommand("rewrite [n >= 1 /\\ n > 2 /\\ n < 4] [n==i5]");
     }
 
     @Test (expected = UnsatException.class)
