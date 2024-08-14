@@ -218,9 +218,8 @@ public class EquivalenceProof implements Proof {
      */
     @Override
     public void saveStateToFile(String filePath) throws IOException {
-        FileWriter fw = new FileWriter(filePath);
+        FileWriter fw = new FileWriter(filePath, false);
         for (ProofHistory ph : _history) fw.write(ph.toString() + "\n");
-        fw.write(currentState());
         fw.close();
     }
 
@@ -294,6 +293,7 @@ public class EquivalenceProof implements Proof {
     @Override
     public void setCurrentEquation() {
         _cur_eq = _equations.get(0);
+        updateVariables();
     }
 
     @Override

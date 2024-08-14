@@ -59,7 +59,7 @@ public class Var extends LeafTermInherit implements Variable {
   /** Create a variable without a name; a name will be automatically generated. */
   public Var(Type type) {
     super(type);
-    _name = "x[" + COUNTER + "]";
+    _name = "a[" + COUNTER + "]";
     _index = COUNTER;
     COUNTER++;
   }
@@ -67,7 +67,7 @@ public class Var extends LeafTermInherit implements Variable {
   /** Create a variable with auto-generated name and the unit sort, for unsorted rewriting. */
   public Var() {
     super(Sort.unitSort);
-    _name = "x[" + COUNTER + "]";
+    _name = "a[" + COUNTER + "]";
     _index = COUNTER;
     COUNTER++;
   }

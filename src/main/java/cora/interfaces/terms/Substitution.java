@@ -58,5 +58,7 @@ public interface Substitution {
 
   /** Remove the given key/value pair from the mapping. */
   void delete(Variable key);
+
+  String toReplString();
 }
 

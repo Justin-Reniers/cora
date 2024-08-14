@@ -96,6 +96,21 @@ public class Subst implements Substitution {
   }
 
   @Override
+  public String toReplString() {
+        StringBuilder sb = new StringBuilder("[");
+        int counter = 0;
+        for (Variable v : _mapping.keySet()) {
+          if (counter > 0) sb.append(", ");
+          sb.append(v.toString());
+          sb.append(":=");
+          sb.append(_mapping.get(v));
+          counter++;
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+
+    @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("{");
     for (Variable v : _mapping.keySet()) {
