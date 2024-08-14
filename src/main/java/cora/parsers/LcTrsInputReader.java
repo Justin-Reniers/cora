@@ -37,10 +37,10 @@ public class LcTrsInputReader extends InputReader{
     private static final Type boolSort = Sort.boolSort;
     private static final Type intSort = Sort.intSort;
     private static final ArrayList<String> unaryBoolOperators = new ArrayList<>(Arrays.asList("~"));
-    private static final ArrayList<String> binaryBoolOperators = new ArrayList<>(Arrays.asList("/\\", "\\/", "-->", "<-->"));
+    private static final ArrayList<String> binaryBoolOperators = new ArrayList<>(Arrays.asList("/\\", "\\/", "-->", "<-->", "==b", "!=b"));
     private static final ArrayList<String> unaryIntOperators = new ArrayList<>(Arrays.asList("-"));
     private static final ArrayList<String> binaryIntOperators = new ArrayList<>(Arrays.asList("*", "/", "%", "+"));
-    private static final ArrayList<String> binaryIntComparison = new ArrayList<>(Arrays.asList("<", "<=", ">", ">=", "==", "!="));
+    private static final ArrayList<String> binaryIntComparison = new ArrayList<>(Arrays.asList("<", "<=", ">", ">=", "==i", "!=i"));
 
 
     public LcTrsInputReader() { super(cora.parsers.LcTrsParser.VOCABULARY, cora.parsers.LcTrsParser.ruleNames); }
@@ -179,8 +179,10 @@ public class LcTrsInputReader extends InputReader{
         data.addFunctionSymbol(new Constant("<=", intComparison, true, 6));
         data.addFunctionSymbol(new Constant(">", intComparison, true, 6));
         data.addFunctionSymbol(new Constant(">=", intComparison, true, 6));
-        data.addFunctionSymbol(new Constant("==", intComparison, true, 7));
-        data.addFunctionSymbol(new Constant("!=", intComparison, true, 7));
+        data.addFunctionSymbol(new Constant("==i", intComparison, true, 7));
+        data.addFunctionSymbol(new Constant("!=i", intComparison, true, 7));
+        data.addFunctionSymbol(new Constant("==b", boolOperation, true, 7));
+        data.addFunctionSymbol(new Constant("!=b", boolOperation, true, 7));
         addBooleanConstantsToData(data);
     }
 
@@ -315,7 +317,8 @@ public class LcTrsInputReader extends InputReader{
         Term ret = null;
         ArrayList<String> symbols = new ArrayList<>(Arrays.asList("token CONJUNCTION", "token DISJUNCTION",
                 "token CONDITIONAL", "token BICONDITIONAL", "token MULT", "token DIV", "token MOD",
-                "token PLUS", "token LT", "token LTEQ", "token GT", "token GTEQ", "token EQUALITY", "token NEQ"));
+                "token PLUS", "token LT", "token LTEQ", "token GT", "token GTEQ", "token EQUALITYI", "token NEQI",
+                        "token EQUALITYB", "token NEQB"));
         if (tree.getChildCount() == 4 && (checkChild(tree, 0).equals("token NEGATION") ||
                 checkChild(tree, 0).equals("token MINUS"))) {
             ret = getNewFunctionalTermArityOne(tree, data, tree.getChild(0).getText(), mstrs);
@@ -508,9 +511,9 @@ public class LcTrsInputReader extends InputReader{
      * This function reads a user command from the given parse tree.
      */
     private UserCommand readUserInput(ParseTree tree, TRS lcTrs, TreeSet<Variable> env) throws ParserException{
-        ParseData data = new ParseData();
-        for (Variable v : env) data.addVariable(v);
-        for (FunctionSymbol f : lcTrs.querySymbols()) data.addFunctionSymbol(f);
+        ParseData data = new ParseData(lcTrs, env);
+        //for (Variable v : env) data.addVariable(v);
+        //for (FunctionSymbol f : lcTrs.querySymbols()) data.addFunctionSymbol(f);
         return handleUserInput(tree.getChild(0), data);
     }
 
@@ -539,7 +542,6 @@ public class LcTrsInputReader extends InputReader{
             if (tree.getChildCount() > 2) {
                 verifyChildIsRule(tree, 2, "termination", "Termination rule");
                 Boolean b = readTermination(tree.getChild(2), data);
-                System.out.println(b);
                 return new ExpandCommand(pos, b);
             }
             return new ExpandCommand(pos);
@@ -607,7 +609,6 @@ public class LcTrsInputReader extends InputReader{
 
     private Boolean readTermination(ParseTree tree, ParseData data) {
         String kind = checkChild(tree, 0);
-        System.out.println(kind);
         if (kind.equals("token TERMINATING")) return true;
         else if (kind.equals("token NONTERMINATING")) return false;
         return null;

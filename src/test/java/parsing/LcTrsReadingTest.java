@@ -37,6 +37,9 @@ public class LcTrsReadingTest {
         assertEquals(lcTrs.lookupSymbol("-->").queryType().toString(), "Bool → Bool → Bool");
         assertEquals(lcTrs.lookupSymbol("<-->").queryType().toString(), "Bool → Bool → Bool");
 
+        assertEquals(lcTrs.lookupSymbol("==b").queryType().toString(), "Bool → Bool → Bool");
+        assertEquals(lcTrs.lookupSymbol("!=b").queryType().toString(), "Bool → Bool → Bool");
+
         assertEquals(lcTrs.lookupSymbol("-").queryType().toString(), "Int → Int");
         assertEquals(lcTrs.lookupSymbol("*").queryType().toString(), "Int → Int → Int");
         assertEquals(lcTrs.lookupSymbol("/").queryType().toString(), "Int → Int → Int");
@@ -47,8 +50,8 @@ public class LcTrsReadingTest {
         assertEquals(lcTrs.lookupSymbol("<=").queryType().toString(), "Int → Int → Bool");
         assertEquals(lcTrs.lookupSymbol(">").queryType().toString(), "Int → Int → Bool");
         assertEquals(lcTrs.lookupSymbol(">=").queryType().toString(), "Int → Int → Bool");
-        assertEquals(lcTrs.lookupSymbol("==").queryType().toString(), "Int → Int → Bool");
-        assertEquals(lcTrs.lookupSymbol("!=").queryType().toString(), "Int → Int → Bool");
+        assertEquals(lcTrs.lookupSymbol("==i").queryType().toString(), "Int → Int → Bool");
+        assertEquals(lcTrs.lookupSymbol("!=i").queryType().toString(), "Int → Int → Bool");
     }
 
     @Test
@@ -81,7 +84,7 @@ public class LcTrsReadingTest {
                 "(SIG\n" +
                 "(or    Bool Bool -> Bool))\n" +
                 "(RULES\n" +
-                "or(z, or(x, y)) -> z /\\ y \\/ x [1 == t-2]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 ==i t-2]\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
@@ -92,7 +95,7 @@ public class LcTrsReadingTest {
                 "(SIG\n" +
                 "(or    Bool Bool -> Bool))\n" +
                 "(RULES\n" +
-                "or(z, or(x, y)) -> z /\\ y \\/ x [-1 == t+-3]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [-1 ==i t+-3]\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
@@ -103,8 +106,8 @@ public class LcTrsReadingTest {
                 "(SIG\n" +
                 "(or    Bool Bool -> Bool))\n" +
                 "(RULES\n" +
-                "or(z, or(x, y)) -> z /\\ y \\/ x [1 == t+-3]\n" +
-                "or(z, or(x, y)) -> z /\\ y \\/ x [1 == t-3]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 ==i t+-3]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 ==i t-3]\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
@@ -115,8 +118,8 @@ public class LcTrsReadingTest {
                 "(SIG\n" +
                 "(or    Bool Bool -> Bool))\n" +
                 "(RULES\n" +
-                "or(z, or(x, y)) -> z /\\ y \\/ x [-1 == -(t+-3)]\n" +
-                "or(z, or(x, y)) -> z /\\ y \\/ x [1 == t-3]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [-1 ==i -(t+-3)]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 ==i t-3]\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
@@ -128,7 +131,7 @@ public class LcTrsReadingTest {
                 "(or    Bool Bool -> Bool))\n" +
                 "(RULES\n" +
                 "or(z, or(x, y)) -> z /\\ y \\/ x [1 >= t+-3*4]\n" +
-                "or(z, or(x, y)) -> z /\\ y \\/ x [1 == t-3*4]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 ==i t-3*4]\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
@@ -140,7 +143,7 @@ public class LcTrsReadingTest {
                 "(or    Bool Bool -> Bool))\n" +
                 "(RULES\n" +
                 "or(z, or(x, y)) -> z /\\ y \\/ x [1 >= t+-3*4]\n" +
-                "or(z, or(x, y)) -> z /\\ y \\/ x [1 == t-3*4]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 ==i t-3*4]\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
@@ -221,7 +224,7 @@ public class LcTrsReadingTest {
                 "(SIG\n" +
                 "(or    Bool Bool -> Bool))\n" +
                 "(RULES\n" +
-                "or(z, or(x, y)) -> z /\\ y \\/ x [1 == 1]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [1 ==i 1]\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
@@ -232,18 +235,27 @@ public class LcTrsReadingTest {
                 "(SIG\n" +
                 "(or    Bool Bool -> Bool))\n" +
                 "(RULES\n" +
-                "or(z, or(x, y)) -> z /\\ y \\/ x [z == 1]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [z ==i 1]\n" +
+                ")";
+        TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
+    }
+
+    @Test (expected = TypingException.class)
+    public void testInequalityOperatorWrongType() throws ParserException {
+        String s = "(VAR x y z)\n" +
+                "(SIG\n" +
+                "(or    Bool Bool -> Bool))\n" +
+                "(RULES\n" +
+                "or(z, or(x, y)) -> z \\/ y \\/ x [x !=i 1]\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
 
     @Test
-    public void testInequalityOperator() throws ParserException {
-        String s = "(VAR x y z)\n" +
-                "(SIG\n" +
-                "(or    Bool Bool -> Bool))\n" +
+    public void testInequalityIOperator() throws ParserException {
+        String s = "(VAR x y)\n" +
                 "(RULES\n" +
-                "or(z, or(x, y)) -> z /\\ y \\/ x [1 != 1]\n" +
+                "x + y -> y + x [x ==i 2]\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
@@ -254,18 +266,18 @@ public class LcTrsReadingTest {
                 "(SIG\n" +
                 "(or    Bool Bool -> Bool))\n" +
                 "(RULES\n" +
-                "or(z, or(x, y)) -> z /\\ y \\/ x [x != 1]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [x !=i 1]\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
 
-    @Test(expected = TypingException.class)
-    public void testWrongTypingInequalityOperator2() throws ParserException {
+    @Test
+    public void testInequalityOperator2() throws ParserException {
         String s = "(VAR x y z)\n" +
                 "(SIG\n" +
                 "(or    Bool Bool -> Bool))\n" +
                 "(RULES\n" +
-                "or(z, or(x, y)) -> z /\\ y \\/ x [x != y]\n" +
+                "or(z, or(x, y)) -> z /\\ y \\/ x [x !=b y]\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
@@ -413,7 +425,7 @@ public class LcTrsReadingTest {
                 "(SIG\n" +
                 "(or    Bool Bool -> Bool))\n" +
                 "(RULES\n" +
-                "x /\\ y /\\ z-> y /\\ x /\\ z [-1 == -3]\n" +
+                "x /\\ y /\\ z-> y /\\ x /\\ z [-1 ==i -3]\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
@@ -424,7 +436,7 @@ public class LcTrsReadingTest {
                 "(SIG\n" +
                 "(or    Bool Bool -> Bool))\n" +
                 "(RULES\n" +
-                "x /\\ y \\/ z -> z /\\ y \\/ x [-1 == -3 /\\ -2 > -3]\n" +
+                "x /\\ y \\/ z -> z /\\ y \\/ x [-1 ==i -3 /\\ -2 > -3]\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
@@ -435,7 +447,7 @@ public class LcTrsReadingTest {
                 "(SIG\n" +
                 "(or    Bool Bool -> Bool))\n" +
                 "(RULES\n" +
-                "x --> y --> z -> y --> z  [-1 == -3]\n" +
+                "x --> y --> z -> y --> z  [-1 ==i -3]\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }
@@ -446,7 +458,7 @@ public class LcTrsReadingTest {
                 "(SIG\n" +
                 "(or    Bool Bool -> Bool))\n" +
                 "(RULES\n" +
-                "x <--> y <--> z -> y <--> x <--> z [-1 == -3]\n" +
+                "x <--> y <--> z -> y <--> x <--> z [-1 ==i -3]\n" +
                 ")";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(s);
     }

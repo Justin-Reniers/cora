@@ -30,13 +30,19 @@ WHITESPACE          : [ \t\r\n]+ -> skip ;
 
 ARROW               : '-' '>' ;
 
-EQUALITY            : '=' '=' ;
-
 COMMA               : ',' ;
 
 ASSIGNMENT          : ':' '=' ;
 
+EQUALITYI           : '=' '=' 'i';
 
+NEQI                : '!' '=' 'i';
+
+/* Boolean Comparison Operators */
+
+EQUALITYB           : '=' '=' 'b' ;
+
+NEQB                : '!' '=' 'b' ;
 
 /* Logical Operators */
 
@@ -56,9 +62,7 @@ LTEQ                : '<' '=' ;
 
 GT                  : '>' ;
 
-GTEQ                : '>' '=' ;
-
-NEQ                 : '!' '=' ;
+GTEQ                : '>' '=';
 
 /* Arithmetic Operators */
 

@@ -40,7 +40,6 @@ public class EquivalenceProof implements Proof {
      */
     public EquivalenceProof(TRS lcTrs, Term left, Term right, Term constraint) {
         _lcTrs = lcTrs;
-        //TODO add flag reading for confluence of lctrs yes or no.
         _completeness = true;
         _equations = new ArrayList<Equation>();
         _completenessEquations = new ArrayList<Equation>();
@@ -49,8 +48,6 @@ public class EquivalenceProof implements Proof {
             Equation equation = new Equation(left, right, constraint);
             _cur_eq = equation;
             _equations.add(equation);
-            _history.add(new ProofHistory(_equations, null, _completeness, _completenessEquations, _bottom,
-                    null));
         }
         _varcounter = 0;
         _bottom = false;

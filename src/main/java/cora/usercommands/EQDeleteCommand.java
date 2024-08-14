@@ -12,6 +12,9 @@ import cora.terms.Var;
 import java.util.ArrayList;
 import java.util.TreeSet;
 
+import static cora.types.Sort.boolSort;
+import static cora.types.Sort.intSort;
+
 public class EQDeleteCommand extends UserCommandInherit implements UserCommand {
     private EquivalenceProof _proof;
 
@@ -50,16 +53,34 @@ public class EQDeleteCommand extends UserCommandInherit implements UserCommand {
             if (lt.equals(rt)) continue;
             else if (lt.isVariable() && rt.isVariable() && vars.contains((Variable) lt) &&
                     vars.contains((Variable) rt) && !lt.equals(rt)) {
-                ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("=="), lt, rt));
+                if (lt.queryType().equals(intSort)) {
+                    ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==i"), lt, rt));
+                } else if (lt.queryType().equals(boolSort)) {
+                    ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==b"), lt, rt));
+                }
             } else if (lt.isVariable() && vars.contains((Variable) lt)) {
-                ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("=="), lt, rt));
+                if (lt.queryType().equals(intSort)) {
+                    ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==i"), lt, rt));
+                } else if (lt.queryType().equals(boolSort)) {
+                    ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==b"), lt, rt));
+                }
             } else if (rt.isVariable() && vars.contains((Variable) rt)) {
-                ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("=="), rt, lt));
+                if (lt.queryType().equals(intSort)) {
+                    ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==i"), rt, lt));
+                } else if (lt.queryType().equals(boolSort)) {
+                    ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==b"), rt, lt));
+                }
             } else if (_proof.getLcTrs().lookupSymbol(lt.queryRoot().queryName()) != null &&
                     _proof.getLcTrs().lookupSymbol(rt.queryRoot().queryName()) != null &&
                     lt.queryRoot().equals(rt.queryRoot())) {
                 for (int j = 1; j <= lt.numberImmediateSubterms(); j++) compareTerms(lt, rt, ineqs, vars);
-            } else ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("=="), lt, rt));
+            } else {
+                if (lt.queryType().equals(intSort)) {
+                    ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==i"), lt, rt));
+                } else if (lt.queryType().equals(boolSort)) {
+                    ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==b"), lt, rt));
+                }
+            }
         }
     }
 

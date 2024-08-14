@@ -37,7 +37,7 @@ public class PostulateCommandSMTTest {
             "\titer(x, z, i) -> return(z)\t\t\t[i > x]\n" +
             "\tfactrec(x) -> return(1)\t\t\t\t[x <= 1]\n" +
             "\tfactrec(x) -> mul(x, factrec(x-1))\t[x > 1]\n" +
-            "\tmul(x, return(y)) -> return(x*1)\n" +
+            "\tmul(x, return(y)) -> return(x*y)\n" +
             ")\n";
 
     static {
@@ -52,7 +52,7 @@ public class PostulateCommandSMTTest {
     public void postulateExampleTest() throws ParserException {
         String t1 = "return(2)";
         String t2 = "return(1)";
-        String c1 = "x==2";
+        String c1 = "x==i 2";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
@@ -69,7 +69,7 @@ public class PostulateCommandSMTTest {
     public void postulateExampleTest2() throws ParserException {
         String t1 = "return(2)";
         String t2 = "return(1)";
-        String c1 = "x==2";
+        String c1 = "x==i 2";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
@@ -86,7 +86,7 @@ public class PostulateCommandSMTTest {
     public void postulateInvalidFunctionsExampleTest() throws ParserException {
         String t1 = "return(2)";
         String t2 = "return(1)";
-        String c1 = "x==2";
+        String c1 = "x==i 2";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());

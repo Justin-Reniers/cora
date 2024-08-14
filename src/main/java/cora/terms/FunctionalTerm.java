@@ -197,7 +197,6 @@ public class FunctionalTerm extends ApplicativeTermInherit implements Term {
   public String toString() {
     String ret = "";
     if (_args.size() == 0) return _f.toString();
-    //System.out.println(_f + " " + _args.get(0) + " " + _args.get(0).numberImmediateSubterms());
     else if (_args.size() == 1 && _f.isInfix() && _args.get(0).numberImmediateSubterms() <= 1) {
       ret += _f.toString() + _args.get(0);
     }

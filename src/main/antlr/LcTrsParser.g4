@@ -37,6 +37,12 @@ ruleslist           : BRACKETOPEN RULEDECSTART trsrule* BRACKETCLOSE ;
 typeorarity         : identifier | identifier* ARROW identifier ;
 
 fundec              : BRACKETOPEN identifier typeorarity BRACKETCLOSE ;
+/**
+add optional argument for infix function symbol
+    BRACKETOPEN identifier typeoraritytwo infix? BRACKETCLOSE ;
+
+    typeoraritytwo : identifier identifier ARROW identifier ;
+*/
 
 trsrule             : term ARROW term logicalconstraint? ;
 
@@ -49,10 +55,11 @@ term                : identifier
                     | term (MULT | DIV | MOD) term
                     | term (PLUS | MINUS) term
                     | term (LT | LTEQ | GT | GTEQ)*? term
-                    | term (EQUALITY | NEQ)*? term
+                    | term (EQUALITYI | NEQI)*? term
                     | term (CONJUNCTION | DISJUNCTION)*? term
                     | <assoc=right> term CONDITIONAL term
                     | term BICONDITIONAL term
+                    | term (EQUALITYB | NEQB)*? term
                     | numeric
                     ;
 

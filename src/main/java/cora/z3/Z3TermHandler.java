@@ -32,6 +32,13 @@ public class Z3TermHandler {
         _lcTrs = lcTrs;
     }
 
+    public Z3TermHandler(Context ctx, Solver s, Z3Helper z3h, TRS lctrs) {
+        _ctx = ctx;
+        _s = s;
+        _z3Helper = z3h;
+        _lcTrs = lctrs;
+    }
+
     public Expr deconstruct(Term t) {
         if (t.isConstant()) {
             if (t.queryType().equals(Sort.intSort)) return getIntVal(_ctx, Integer.parseInt(t.queryRoot().queryName()));
@@ -71,10 +78,10 @@ public class Z3TermHandler {
                 case ">=":
                     return getGeExpr(_ctx, deconstruct(t.queryImmediateSubterm(1)),
                             deconstruct(t.queryImmediateSubterm(2)));
-                case "==":
+                case "==i", "==b":
                     return getEqExpr(_ctx, deconstruct(t.queryImmediateSubterm(1)),
                             deconstruct(t.queryImmediateSubterm(2)));
-                case "!=":
+                case "!=i", "!=b":
                     return getNeqExpr(_ctx, deconstruct(t.queryImmediateSubterm(1)),
                             deconstruct(t.queryImmediateSubterm(2)));
                 case "*":
@@ -113,11 +120,18 @@ public class Z3TermHandler {
         Environment env = t.vars();
         Expr e = deconstruct(t);
         if (e.getSort().equals(_ctx.getBoolSort())) {
-            Goal g = _ctx.mkGoal(true, false, false); //params: models, unsatCores, proofs
+            Goal g = _ctx.mkGoal(true, true, false); //params: models, unsatCores, proofs
             g.add(e);
-            Tactic css = _ctx.mkTactic("ctx-solver-simplify");
+            Tactic css = _ctx.mkTactic("solver-subsumption");
             ApplyResult ar = css.apply(g);
-            Term s = reconstruct(ar.getSubgoals()[0].getFormulas()[0], env);
+            Term s = null;
+            for (Goal sg : ar.getSubgoals())
+                if (sg.isDecidedSat() && sg.getFormulas().length==0) {
+                    s = t;
+                }
+                else {
+                    s = reconstruct(ar.getSubgoals()[0].getFormulas()[0], env);
+                }
             for (int i = 1; i < ar.getSubgoals()[0].getFormulas().length; i++) {
                 s = new FunctionalTerm(_lcTrs.lookupSymbol("/\\"), s,
                         reconstruct(ar.getSubgoals()[0].getFormulas()[i], env));
@@ -151,8 +165,11 @@ public class Z3TermHandler {
             return new Var(e.toString(), Sort.boolSort);
         }
         if (e.isNot()) {
-            if (e.getArgs()[0].isEq()) {
-                return new FunctionalTerm(_lcTrs.lookupSymbol("!="), reconstruct(e.getArgs()[0], env),
+            if (e.getArgs()[0].isEq() && e.getArgs()[1].isBool()) {
+                return new FunctionalTerm(_lcTrs.lookupSymbol("!=b"), reconstruct(e.getArgs()[0], env),
+                        reconstruct(e.getArgs()[1], env));
+            } else if (e.getArgs()[0].isEq() && e.getArgs()[1].isInt()) {
+                return new FunctionalTerm(_lcTrs.lookupSymbol("!=i"), reconstruct(e.getArgs()[0], env),
                         reconstruct(e.getArgs()[1], env));
             } else {
                 return new FunctionalTerm(_lcTrs.lookupSymbol("~"), reconstruct(e.getArgs()[0], env));
@@ -191,8 +208,13 @@ public class Z3TermHandler {
                     reconstruct(e.getArgs()[1], env));
         }
         if (e.isEq()) {
-            return new FunctionalTerm(_lcTrs.lookupSymbol("=="), reconstruct(e.getArgs()[0], env),
+            if (e.getArgs()[0].isBool()) {
+                return new FunctionalTerm(_lcTrs.lookupSymbol("==b"), reconstruct(e.getArgs()[0], env),
                     reconstruct(e.getArgs()[1], env));
+            } else {
+                return new FunctionalTerm(_lcTrs.lookupSymbol("==i"), reconstruct(e.getArgs()[0], env),
+                        reconstruct(e.getArgs()[1], env));
+            }
         }
         if (e.isMul()) {
             return new FunctionalTerm(_lcTrs.lookupSymbol("*"), reconstruct(e.getArgs()[0], env),
@@ -240,14 +262,6 @@ public class Z3TermHandler {
         return null;
     }
 
-    public boolean validity(Term constraint) {
-        Expr c = deconstruct(constraint);
-        System.out.println(c);
-        Expr e = getNot(_ctx, c);
-        boolean satisfiable = satisfiable(e);
-        return !satisfiable;
-    }
-
     public boolean validity(Term left, Term right, FunctionSymbol f) {
         TreeSet<Variable> rightVars = right.vars().getVars();
         ArrayList<Expr> freeVars = new ArrayList<>();
@@ -279,7 +293,6 @@ public class Z3TermHandler {
         _s.add(constraint);
         if (getModel()!= null) {
             Model m = getModel();
-            System.out.println(m);
         }
         return getModel() != null;
     }

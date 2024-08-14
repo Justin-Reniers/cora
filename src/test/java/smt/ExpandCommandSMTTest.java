@@ -37,7 +37,7 @@ public class ExpandCommandSMTTest {
             "\titer(x, z, i) -> return(z)\t\t\t[i > x]\n" +
             "\tfactrec(x) -> return(1)\t\t\t\t[x <= 1]\n" +
             "\tfactrec(x) -> mul(x, factrec(x-1))\t[x > 1]\n" +
-            "\tmul(x, return(y)) -> return(x*1)\n" +
+            "\tmul(x, return(y)) -> return(x*y)\n" +
             ")\n";
 
     static {
@@ -53,6 +53,24 @@ public class ExpandCommandSMTTest {
         String t1 = "factrec(n)";
         String t2 = "iter(n, 1, 2)";
         String c1 = "n >= 1";
+        Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
+        TreeSet<Variable> vars = new TreeSet<>();
+        vars.addAll(l.vars().getVars());
+        Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
+        vars.addAll(r.vars().getVars());
+        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        vars.addAll(c.vars().getVars());
+        EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
+        eq.applyNewUserCommand("expand 0 terminating");
+        FirstOrderRule rule = new FirstOrderRule(l, r, c);
+        assertEquals(rule, eq.getLcTrs().queryRule(eq.getLcTrs().queryRuleCount()-1));
+    }
+
+    @Test
+    public void expandExampleTest2() throws ParserException {
+        String t1 = "iter(n, a, b)";
+        String t2 = "mul(n, iter(m, x, y))";
+        String c1 = "n>=y/\\m==i n+-1/\\b==iy+1/\\a==ix*y";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());

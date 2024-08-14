@@ -14,6 +14,9 @@ import cora.z3.Z3TermHandler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.function.Function;
+
+import static cora.types.Sort.intSort;
 
 public class DisproveCommand extends UserCommandInherit implements UserCommand {
     private EquivalenceProof _proof;
@@ -36,13 +39,18 @@ public class DisproveCommand extends UserCommandInherit implements UserCommand {
         Term c = _proof.getConstraint();
         Z3TermHandler z3 = new Z3TermHandler(_proof.getLcTrs());
         //s, t E Terms(Sigma_theory, V), i is a theory sort, and phi /\ s != t is satisfiable
-        if ((l.queryType().equals(Sort.intSort) || l.queryType().equals(Sort.boolSort)) &&
+        if ((l.queryType().equals(intSort) || l.queryType().equals(Sort.boolSort)) &&
             ((isNumeric(l.queryRoot().queryName()) && isNumeric(r.queryRoot().queryName()))) ||
             (isNumeric(l.queryRoot().queryName()) && _theorySymbols.contains(r.queryRoot().queryName())) ||
             (_theorySymbols.contains(l.queryRoot().queryName()) && isNumeric(r.queryRoot().queryName())) ||
             ((_theorySymbols.contains(l.queryRoot().queryName()) && _theorySymbols.contains(r.queryRoot().queryName())))
         ) {
-            Term ineq = new FunctionalTerm(_proof.getLcTrs().lookupSymbol("!="), l, r);
+            Term ineq;
+                if (l.queryType().equals(r.queryType()) && l.queryType().equals(intSort)) {
+                    ineq = new FunctionalTerm(_proof.getLcTrs().lookupSymbol("!=i"), l, r);
+                } else {
+                    ineq = new FunctionalTerm(_proof.getLcTrs().lookupSymbol("!=b"), l, r);
+                }
             Term nc = new FunctionalTerm(_proof.getLcTrs().lookupSymbol("/\\"), c, ineq);
             if (z3.satisfiable(nc)) return true;
         }

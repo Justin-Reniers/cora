@@ -33,7 +33,7 @@ public class DeleteCommandSMTTest {
             "\titer(x, z, i) -> return(z)\t\t\t[i > x]\n" +
             "\tfactrec(x) -> return(1)\t\t\t\t[x <= 1]\n" +
             "\tfactrec(x) -> mul(x, factrec(x-1))\t[x > 1]\n" +
-            "\tmul(x, return(y)) -> return(x*1)\n" +
+            "\tmul(x, return(y)) -> return(x*y)\n" +
             ")\n";
 
     static {
@@ -48,7 +48,7 @@ public class DeleteCommandSMTTest {
     public void testDeleteEqualTermsConstants() throws ParserException {
         String t1 = "f(0)";
         String t2 = "f(0)";
-        String c1 = "z == x + 0";
+        String c1 = "z ==i x + 0";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
@@ -64,7 +64,7 @@ public class DeleteCommandSMTTest {
     public void testDeleteEqualTermsVariables() throws ParserException {
         String t1 = "f(x)";
         String t2 = "f(x)";
-        String c1 = "z == x + 0";
+        String c1 = "z ==i x + 0";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
@@ -80,7 +80,7 @@ public class DeleteCommandSMTTest {
     public void testDeleteUnsatConstraint() throws ParserException {
         String t1 = "f(0)";
         String t2 = "f(1)";
-        String c1 = "z == 0 /\\ z == 2";
+        String c1 = "z ==i 0 /\\ z ==i 2";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
@@ -96,7 +96,7 @@ public class DeleteCommandSMTTest {
     public void testDeleteUnequalTerms() throws ParserException {
         String t1 = "f(0)";
         String t2 = "f(x)";
-        String c1 = "z == x + 0";
+        String c1 = "z ==i x + 0";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
@@ -112,7 +112,7 @@ public class DeleteCommandSMTTest {
     public void testDeleteVarReplacement() throws ParserException {
         String t1 = "f(z)";
         String t2 = "f(x + 0)";
-        String c1 = "z == x + 0";
+        String c1 = "z ==i x + 0";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
@@ -130,7 +130,7 @@ public class DeleteCommandSMTTest {
     public void testDeleteVarUnequalReplacement() throws ParserException {
         String t1 = "f(x + 0)";
         String t2 = "f(y)";
-        String c1 = "z == x + 0";
+        String c1 = "z ==i x + 0";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());

@@ -30,7 +30,7 @@ public class EQDeleteCommandSMTTest {
             "\titer(x, z, i) -> return(z)\t\t\t[i > x]\n" +
             "\tfactrec(x) -> return(1)\t\t\t\t[x <= 1]\n" +
             "\tfactrec(x) -> mul(x, factrec(x-1))\t[x > 1]\n" +
-            "\tmul(x, return(y)) -> return(x*1)\n" +
+            "\tmul(x, return(y)) -> return(x*y)\n" +
             ")\n";
 
     static {
@@ -45,7 +45,7 @@ public class EQDeleteCommandSMTTest {
     public void eqDeleteExampleTest() throws ParserException {
         String t1 = "return(n*x)";
         String t2 = "return(x_1)";
-        String c1 = "n == y /\\ m == n - 1 /\\ y_1 == y + 1 /\\ x_1 == x * y";
+        String c1 = "n ==i y /\\ m ==i n - 1 /\\ y_1 ==i y + 1 /\\ x_1 ==i x * y";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
@@ -55,7 +55,7 @@ public class EQDeleteCommandSMTTest {
         vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("eqdelete");
-        String nc = "n == y /\\ m == n - 1 /\\ y_1 == y + 1 /\\ x_1 == x * y /\\ ~(x_1 == n*x)";
+        String nc = "n ==i y /\\ m ==i n - 1 /\\ y_1 ==i y + 1 /\\ x_1 ==i x * y /\\ ~(x_1 ==i n*x)";
         Term newC = LcTrsInputReader.readTermFromStringWithEnv(nc, lcTrs, eq.getVariables());
         assertEquals(eq.getConstraint(), newC);
     }

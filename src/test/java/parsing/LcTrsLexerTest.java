@@ -117,10 +117,17 @@ public class LcTrsLexerTest {
     }
 
     @Test
-    public void testLexerEquality() {
-        ArrayList<Token> ts = tokenize("==");
+    public void testLexerEqualityInteger() {
+        ArrayList<Token> ts = tokenize("==i");
          assertEquals(ts.size(), 1);
-         assertEquals(ts.get(0).getType(), LcTrsLexer.EQUALITY);
+         assertEquals(ts.get(0).getType(), LcTrsLexer.EQUALITYI);
+    }
+
+    @Test
+    public void testLexerEqualityBoolean() {
+        ArrayList<Token> ts = tokenize("==b");
+        assertEquals(ts.size(), 1);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.EQUALITYB);
     }
 
     @Test
@@ -229,10 +236,17 @@ public class LcTrsLexerTest {
     }
 
     @Test
-    public void testLexerNotEqual() {
-        ArrayList<Token> ts = tokenize("!=");
+    public void testLexerNotEqualInteger() {
+        ArrayList<Token> ts = tokenize("!=i");
         assertEquals(ts.size(), 1);
-        assertEquals(ts.get(0).getType(), LcTrsLexer.NEQ);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.NEQI);
+    }
+
+    @Test
+    public void testLexerNotEqualBoolean() {
+        ArrayList<Token> ts = tokenize("!=b");
+        assertEquals(ts.size(), 1);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.NEQB);
     }
 
     @Test
@@ -332,6 +346,15 @@ public class LcTrsLexerTest {
         assertEquals(ts.get(13).getType(), LcTrsLexer.ARROW);
         assertEquals(ts.get(14).getType(), LcTrsLexer.WORD);
         assertEquals(ts.get(15).getType(), LcTrsLexer.BRACKETCLOSE);
+    }
+
+    @Test
+    public void testEqualityTokenize() {
+        ArrayList<Token> ts = tokenize("1 !=i 3");
+        assertEquals(ts.size(), 3);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.NUM);
+        assertEquals(ts.get(1).getType(), LcTrsLexer.NEQI);
+        assertEquals(ts.get(2).getType(), LcTrsLexer.NUM);
     }
 
     @Test
