@@ -52,13 +52,13 @@ public class ExpandCommandSMTTest {
     public void expandExampleTest() throws ParserException {
         String t1 = "factrec(n)";
         String t2 = "iter(n, 1, 2)";
-        String c1 = "n >= 1";
+        String c1 = "[n >= 1]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("expand 0 terminating");
@@ -70,13 +70,13 @@ public class ExpandCommandSMTTest {
     public void expandExampleTest2() throws ParserException {
         String t1 = "iter(n, a, b)";
         String t2 = "mul(n, iter(m, x, y))";
-        String c1 = "n>=y/\\m==i n+-1/\\b==iy+1/\\a==ix*y";
+        String c1 = "[n>=y/\\m==i n+-1/\\b==iy+1/\\a==ix*y]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("expand 0 terminating");
@@ -88,13 +88,13 @@ public class ExpandCommandSMTTest {
     public void expandNonTerminatingTest() throws ParserException {
         String t1 = "factrec(n)";
         String t2 = "factiter(n+1)";
-        String c1 = "n >= 1";
+        String c1 = "[n >= 1]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("expand 0 nonterminating");
@@ -106,13 +106,13 @@ public class ExpandCommandSMTTest {
     public void expandExampleTestTerminationNotSupported() throws ParserException {
         String t1 = "factrec(n)";
         String t2 = "iter(n, 1, 2)";
-        String c1 = "n >= 1";
+        String c1 = "[n >= 1]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("expand 0");
@@ -124,13 +124,13 @@ public class ExpandCommandSMTTest {
     public void invalidExpandTest() throws ParserException {
         String t1 = "factrec(n)";
         String t2 = "iter(n, 1, 2)";
-        String c1 = "n >= 1";
+        String c1 = "[n >= 1]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         int eqSize = eq.getEquations().size();

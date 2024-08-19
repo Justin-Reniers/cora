@@ -46,13 +46,13 @@ public class ConstructorCommandSMTTest {
     public void constructorExampleTest() throws ParserException {
         String t1 = "return(2)";
         String t2 = "return(1)";
-        String c1 = "x==i2";
+        String c1 = "[x==i2]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("constructor");
@@ -64,13 +64,13 @@ public class ConstructorCommandSMTTest {
     public void constructorTestMultipleArgs() throws ParserException {
         String t1 = "h(x, 1, 2)";
         String t2 = "h(x, 3, 4)";
-        String c1 = "x ==i 2";
+        String c1 = "[x ==i 2]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("constructor");

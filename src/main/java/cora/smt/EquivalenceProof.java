@@ -1,9 +1,6 @@
 package cora.smt;
 
-import cora.exceptions.BottomException;
-import cora.exceptions.InvalidRuleApplicationException;
-import cora.exceptions.ParserException;
-import cora.exceptions.UnsatException;
+import cora.exceptions.*;
 import cora.interfaces.rewriting.Rule;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.Proof;
@@ -12,8 +9,10 @@ import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
 import cora.interfaces.types.Type;
 import cora.parsers.LcTrsInputReader;
+import cora.rewriting.FirstOrderRule;
 import cora.terms.Var;
 import cora.usercommands.UndoCommand;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,7 +30,7 @@ public class EquivalenceProof implements Proof {
     private Equation _cur_eq;
     private ArrayList<ProofHistory> _history;
     private TreeSet<Variable> _env;
-    private int _varcounter;
+    private int _varcounter, _proven;
     private boolean _bottom;
 
     /**
@@ -51,6 +50,7 @@ public class EquivalenceProof implements Proof {
         }
         _varcounter = 0;
         _bottom = false;
+        _proven = 0;
         _env = new TreeSet<Variable>();
         try {
             _env.addAll(_cur_eq.getLeft().vars().getVars());
@@ -68,12 +68,19 @@ public class EquivalenceProof implements Proof {
         _history = new ArrayList<ProofHistory>();
         _varcounter = 0;
         _bottom = true;
+        _proven = 0;
         _env = new TreeSet<Variable>();
     }
 
     private void updateVariables() {
         _env = new TreeSet<>();
         try {
+            for (int i = 0; i < _lcTrs.queryRuleCount(); i++) {
+                FirstOrderRule r = (FirstOrderRule) _lcTrs.queryRule(i);
+                _env.addAll(r.queryLeftSide().vars().getVars());
+                _env.addAll(r.queryRightSide().vars().getVars());
+                _env.addAll(r.queryConstraint().vars().getVars());
+            }
             _env.addAll(_cur_eq.getLeft().vars().getVars());
             _env.addAll(_cur_eq.getRight().vars().getVars());
             _env.addAll(_cur_eq.getConstraint().vars().getVars());
@@ -83,8 +90,35 @@ public class EquivalenceProof implements Proof {
     }
 
     @Override
-    public TreeSet<Variable> getVariables() {
+    public TreeSet<Variable> getEquationVariables() {
         return _env;
+    }
+
+    @Override
+    public TreeSet<Variable> getCurrentEqVariables() {
+        TreeSet<Variable> vars = new TreeSet<>();
+        try {
+            vars.addAll(_cur_eq.getLeft().vars().getVars());
+            vars.addAll(_cur_eq.getRight().vars().getVars());
+            vars.addAll(_cur_eq.getConstraint().vars().getVars());
+        } catch (NullPointerException ignored) {
+
+        }
+        return vars;
+    }
+
+    @Override
+    public TreeSet<Variable> getRuleVariables(int ruleIndex) {
+        TreeSet<Variable> vars = new TreeSet<>();
+        try {
+            FirstOrderRule r = (FirstOrderRule) _lcTrs.queryRule(ruleIndex);
+            vars.addAll(r.queryLeftSide().vars().getVars());
+            vars.addAll(r.queryRightSide().vars().getVars());
+            vars.addAll(r.queryConstraint().vars().getVars());
+        } catch (NullPointerException ignored) {
+
+        }
+        return vars;
     }
 
     /**
@@ -97,18 +131,22 @@ public class EquivalenceProof implements Proof {
     public void applyNewUserCommand(String uCommand) {
         if (_bottom) throw new BottomException(uCommand);
         try {
-            UserCommand uc = LcTrsInputReader.readUserInputFromString(uCommand, _lcTrs, _env);
+            UserCommand uc = LcTrsInputReader.readUserInputFromString(uCommand, this);
             uc.setProof(this);
             if (uc.applicable()) {
                 if (!(uc instanceof UndoCommand)) _history.add(new ProofHistory(_equations, uc, _completeness,
                         _completenessEquations, _bottom, _lcTrs));
                 uc.apply();
                 updateVariables();
+                if (_completeness && _equations.isEmpty() && _bottom) _proven = 2;
+                if (_completeness && _equations.isEmpty()) _proven = 1;
             } else {
                 throw new InvalidRuleApplicationException(uCommand);
             };
-        } catch (ParserException | InvalidRuleApplicationException e) {
-            throw new InvalidRuleApplicationException(uCommand);
+        } catch (ParserException e) {
+            throw new InvalidRuleParseException(uCommand);
+        } catch (InvalidRuleApplicationException | BottomException e) {
+            throw e;
         } catch (UnsatException e) {
             throw new UnsatException(e.getMessage());
         }
@@ -332,5 +370,10 @@ public class EquivalenceProof implements Proof {
     public String currentState() {
         return _cur_eq.getLeft().toString() + "\t" + _cur_eq.getRight().toString() +
                 "\t[" + _cur_eq.getConstraint().toString() + "]";
+    }
+
+    @Override
+    public int proofIsFinished() {
+        return _proven;
     }
 }

@@ -50,18 +50,18 @@ public class ConstraintRewritingTest {
                 ")\n";
         String t1 = "f(x + 1, 1)";
         String t2 = "f(x + 1, 1)";
-        String c1 = "x >= 0";
+        String c1 = "[x >= 0]";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(lctrs);
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("simplify");
         eq.applyNewUserCommand("simplify 0 1");
-        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("g(1)", lcTrs, eq.getVariables());
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("g(1)", lcTrs, eq.getEquationVariables());
         assertEquals(eq.getLeft(), l2);
     }
 
@@ -79,17 +79,17 @@ public class ConstraintRewritingTest {
                 ")\n";
         String t1 = "factrec(n)";
         String t2 = "iter(n, 1, 2)";
-        String c1 = "n >= 1";
+        String c1 = "[n >= 1]";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(lctrs);
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("simplify 0 1");
-        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("return(1)", lcTrs, eq.getVariables());
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("return(1)", lcTrs, eq.getEquationVariables());
         assertEquals(eq.getLeft(), l2);
     }
 
@@ -107,18 +107,18 @@ public class ConstraintRewritingTest {
                 ")\n";
         String t1 = "factrec(n)";
         String t2 = "iter(n, 1, 2)";
-        String c1 = "n >= 1";
+        String c1 = "[n >= 1]";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(lctrs);
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("simplify 0 2");
-        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("mul(n, factrec(n - 1))", lcTrs, eq.getVariables());
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("mul(n, factrec(n - 1))", lcTrs, eq.getEquationVariables());
         assertEquals(eq.getLeft(), l2);
     }
 }

@@ -15,7 +15,7 @@ import java.util.TreeSet;
 
 public interface Proof {
 
-    TreeSet<Variable> getVariables();
+    TreeSet<Variable> getEquationVariables();
     boolean getBottom();
 
     public void saveStateToFile(String filePath) throws IOException;
@@ -49,6 +49,10 @@ public interface Proof {
     String toString();
 
     String currentState();
+
+    TreeSet<Variable> getCurrentEqVariables();
+
+    TreeSet<Variable> getRuleVariables(int ruleIndex);
 
     void applyNewUserCommand(String uCommand);
 
@@ -86,4 +90,5 @@ public interface Proof {
 
     void recordHistory();
 
+    int proofIsFinished();
 }

@@ -31,30 +31,22 @@ abstract class UserCommandInherit {
     protected Substitution rewrittenConstraintValid(EquivalenceProof proof, int ruleIndex, Position pos,
                                                     Substitution gamma) {
         //Substitution s = freshVariables(proof, (FirstOrderRule) proof.getLcTrs().queryRule(ruleIndex));
+        if (gamma == null) gamma = new Subst();
         Term l = proof.getLeft();
         Term r = proof.getRight();
         Term c = proof.getConstraint();
-        Term ruleC = proof.getLcTrs().queryRule(ruleIndex).queryConstraint();//.substitute(s);
-        Term ruleL = proof.getLcTrs().queryRule(ruleIndex).queryLeftSide();//.substitute(s);
-        Term ruleR = proof.getLcTrs().queryRule(ruleIndex).queryRightSide();//.substitute(s);
+        Term ruleC = proof.getLcTrs().queryRule(ruleIndex).queryConstraint().substitute(gamma);//.substitute(s);
+        Term ruleL = proof.getLcTrs().queryRule(ruleIndex).queryLeftSide().substitute(gamma);//.substitute(s);
+        Term ruleR = proof.getLcTrs().queryRule(ruleIndex).queryRightSide().substitute(gamma);//.substitute(s);
         Term lAtPos = l.querySubterm(pos);
-        Substitution y = new Subst();
-        if (ruleL.match(lAtPos) == null) {
-            if (lAtPos.match(ruleL) != null) y = lAtPos.match(ruleL);
-        } else y = ruleL.match(lAtPos);
+        Substitution y = ruleL.match(lAtPos);
         //ruleC = ruleC.substitute(y);
         Term t = l.replaceSubterm(pos, ruleR);
         ArrayList<Term> ruleConstraints = new ArrayList<>();
         getEqualities(ruleC, ruleConstraints);
         for (Term eq : ruleConstraints) {
-            y.extend((Variable) eq.queryImmediateSubterm(1), eq.queryImmediateSubterm(2));
-        }
-        if (gamma != null) {
-            for (Variable v : gamma.domain()) {
-                for (Variable v2 : ruleC.vars().getVars()) {
-                    if (v.queryName().equals(v2.queryName())) y.extend(v2, gamma.getReplacement(v));
-                    else y.extend(v, gamma.getReplacement(v));
-                }
+            if (eq.queryImmediateSubterm(1).isVariable()) {
+                y.extend((Variable)eq.queryImmediateSubterm(1), eq.queryImmediateSubterm(2));
             }
         }
         TreeSet<Variable> LVar = LVar(ruleL, ruleR, ruleC);
@@ -76,17 +68,8 @@ abstract class UserCommandInherit {
             if (!inSubst) return null;
         }
         if (pos != null && ruleIndex >= 0) {
-            ArrayList<Term> ceqs = new ArrayList<>();
-            getEqualities(ruleC, ceqs);
-            Term newConstraint = c;
-            for (Term eq : ceqs) {
-                if (eq.queryImmediateSubterm(2).isConstant()) continue;
-                newConstraint = new FunctionalTerm(proof.getLcTrs().lookupSymbol("/\\"),
-                        newConstraint, eq);
-            }
-            newConstraint = newConstraint.substitute(y);
             Z3TermHandler z3 = new Z3TermHandler(proof.getLcTrs());
-            if (z3.validity(c.substitute(y), newConstraint, proof.getLcTrs().lookupSymbol("-->"))) return y;
+            if (z3.validity(c, ruleC.substitute(gamma), proof.getLcTrs().lookupSymbol("-->"))) return gamma;
         }
         return null;
     }
@@ -107,16 +90,34 @@ abstract class UserCommandInherit {
     protected void rewriteConstraintConstrainedRule(EquivalenceProof proof, Position pos, int ruleIndex,
                                                     Substitution y) {
         ArrayList<Term> ceqs = new ArrayList<>();
-        getEqualities(proof.getLcTrs().queryRule(ruleIndex).queryConstraint(), ceqs);
+        Term l = proof.getLeft();
+        Term r = proof.getRight();
+        Term proofRuleConstraint = proof.getLcTrs().queryRule(ruleIndex).queryConstraint();
+        proofRuleConstraint = proofRuleConstraint.substitute(y);
+        getEqualities(proofRuleConstraint, ceqs);
         Term newConstraint = proof.getConstraint();
+        Substitution y2 = proofRuleConstraint.match(newConstraint);
+        Substitution repl = new Subst();
+        ArrayList<Term> proofConstraintEqs = new ArrayList<>();
+        getEqualities(newConstraint, proofConstraintEqs);
         for (Term eq : ceqs) {
             if (eq.queryImmediateSubterm(2).isConstant()) continue;
+            else {
+                for (Variable v : y.domain()) {
+                    for (Term eqp : proofConstraintEqs) {
+                        Term e = eqp.queryImmediateSubterm(2).substitute(y);
+                        if (y.getReplacement(v).equals(eqp.queryImmediateSubterm(2))) {
+                            repl.extend((Variable) eqp.queryImmediateSubterm(1), v);
+                        }
+                    }
+                }
+            }
+            repl.extend((Variable) eq.queryImmediateSubterm(1), eq.queryImmediateSubterm(2));
             newConstraint = new FunctionalTerm(proof.getLcTrs().lookupSymbol("/\\"),
-                newConstraint, eq);
+                    newConstraint, eq);
         }
-        newConstraint.substitute(y);
         proof.setConstraint(newConstraint.substitute(y));
-        Term applied = proof.getLcTrs().queryRule(ruleIndex).apply(proof.getLeft().querySubterm(pos).substitute(y));
+        Term applied = proof.getLcTrs().queryRule(ruleIndex).apply(proof.getLeft().querySubterm(pos)).substitute(y);
         proof.setLeft(proof.getLeft().replaceSubterm(pos, applied).substitute(y));
         proof.setRight(proof.getRight().substitute(y));
     }
@@ -150,6 +151,7 @@ abstract class UserCommandInherit {
         Term constraint = proof.getConstraint();
         ArrayList<Term> t_vars = new ArrayList<>();
         containsVarsInFunctionalTerms(temp, t_vars);
+
         for (int i = 0; i < t_vars.size(); i++) {
             Term t = t_vars.get(i);
             Term eq = null;
@@ -199,9 +201,11 @@ abstract class UserCommandInherit {
     }
 
     protected void getEqualities(Term c, ArrayList<Term> equalities) {
-        if (c.isFunctionalTerm() && c.queryRoot().queryName().equals("==i")) {
+        if (c.isFunctionalTerm() && c.queryImmediateSubterm(1).isVariable()
+                && c.queryRoot().queryName().equals("==i")) {
             equalities.add(c);
-        } else if (c.isFunctionalTerm() && c.queryRoot().queryName().equals("==b")) {
+        } else if (c.isFunctionalTerm() && c.queryImmediateSubterm(1).isVariable()
+                && c.queryRoot().queryName().equals("==b")) {
             equalities.add(c);
         } else {
             for (int i = 1; i < c.numberImmediateSubterms() + 1; i++) {

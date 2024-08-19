@@ -68,13 +68,13 @@ public class SwapCommandSMTTest {
     public void swapNoArgsTest() throws ParserException {
         String t1 = "f(1 + 1)";
         String t2 = "f(z)";
-        String c1 = "z ==i x + 0";
+        String c1 = "[z ==i x + 0]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("swap");
         assertEquals(eq.getLeft(), r);
@@ -84,13 +84,13 @@ public class SwapCommandSMTTest {
     public void swapInvalidIndexTest() throws ParserException {
         String t1 = "f(1 + 1)";
         String t2 = "f(z)";
-        String c1 = "z ==i x + 0";
+        String c1 = "[z ==i x + 0]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("swap 1 2");
         assertEquals(eq.getLeft(), r);

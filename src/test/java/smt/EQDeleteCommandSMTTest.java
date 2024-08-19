@@ -45,18 +45,18 @@ public class EQDeleteCommandSMTTest {
     public void eqDeleteExampleTest() throws ParserException {
         String t1 = "return(n*x)";
         String t2 = "return(x_1)";
-        String c1 = "n ==i y /\\ m ==i n - 1 /\\ y_1 ==i y + 1 /\\ x_1 ==i x * y";
+        String c1 = "[n ==i y /\\ m ==i n - 1 /\\ y_1 ==i y + 1 /\\ x_1 ==i x * y]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("eqdelete");
-        String nc = "n ==i y /\\ m ==i n - 1 /\\ y_1 ==i y + 1 /\\ x_1 ==i x * y /\\ ~(x_1 ==i n*x)";
-        Term newC = LcTrsInputReader.readTermFromStringWithEnv(nc, lcTrs, eq.getVariables());
+        String nc = "[n ==i y /\\ m ==i n - 1 /\\ y_1 ==i y + 1 /\\ x_1 ==i x * y /\\ ~(x_1 ==i n*x)]";
+        Term newC = LcTrsInputReader.readLogicalTermFromStringWithEnv(nc, lcTrs, eq.getEquationVariables());
         assertEquals(eq.getConstraint(), newC);
     }
 

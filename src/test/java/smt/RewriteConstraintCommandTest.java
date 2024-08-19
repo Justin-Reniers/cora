@@ -1,6 +1,6 @@
 package smt;
 
-import cora.exceptions.InvalidRuleApplicationException;
+import cora.exceptions.InvalidRuleParseException;
 import cora.exceptions.ParserException;
 import cora.exceptions.UnsatException;
 import cora.interfaces.rewriting.TRS;
@@ -46,16 +46,16 @@ public class RewriteConstraintCommandTest {
     public void constraintRewrite1Test() throws ParserException {
         String t1 = "factiter(n)";
         String t2 = "factrec(n)";
-        String c1 = "n >= 1 /\\ n > 2 /\\ n < 4";
+        String c1 = "[n >= 1 /\\ n > 2 /\\ n < 4]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("rewrite [n >= 1 /\\ n > 2 /\\ n < 4] [n ==i 3]");
-        Term c2 = LcTrsInputReader.readTermFromStringWithEnv("n ==i 3", lcTrs, eq.getVariables());
+        Term c2 = LcTrsInputReader.readTermFromStringWithEnv("n ==i 3", lcTrs, eq.getEquationVariables());
         assertEquals(eq.getConstraint().toString(), c2.toString());
     }
 
@@ -63,16 +63,16 @@ public class RewriteConstraintCommandTest {
     public void constraintRewrite2Test() throws ParserException {
         String t1 = "factiter(n)";
         String t2 = "factrec(n)";
-        String c1 = "n >= 1 /\\ n > 2 /\\ n < 4";
+        String c1 = "[n >= 1 /\\ n > 2 /\\ n < 4]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("rewrite [n > 2 /\\ n < 4] [n==i3]");
-        Term c2 = LcTrsInputReader.readTermFromStringWithEnv("n >= 1 /\\ n ==i 3", lcTrs, eq.getVariables());
+        Term c2 = LcTrsInputReader.readTermFromStringWithEnv("n >= 1 /\\ n ==i 3", lcTrs, eq.getEquationVariables());
         assertEquals(eq.getConstraint().toString(), c2.toString());
     }
 
@@ -80,28 +80,28 @@ public class RewriteConstraintCommandTest {
     public void invalidConstraintRewrite2Test() throws ParserException {
         String t1 = "factiter(n)";
         String t2 = "factrec(n)";
-        String c1 = "n >= 1 /\\ n > 2 /\\ n > 4";
+        String c1 = "[n >= 1 /\\ n > 2 /\\ n > 4]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("rewrite [n >= 1 /\\ n > 2 /\\ n > 4] [n > 8]");
     }
 
-    @Test (expected = InvalidRuleApplicationException.class)
+    @Test (expected = InvalidRuleParseException.class)
     public void invalidConstraintRewriteTest() throws ParserException {
         String t1 = "factiter(n)";
         String t2 = "factrec(n)";
-        String c1 = "n >= 1 /\\ n > 2 /\\ n < 4";
+        String c1 = "[n >= 1 /\\ n > 2 /\\ n < 4]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("rewrite [n >= 1 /\\ n > 5 /\\ n < 4] [n==3]");
     }
@@ -110,13 +110,13 @@ public class RewriteConstraintCommandTest {
     public void unsatConstraintRewriteTest() throws ParserException {
         String t1 = "factiter(n)";
         String t2 = "factrec(n)";
-        String c1 = "n >= 1 /\\ n > 2 /\\ n < 4";
+        String c1 = "[n >= 1 /\\ n > 2 /\\ n < 4]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("rewrite [n >= 1 /\\ n > 2 /\\ n < 4] [n==i5]");
     }
@@ -125,13 +125,13 @@ public class RewriteConstraintCommandTest {
     public void unsatConstraintRewrite2Test() throws ParserException {
         String t1 = "factiter(n)";
         String t2 = "factrec(n)";
-        String c1 = "n >= 1 /\\ n > 2 /\\ n < 4";
+        String c1 = "[n >= 1 /\\ n > 2 /\\ n < 4]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("rewrite [n >= 1 /\\ n > 2 /\\ n < 4] [n<=2]");
     }
@@ -140,13 +140,13 @@ public class RewriteConstraintCommandTest {
     public void unsatConstraintFreeVarTest() throws ParserException {
         String t1 = "f(x, z)";
         String t2 = "f(x, z)";
-        String c1 = "x > y /\\ y >= z";
+        String c1 = "[x > y /\\ y >= z]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("rewrite [x > y /\\ y >= z] [x > z]");
         assertFalse(eq.getCompleteness());

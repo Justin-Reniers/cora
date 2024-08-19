@@ -46,79 +46,79 @@ public class RenameCommandSMTTest {
     public void renameTest() throws ParserException {
         String t1 = "factiter(n)";
         String t2 = "factrec(n)";
-        String c1 = "n >= 1 /\\ n > 2 /\\ n < 4";
+        String c1 = "[n >= 1 /\\ n > 2 /\\ n < 4]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("rename n x");
-        for (Variable v : vars) assertFalse(eq.getVariables().contains(v));
+        for (Variable v : vars) assertFalse(eq.getEquationVariables().contains(v));
     }
 
     @Test (expected = InvalidRuleApplicationException.class)
     public void invalidRenameTest() throws ParserException {
         String t1 = "factiter(n)";
         String t2 = "factrec(n)";
-        String c1 = "n >= 1 /\\ n > 2 /\\ n < 4";
+        String c1 = "[n >= 1 /\\ n > 2 /\\ n < 4]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("rename n n");
-        for (Variable v : vars) assertFalse(eq.getVariables().contains(v));
+        for (Variable v : vars) assertFalse(eq.getEquationVariables().contains(v));
     }
 
     @Test (expected = InvalidRuleApplicationException.class)
     public void invalidRename2Test() throws ParserException {
         String t1 = "factiter(n)";
         String t2 = "factrec(n)";
-        String c1 = "n >= 1 /\\ n > 2 /\\ n < 4";
+        String c1 = "[n >= 1 /\\ n > 2 /\\ n < 4]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("rename x y");
-        for (Variable v : vars) assertFalse(eq.getVariables().contains(v));
+        for (Variable v : vars) assertFalse(eq.getEquationVariables().contains(v));
     }
 
     @Test (expected = InvalidRuleApplicationException.class)
     public void invalidRename3Test() throws ParserException {
         String t1 = "factiter(n)";
         String t2 = "factrec(n)";
-        String c1 = "n >= 1 /\\ n > 2 /\\ n < 4";
+        String c1 = "[n >= 1 /\\ n > 2 /\\ n < 4]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("rename factiter(n) y");
-        for (Variable v : vars) assertFalse(eq.getVariables().contains(v));
+        for (Variable v : vars) assertFalse(eq.getEquationVariables().contains(v));
     }
 
     @Test (expected = InvalidRuleApplicationException.class)
     public void invalidRename4Test() throws ParserException {
         String t1 = "factiter(n)";
         String t2 = "factrec(n)";
-        String c1 = "n >= 1 /\\ n > 2 /\\ n < 4";
+        String c1 = "[n >= 1 /\\ n > 2 /\\ n < 4]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("rename x factrec(n)");
-        for (Variable v : vars) assertFalse(eq.getVariables().contains(v));
+        for (Variable v : vars) assertFalse(eq.getEquationVariables().contains(v));
     }
 }

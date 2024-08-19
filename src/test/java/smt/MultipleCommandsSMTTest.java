@@ -5,6 +5,7 @@ import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
 import cora.parsers.LcTrsInputReader;
+import cora.smt.Equation;
 import cora.smt.EquivalenceProof;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -50,7 +51,7 @@ public class MultipleCommandsSMTTest {
             ")\n" +
             "(RULES\n" +
             "\tsumiter(x) -> iter(x, 0, 0)\n" +
-            "\titer(x, z, i) -> iter(x, z*i, i+1)\t[i <= x]\n" +
+            "\titer(x, z, i) -> iter(x, z+i, i+1)\t[i <= x]\n" +
             "\titer(x, z, i) -> return(z)\t\t\t[i > x]\n" +
             "\tsumrec(x) -> return(0)\t\t\t\t[x <= 0]\n" +
             "\tsumrec(x) -> add(x, sumrec(x-1))\t[x > 0]\n" +
@@ -66,14 +67,14 @@ public class MultipleCommandsSMTTest {
     }
 
     private static final String reverse = "(SIG\n" +
-            "    (nil    -> Int)\n" +
-            "    (cons   Int Int -> Int)\n" +
-            "    (rev    Int -> Int)\n" +
-            "    (app    Int Int -> Int)\n" +
+            "    (nil    -> List)\n" +
+            "    (cons   Int List -> List)\n" +
+            "    (rev    List -> List)\n" +
+            "    (app    List List -> List)\n" +
             ")\n" +
             "(RULES\n" +
             "    rev(nil)            ->  nil\n" +
-            "    rev(cons(x, y))     ->  app(y, cons(x, nil))\n" +
+            "    rev(cons(x, y))     ->  app(rev(y), cons(x, nil))\n" +
             "    app(nil, x)         ->  x\n" +
             "    app(cons(x, y), z)  ->  cons(x, app(y, z))\n" +
             ")";
@@ -87,16 +88,16 @@ public class MultipleCommandsSMTTest {
     }
 
     @Test
-    public void testFactProof() throws ParserException {
+    public void testFactProof() throws ParserException, IOException {
         String l = "factiter(n)";
         String r = "factrec(n)";
-        String c = "n>=1";
+        String c = "[n>=0]";
         Term tl = LcTrsInputReader.readTermFromString(l, lcTrsfact);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(tl.vars().getVars());
         Term tr = LcTrsInputReader.readTermFromStringWithEnv(r, lcTrsfact, vars);
         vars.addAll(tr.vars().getVars());
-        Term tc = LcTrsInputReader.readTermFromStringWithEnv(c, lcTrsfact, vars);
+        Term tc = LcTrsInputReader.readLogicalTermFromStringWithEnv(c, lcTrsfact, vars);
         vars.addAll(tc.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrsfact, tl, tr, tc);
 
@@ -120,7 +121,7 @@ public class MultipleCommandsSMTTest {
         eq.applyNewUserCommand("swap");
         eq.applyNewUserCommand("expand 0 terminating");
         eq.applyNewUserCommand("swap");
-        eq.applyNewUserCommand("simplify 0 8 [x_1 := x_1, x := 1, y := 2, a := 2, b := 3]");
+        eq.applyNewUserCommand("simplify 0 8 [n := n, m:=x_1, x := 1, y := 2, a := 2, b := 3]");
         eq.applyNewUserCommand("simplify");
         eq.applyNewUserCommand("delete");
         eq.applyNewUserCommand("swap 1 2");
@@ -133,20 +134,22 @@ public class MultipleCommandsSMTTest {
         eq.applyNewUserCommand("simplify 0 8");
         eq.applyNewUserCommand("delete");
 
+        eq.saveStateToFile("factorial.prf");
+
         assertTrue(eq.getEquations().isEmpty());
     }
 
     @Test
-    public void testSumProof() throws ParserException {
+    public void testSumProof() throws ParserException, IOException {
         String l = "sumiter(n)";
         String r = "sumrec(n)";
-        String c = "n>=0";
+        String c = "[n>=0]";
         Term tl = LcTrsInputReader.readTermFromString(l, lcTrssum);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(tl.vars().getVars());
         Term tr = LcTrsInputReader.readTermFromStringWithEnv(r, lcTrssum, vars);
         vars.addAll(tr.vars().getVars());
-        Term tc = LcTrsInputReader.readTermFromStringWithEnv(c, lcTrssum, vars);
+        Term tc = LcTrsInputReader.readLogicalTermFromStringWithEnv(c, lcTrssum, vars);
         vars.addAll(tc.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrssum, tl, tr, tc);
 
@@ -170,7 +173,7 @@ public class MultipleCommandsSMTTest {
         eq.applyNewUserCommand("swap");
         eq.applyNewUserCommand("expand 0 terminating");
         eq.applyNewUserCommand("swap");
-        eq.applyNewUserCommand("simplify 0 8 [x_1 := x_1, x := 1, y := 2, a:= 2, b:=3]");
+        eq.applyNewUserCommand("simplify 0 8 [n := n, m:=x_1, x := 0, y := 1, a:= 1, b:=2]");
         eq.applyNewUserCommand("simplify");
         eq.applyNewUserCommand("delete");
         eq.applyNewUserCommand("swap 1 2");
@@ -183,64 +186,127 @@ public class MultipleCommandsSMTTest {
         eq.applyNewUserCommand("simplify 0 8");
         eq.applyNewUserCommand("delete");
 
+        eq.saveStateToFile("sum.prf");
+
         assertTrue(eq.getEquations().isEmpty());
     }
 
     @Test
-    public void testSumProofNotInductiveTheorem() throws ParserException {
+    public void testSumProofNotInductiveTheorem() throws ParserException, IOException {
         String l = "sumiter(n)";
         String r = "sumrec(n+1)";
-        String c = "n>=0";
+        String c = "[n ==i 1]";
         Term tl = LcTrsInputReader.readTermFromString(l, lcTrssum);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(tl.vars().getVars());
         Term tr = LcTrsInputReader.readTermFromStringWithEnv(r, lcTrssum, vars);
         vars.addAll(tr.vars().getVars());
-        Term tc = LcTrsInputReader.readTermFromStringWithEnv(c, lcTrssum, vars);
+        Term tc = LcTrsInputReader.readLogicalTermFromStringWithEnv(c, lcTrssum, vars);
         vars.addAll(tc.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrssum, tl, tr, tc);
 
+        eq.applyNewUserCommand("swap");
         eq.applyNewUserCommand("simplify");
+        eq.applyNewUserCommand("swap");
         eq.applyNewUserCommand("simplify 0 1");
         eq.applyNewUserCommand("simplify 0 2");
+        eq.applyNewUserCommand("simplify");
+        eq.applyNewUserCommand("swap");
+        eq.applyNewUserCommand("simplify 0 5");
+        eq.applyNewUserCommand("simplify");
+        eq.applyNewUserCommand("simplify 2.0 5");
+        eq.applyNewUserCommand("simplify");
+        eq.applyNewUserCommand("simplify 2.2.0 4");
+        eq.applyNewUserCommand("simplify 2.0 6");
+        eq.applyNewUserCommand("simplify");
+        eq.applyNewUserCommand("swap");
+        eq.applyNewUserCommand("simplify 0 2");
+        eq.applyNewUserCommand("simplify");
+        eq.applyNewUserCommand("simplify 0 3");
+        eq.applyNewUserCommand("swap");
+        eq.applyNewUserCommand("simplify 0 6");
+        eq.applyNewUserCommand("simplify");
+        eq.applyNewUserCommand("disprove");
+
+        eq.saveStateToFile("sumdisprove.prf");
+
+        assertTrue(eq.getBottom());
     }
 
     @Test
     public void testReverseProof() throws ParserException, IOException {
         String l = "rev(rev(n))";
         String r = "n";
-        String c = "TRUE";
+        String c = "[TRUE]";
+        EquivalenceProof eq = new EquivalenceProof(lcTrsreverse, null, null, null);
         Term tl = LcTrsInputReader.readTermFromString(l, lcTrsreverse);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(tl.vars().getVars());
         Term tr = LcTrsInputReader.readTermFromStringWithEnv(r, lcTrsreverse, vars);
         vars.addAll(tr.vars().getVars());
-        Term tc = LcTrsInputReader.readTermFromStringWithEnv(c, lcTrsreverse, vars);
+        Term tc = LcTrsInputReader.readLogicalTermFromStringWithEnv(c, lcTrsreverse, vars);
         vars.addAll(tc.vars().getVars());
-        EquivalenceProof eq = new EquivalenceProof(lcTrsreverse, tl, tr, tc);
+        eq.addEquation(new Equation(tl, tr, tc));
+        eq.setCurrentEquation();
 
-        eq.applyNewUserCommand("simplify 1.0 2 [n:=cons(x, y)]");
-        eq.applyNewUserCommand("postulate app(app(x, y), z) app(x, app(y, z)) [TRUE]");
+        eq.applyNewUserCommand("expand 1.0 terminating");
+        eq.applyNewUserCommand("simplify 0 1");
+        eq.applyNewUserCommand("delete");
+
+        eq.applyNewUserCommand("postulate rev(app(xs, ys)) app(rev(ys), rev(xs)) [TRUE]");
         eq.applyNewUserCommand("swap 1 2");
         eq.applyNewUserCommand("expand 1.0 terminating");
         eq.applyNewUserCommand("swap 1 2");
-        eq.applyNewUserCommand("simplify 0 3 [y:=nil]");
         eq.applyNewUserCommand("swap");
-        eq.applyNewUserCommand("simplify 0 3");
-        eq.applyNewUserCommand("simplify 0 3");
-        eq.applyNewUserCommand("delete");
-        eq.applyNewUserCommand("swap 1 2");
-        eq.applyNewUserCommand("simplify 0 4");
-        eq.applyNewUserCommand("swap");
-        eq.applyNewUserCommand("simplify 0 4");
-        eq.applyNewUserCommand("swap");
-        eq.applyNewUserCommand("simplify 2.0 5");
-        eq.applyNewUserCommand("delete");
-        eq.applyNewUserCommand("simplify 1.0 4 [y:=cons(nil, nil)]");
+        eq.applyNewUserCommand("simplify 2.0 1");
+        eq.applyNewUserCommand("swap 1 3");
         eq.applyNewUserCommand("simplify 0 2");
-        eq.applyNewUserCommand("simplify 1.0 3");
+        eq.applyNewUserCommand("simplify 1.0 6");
+        eq.applyNewUserCommand("postulate app(app(x, y), z) app(x, app(y, z)) [TRUE]");
+        eq.applyNewUserCommand("swap 1 4");
+        eq.applyNewUserCommand("expand 1.0 terminating");
+        eq.applyNewUserCommand("swap 1 4");
+        eq.applyNewUserCommand("swap");
+        eq.applyNewUserCommand("simplify 0 3");
+        eq.applyNewUserCommand("delete");
+
+        eq.applyNewUserCommand("swap 1 2");
+        eq.applyNewUserCommand("simplify 0 7");
+        eq.applyNewUserCommand("swap 1 3");
+        eq.applyNewUserCommand("simplify 0 6");
+        eq.applyNewUserCommand("simplify 1.0 2");
+        eq.applyNewUserCommand("simplify 0 7");
+        eq.applyNewUserCommand("simplify 1.0 1");
+        eq.applyNewUserCommand("simplify 0 3");
         eq.applyNewUserCommand("simplify 0 4");
         eq.applyNewUserCommand("simplify 2.0 3");
+        eq.applyNewUserCommand("simplify 2.0 5");
+        eq.applyNewUserCommand("delete");
+
+        eq.applyNewUserCommand("swap 1 3");
+        eq.applyNewUserCommand("simplify 0 4");
+        eq.applyNewUserCommand("simplify 2.0 7");
+        eq.applyNewUserCommand("swap");
+        eq.applyNewUserCommand("simplify 0 4");
+        eq.applyNewUserCommand("delete");
+
+        eq.applyNewUserCommand("swap");
+        eq.applyNewUserCommand("simplify 2.0 2");
+        eq.applyNewUserCommand("delete");
+
+        eq.applyNewUserCommand("postulate app(xs, nil) xs [TRUE]");
+        eq.applyNewUserCommand("swap 1 2");
+        eq.applyNewUserCommand("expand 0 terminating");
+        eq.applyNewUserCommand("swap 1 2");
+        eq.applyNewUserCommand("delete");
+
+        eq.applyNewUserCommand("simplify 0 8");
+        eq.applyNewUserCommand("delete");
+
+        eq.applyNewUserCommand("simplify 2.0 8");
+        eq.applyNewUserCommand("delete");
+
+        eq.applyNewUserCommand("simplify 2.0 8");
         eq.applyNewUserCommand("delete");
 
         eq.saveStateToFile("reverselist.prf");

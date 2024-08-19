@@ -48,13 +48,13 @@ public class DeleteCommandSMTTest {
     public void testDeleteEqualTermsConstants() throws ParserException {
         String t1 = "f(0)";
         String t2 = "f(0)";
-        String c1 = "z ==i x + 0";
+        String c1 = "[z ==i x + 0]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("delete");
         assertNull(eq.getCurrentEquation());
@@ -64,13 +64,13 @@ public class DeleteCommandSMTTest {
     public void testDeleteEqualTermsVariables() throws ParserException {
         String t1 = "f(x)";
         String t2 = "f(x)";
-        String c1 = "z ==i x + 0";
+        String c1 = "[z ==i x + 0]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("delete");
         assertNull(eq.getCurrentEquation());
@@ -80,13 +80,13 @@ public class DeleteCommandSMTTest {
     public void testDeleteUnsatConstraint() throws ParserException {
         String t1 = "f(0)";
         String t2 = "f(1)";
-        String c1 = "z ==i 0 /\\ z ==i 2";
+        String c1 = "[z ==i 0 /\\ z ==i 2]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("delete");
         assertNull(eq.getCurrentEquation());
@@ -96,13 +96,13 @@ public class DeleteCommandSMTTest {
     public void testDeleteUnequalTerms() throws ParserException {
         String t1 = "f(0)";
         String t2 = "f(x)";
-        String c1 = "z ==i x + 0";
+        String c1 = "[z ==i x + 0]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("delete");
         assertNotNull(eq.getCurrentEquation());
@@ -112,13 +112,13 @@ public class DeleteCommandSMTTest {
     public void testDeleteVarReplacement() throws ParserException {
         String t1 = "f(z)";
         String t2 = "f(x + 0)";
-        String c1 = "z ==i x + 0";
+        String c1 = "[z ==i x + 0]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("swap");
         eq.applyNewUserCommand("simplify");
@@ -130,13 +130,13 @@ public class DeleteCommandSMTTest {
     public void testDeleteVarUnequalReplacement() throws ParserException {
         String t1 = "f(x + 0)";
         String t2 = "f(y)";
-        String c1 = "z ==i x + 0";
+        String c1 = "[z ==i x + 0]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(c1, lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("simplify");
         eq.applyNewUserCommand("delete");

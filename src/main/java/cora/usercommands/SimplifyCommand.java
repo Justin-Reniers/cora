@@ -77,7 +77,11 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
         Term subTerm;
         if (_pos == null) return false;
         subTerm = t.querySubterm(_pos);
-        if (_gamma != null) subTerm = subTerm.substitute(_gamma);
+        if (_gamma != null) {
+            for (Variable v : _gamma.domain()) {
+                if (LVar(_proof.getLeft(), _proof.getRight(), _proof.getConstraint()).contains(v)) return false;
+            }
+        }
         if (!lcTrs.queryRule(_ruleIndex).applicable(subTerm)) {
             return false;
         }
@@ -125,9 +129,9 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
 
     @Override
     protected void getEqualities(Term c, ArrayList<Term> equalities) {
-        if (c.isFunctionalTerm() && c.queryRoot().queryName().equals("==i")) {
+        if (c.isFunctionalTerm() && c.queryRoot().queryName().equals("==i") && c.queryImmediateSubterm(1).isVariable()) {
             equalities.add(c);
-        } else if (c.isFunctionalTerm() && c.queryRoot().queryName().equals("==b")) {
+        } else if (c.isFunctionalTerm() && c.queryRoot().queryName().equals("==b") && c.queryImmediateSubterm(1).isVariable()) {
             equalities.add(c);
         } else {
             for (int i = 1; i < c.numberImmediateSubterms() + 1; i++) {
