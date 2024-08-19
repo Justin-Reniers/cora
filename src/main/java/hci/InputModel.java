@@ -14,6 +14,7 @@ import hci.interfaces.UserInputModel;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.TreeSet;
 
 public class InputModel implements UserInputModel {
@@ -25,6 +26,7 @@ public class InputModel implements UserInputModel {
     private static LcTrsInputReader _lctrsIn;
     private static LcTrsParser _lctrsParse;
     private TRS _lcTrs;
+    private float _fontSize;
 
     public InputModel() {
         _userCommands = new ArrayList<String>();
@@ -35,7 +37,7 @@ public class InputModel implements UserInputModel {
     private void initDefault() {
         _eqp = new EquivalenceProof(null, null, null, null);
         _lctrsIn = new LcTrsInputReader();
-
+        _fontSize = 20;
     }
 
     @Override
@@ -110,15 +112,14 @@ public class InputModel implements UserInputModel {
     }
 
     @Override
-    public void enterProof(String proof) throws ParserException {
+    public void enterProof(String ls, String rs, String cs) throws ParserException {
         TreeSet<Variable> vars = new TreeSet<Variable>();
-        String[] strs = proof.split("\\s+");
-        if (strs.length != 3) throw new InvalidUserInputException(proof);
-        Term l = LcTrsInputReader.readTermFromString(strs[0], _lcTrs);
+        System.out.println(ls + rs + cs);
+        Term l = LcTrsInputReader.readTermFromString(ls, _lcTrs);
         vars.addAll(l.vars().getVars());
-        Term r = LcTrsInputReader.readTermFromStringWithEnv(strs[1], _lcTrs, vars);
+        Term r = LcTrsInputReader.readTermFromStringWithEnv(rs, _lcTrs, vars);
         vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readTermFromStringWithEnv(strs[2], _lcTrs, vars);
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(cs, _lcTrs, vars);
         vars.addAll(c.vars().getVars());
         Equation eq = new Equation(l, r, c);
         _eqp.addEquation(eq);
@@ -129,6 +130,7 @@ public class InputModel implements UserInputModel {
     public String getRules() {
         StringBuilder s = new StringBuilder();
         s.append("<html>");
+        s.append("<font size=\"" + _fontSize + "\"></font>");
         ArrayList<Character> counter = new ArrayList<>();
         counter.add('A');
         for (int i = 0; i < _eqp.getLcTrs().queryRuleCount(); i++) {
@@ -150,6 +152,7 @@ public class InputModel implements UserInputModel {
     public String getRulesLeft() {
         StringBuilder s = new StringBuilder();
         s.append("<html>");
+        s.append("<font size=\"" + _fontSize + "\"></font>");
         ArrayList<Character> counter = new ArrayList<>();
         counter.add('A');
         for (int i = 0; i < _eqp.getLcTrs().queryRuleCount(); i++) {
@@ -171,6 +174,7 @@ public class InputModel implements UserInputModel {
     public String getRulesRight() {
         StringBuilder s = new StringBuilder();
         s.append("<html>");
+        s.append("<font size=\"" + _fontSize + "\"></font>");
         for (int i = 0; i < _eqp.getLcTrs().queryRuleCount(); i++) {
             s.append(" ").append(_eqp.getLcTrs().queryRule(i).queryRightSide().toHTMLString()).append("<br>");
         }
@@ -182,6 +186,7 @@ public class InputModel implements UserInputModel {
     public String getRulesConstraint() {
         StringBuilder s = new StringBuilder();
         s.append("<html>");
+        s.append("<font size=\"" + _fontSize + "\"></font>");
         for (int i = 0; i < _eqp.getLcTrs().queryRuleCount(); i++) {
             s.append(" ").append(_eqp.getLcTrs().queryRule(i).queryConstraint().toHTMLString()).append("<br>");
         }
@@ -260,11 +265,17 @@ public class InputModel implements UserInputModel {
     public String getPositions() {
         StringBuilder s = new StringBuilder();
         if (_eqp.getCurrentEquation() == null) return "";
+        s.append("<font size=\"" + _fontSize + "\"></font>");
         Term l = _eqp.getCurrentEquation().getLeft();
         for (Position p : l.queryAllPositions()) {
             s.append(" ").append(p.toHTMLString()).append("\t").append(l.querySubterm(p).toHTMLString()).append("<br>");
         }
         return s.toString();
+    }
+
+    @Override
+    public void setFontSize(float size) {
+        _fontSize = size;
     }
 
     @Override
@@ -301,7 +312,8 @@ public class InputModel implements UserInputModel {
         }
         if (!content.toString().equals("")) {
             String[] lines = content.toString().split("\n");
-            enterProof(lines[0]);
+            String[] terms = lines[0].split("\\s+");
+            enterProof(terms[0], terms[1], terms[2]);
             for (int i = 0; i < lines.length; i++) {
                 if (i % 2 == 1) {
                     applyUserInput(lines[i]);
@@ -314,9 +326,20 @@ public class InputModel implements UserInputModel {
         try {
             _eqp.applyNewUserCommand(input);
             return true;
-        } catch (InvalidRuleApplicationException | InvalidPositionException | UnsatException e) {
+        } catch (InvalidRuleParseException | InvalidRuleApplicationException | InvalidPositionException |
+                 UnsatException e) {
             getPresenter().displayWarning(e.getMessage());
             return false;
+        }
+    }
+
+    @Override
+    public void displayProofFinished() {
+        if (_eqp.proofIsFinished() == 1) {
+            getPresenter().displayProofFinished("Proof is completed, is an inductive theorem");
+        }
+        if (_eqp.proofIsFinished() == 2) {
+            getPresenter().displayProofFinished("Proof is completed, is not an inductive theorem");
         }
     }
 }

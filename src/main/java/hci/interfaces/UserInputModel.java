@@ -4,7 +4,6 @@ import cora.exceptions.ParserException;
 import hci.InputPresenter;
 
 import java.io.File;
-import java.io.IOException;
 
 public interface UserInputModel {
 
@@ -21,8 +20,8 @@ public interface UserInputModel {
 
     void openFile(File file);
 
-    void enterProof(String proof) throws ParserException;
-    
+    void enterProof(String l, String r, String c) throws ParserException;
+
     String getRules();
 
     String getRulesLeft();
@@ -48,4 +47,8 @@ public interface UserInputModel {
     void loadProofFromFile(File file) throws ParserException;
 
     String getPositions();
+
+    void setFontSize(float size);
+
+    void displayProofFinished();
 }

@@ -41,6 +41,7 @@ public class InputPresenter implements UserInputPresenter {
 
             view.updateBottomField(model.getBottom());
             view.updateCompletenessField(model.getCompleteness());
+            model.displayProofFinished();
         } else {
             view.onEnterAction();
         }
@@ -64,9 +65,9 @@ public class InputPresenter implements UserInputPresenter {
     }
 
     @Override
-    public void enterProof(String proof) {
+    public void enterProof(String l, String r, String c) {
         try {
-            model.enterProof(proof);
+            model.enterProof(l, r, c);
             updateEquations();
         } catch (ParserException | InvalidUserInputException e) {
             displayWarning(e.getMessage());
@@ -76,6 +77,11 @@ public class InputPresenter implements UserInputPresenter {
     @Override
     public void displayWarning(String ex) {
         view.warningDialog(ex);
+    }
+
+    @Override
+    public void displayProofFinished(String msg) {
+        view.proofCompleteDialog(msg);
     }
 
     @Override
@@ -105,5 +111,12 @@ public class InputPresenter implements UserInputPresenter {
         view.updateRulesLeftField(model.getRulesLeft());
         view.updateRulesRightField(model.getRulesRight());
         view.updateRulesConstraintField(model.getRulesConstraint());
+    }
+
+    @Override
+    public void changeFontSize(float size) {
+        model.setFontSize(size);
+        updateRules();
+        updateEquations();
     }
 }

@@ -16,11 +16,11 @@ public class InputView extends JFrame implements UserInputView {
     private JLabel userInputLabel, equationLabel, ruleLabel, positionsLabel;
     private JTextField userInput;
     private JMenuBar menuBar;
-    private JMenu fileMenu, lcTrsMenu;
+    private JMenu fileMenu, lcTrsMenu, textMenu;
     private JTextPane ruleTextAreaLeft, ruleTextAreaRight, ruleTextAreaConstraint;
     private JTextPane equationTextAreaLeft, equationTextAreaRight, equationTextAreaConstraint;
     private JTextPane positionTextArea;
-    private JMenuItem loadFile, enterProof, saveProof, loadProof;
+    private JMenuItem loadFile, enterProof, saveProof, loadProof, increaseFontSize, decreaseFontSize;
     private JCheckBox _bottom, _completeness;
 
     public InputView(String title) {
@@ -60,9 +60,16 @@ public class InputView extends JFrame implements UserInputView {
         lcTrsMenu.add(loadProof);
         //TODO add more LcTrs menu options (like state saving)
 
+        textMenu = new JMenu ("View");
+        increaseFontSize = new JMenuItem("Increase Font Size");
+        decreaseFontSize = new JMenuItem("Decrease Font Size");
+        textMenu.add(increaseFontSize);
+        textMenu.add(decreaseFontSize);
+
         menuBar = new JMenuBar();
         menuBar.add(fileMenu);
         menuBar.add(lcTrsMenu);
+        menuBar.add(textMenu);
         frame.setJMenuBar(menuBar);
     }
 
@@ -71,12 +78,12 @@ public class InputView extends JFrame implements UserInputView {
         userInputLabel.setBounds(5, 720, 40, 30);
         frame.add(userInputLabel);
         userInput = new JTextField();
-        userInput.setBounds(5, 750, 1100, 30);
+        userInput.setBounds(5, 750, 1055, 30);
         frame.add(userInput);
     }
 
     private void initTextAreas() {
-        Font font = new Font("LucidaSans", Font.PLAIN, 12);
+        Font font = new Font("LucidaSans", Font.PLAIN, 28);
 
         ruleLabel = new JLabel("Rules");
         ruleLabel.setBounds(5, 0, 80, 30);
@@ -93,14 +100,14 @@ public class InputView extends JFrame implements UserInputView {
         ruleTextAreaConstraint.setFont(font);
         ruleTextAreaConstraint.setEditable(false);
         JScrollPane ruleScroll1 = new JScrollPane(ruleTextAreaLeft);
-        ruleScroll1.setSize(400, 300);
-        ruleScroll1.setBounds(5, 30, 400, 300);
+        ruleScroll1.setSize(350, 300);
+        ruleScroll1.setBounds(5, 30, 350, 300);
         JScrollPane ruleScroll2 = new JScrollPane(ruleTextAreaRight);
-        ruleScroll2.setSize(400, 300);
-        ruleScroll2.setBounds(405, 30, 400, 300);
+        ruleScroll2.setSize(350, 300);
+        ruleScroll2.setBounds(355, 30, 350, 300);
         JScrollPane ruleScroll3 = new JScrollPane(ruleTextAreaConstraint);
-        ruleScroll3.setSize(400, 300);
-        ruleScroll3.setBounds(805, 30, 400, 300);
+        ruleScroll3.setSize(350, 300);
+        ruleScroll3.setBounds(705, 30, 350, 300);
         Synchronizer sync = new Synchronizer(ruleScroll1, ruleScroll2, ruleScroll3);
         ruleScroll1.getVerticalScrollBar().addAdjustmentListener(sync);
         ruleScroll1.getHorizontalScrollBar().addAdjustmentListener(sync);
@@ -125,14 +132,14 @@ public class InputView extends JFrame implements UserInputView {
         equationTextAreaConstraint.setFont(font);
         equationTextAreaConstraint.setEditable(false);
         JScrollPane equationScroll1 = new JScrollPane(equationTextAreaLeft);
-        equationScroll1.setSize(400, 300);
-        equationScroll1.setBounds(5, 405, 300, 300);
+        equationScroll1.setSize(350, 300);
+        equationScroll1.setBounds(5, 405, 350, 300);
         JScrollPane equationScroll2 = new JScrollPane(equationTextAreaRight);
-        equationScroll2.setSize(300, 300);
-        equationScroll2.setBounds(305, 405, 300, 300);
+        equationScroll2.setSize(350, 300);
+        equationScroll2.setBounds(355, 405, 350, 300);
         JScrollPane equationScroll3 = new JScrollPane(equationTextAreaConstraint);
-        equationScroll3.setSize(300, 300);
-        equationScroll3.setBounds(605, 405, 300, 300);
+        equationScroll3.setSize(350, 300);
+        equationScroll3.setBounds(705, 405, 350, 300);
         Synchronizer sync2 = new Synchronizer(ruleScroll1, ruleScroll2, ruleScroll3);
         equationScroll1.getVerticalScrollBar().addAdjustmentListener(sync);
         equationScroll1.getHorizontalScrollBar().addAdjustmentListener(sync);
@@ -151,7 +158,7 @@ public class InputView extends JFrame implements UserInputView {
         frame.add(equationScroll3);
 
         positionsLabel = new JLabel("Positions and sub-terms");
-        positionsLabel.setBounds(950, 375, 80, 30);
+        positionsLabel.setBounds(1100, 375, 300, 30);
 
         positionTextArea = new JTextPane();
         positionTextArea.setContentType("text/html;charset=UTF-8");
@@ -159,7 +166,7 @@ public class InputView extends JFrame implements UserInputView {
         positionTextArea.setEditable(false);
         JScrollPane positionScroll = new JScrollPane(positionTextArea);
         positionScroll.setSize(300, 300);
-        positionScroll.setBounds(950, 405, 300, 300);
+        positionScroll.setBounds(1100, 405, 300, 300);
 
         frame.add(positionsLabel);
         frame.add(positionScroll);
@@ -190,6 +197,7 @@ public class InputView extends JFrame implements UserInputView {
         loadProofActionPerformed();
         upArrowKeyActionPerformed();
         downArrowKeyActionPerformed();
+        changeFontSize();
     }
 
     private void userInputEnterActionPerformed() {
@@ -210,10 +218,42 @@ public class InputView extends JFrame implements UserInputView {
         });
     }
 
+    private void changeFontSize() {
+        increaseFontSize.addActionListener(e -> {
+            Font f = equationTextAreaLeft.getFont();
+            float size = f.getSize() + 1.0f;
+            setFontSizes(f, size);
+            getPresenter().changeFontSize(size);
+        });
+        decreaseFontSize.addActionListener(e -> {
+            Font f = equationTextAreaLeft.getFont();
+            float size = f.getSize() >= 2 ? f.getSize() - 1.0f : f.getSize();
+            setFontSizes(f, size);
+            getPresenter().changeFontSize(size);
+        });
+    }
+
+    private void setFontSizes(Font f, float size) {
+        equationTextAreaLeft.setEditable(true);
+        equationTextAreaLeft.setFont(f.deriveFont(size));
+        equationTextAreaLeft.setEditable(false);
+        equationTextAreaRight.setFont(f.deriveFont(size));
+        equationTextAreaConstraint.setFont(f.deriveFont(size));
+        ruleTextAreaLeft.setFont(f.deriveFont(size));
+        ruleTextAreaRight.setFont(f.deriveFont(size));
+        ruleTextAreaConstraint.setFont(f.deriveFont(size));
+        positionTextArea.setFont(f.deriveFont(size));
+
+        System.out.println(size);
+        System.out.println(f.getSize());
+    }
+
     private void enterEquivalenceProofActionPerformed() {
         enterProof.addActionListener(e -> {
-            String proof = JOptionPane.showInputDialog(frame, "Enter proof terms and constraint");
-            getPresenter().enterProof(proof);
+            String l = JOptionPane.showInputDialog(frame, "Enter left term");
+            String r = JOptionPane.showInputDialog(frame, "Enter right term");
+            String c = JOptionPane.showInputDialog(frame, "Enter constraint");
+            getPresenter().enterProof(l, r, c);
             updateBottomField(getPresenter().getModel().getBottom());
             updateCompletenessField(getPresenter().getModel().getCompleteness());
         });
@@ -270,6 +310,11 @@ public class InputView extends JFrame implements UserInputView {
         });
     }
 
+    private void changeFont() {
+        Object[] sizes = {12, 14, 16, 18, 20, 22};
+
+    }
+
     private void clearUserInput() {
         userInput.setText("");
     }
@@ -292,6 +337,11 @@ public class InputView extends JFrame implements UserInputView {
     @Override
     public void warningDialog(String ex) {
         JOptionPane.showMessageDialog(frame, ex, "Warning", JOptionPane.WARNING_MESSAGE);
+    }
+
+    @Override
+    public void proofCompleteDialog(String msg) {
+        JOptionPane.showMessageDialog(frame, msg, "Proof Complete!", JOptionPane.INFORMATION_MESSAGE);
     }
 
     @Override

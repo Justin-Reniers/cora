@@ -10,6 +10,8 @@ public interface UserInputView {
 
     void onEnterAction();
 
+    void proofCompleteDialog(String msg);
+
     void updateRulesLeftField(String left);
 
     void updateRulesRightField(String right);

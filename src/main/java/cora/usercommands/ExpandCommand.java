@@ -48,11 +48,8 @@ public class ExpandCommand extends UserCommandInherit implements UserCommand {
         if (!(isBasicTerm(lp, _proof))) return false;
         for (int i = 0; i < _proof.getLcTrs().queryRuleCount(); i++) {
             Rule rule = _proof.getLcTrs().queryRule(i);
-            // && rewriteConstraint(_proof, _p, i) != null
             Substitution gamma = rule.queryLeftSide().unify(lp);
-            gamma = rewrittenConstraintValid(_proof, i, _p, gamma);
             if (gamma != null && rule.applicable(lp.substitute(gamma))) _applicableRules.add(rule);
-            //if (rule.applicable(lp)) _applicableRules.add(rule);
         }
         return !_applicableRules.isEmpty();
     }
@@ -61,7 +58,6 @@ public class ExpandCommand extends UserCommandInherit implements UserCommand {
     public void apply() {
         Term lp = _proof.getLeft().querySubterm(_p);
         for (Rule rule : _applicableRules) {
-            //Substitution y = lp.unify(rule.queryLeftSide());
             Substitution y = rule.queryLeftSide().unify(lp);
             Term lpt = rule.apply(_proof.getLeft().querySubterm(_p).substitute(y));
             Term l = _proof.getLeft().replaceSubterm(_p, lpt).substitute(y);
@@ -99,7 +95,7 @@ public class ExpandCommand extends UserCommandInherit implements UserCommand {
 
     @Override
     public String toString() {
-        return "expand " + _p + (_terminating ? "terminating" : "nonterminating");
+        return "expand " + _p + (_terminating ? " terminating" : " nonterminating");
     }
 
     private boolean isTerminating(Rule r) {
