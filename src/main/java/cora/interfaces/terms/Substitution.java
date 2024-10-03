@@ -15,6 +15,8 @@
 
 package cora.interfaces.terms;
 
+import cora.terms.Subst;
+
 import java.util.Set;
 
 /**
@@ -60,5 +62,8 @@ public interface Substitution {
   void delete(Variable key);
 
   String toReplString();
+
+  /** Updates the substitution by composing it with the given substitution as this o other. */
+  boolean compose(Substitution other);
 }
 

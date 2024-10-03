@@ -17,6 +17,8 @@ package cora.terms;
 
 import java.util.HashMap;
 import java.util.Set;
+import java.util.TreeSet;
+
 import cora.interfaces.terms.Variable;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Substitution;
@@ -110,7 +112,26 @@ public class Subst implements Substitution {
         return sb.toString();
     }
 
-    @Override
+  @Override
+  public boolean compose(Substitution other) {
+    if (other == null) return false;
+    for (Variable t : this.domain()) {
+      this.replace(t, this.getReplacement(t).substitute(other));
+    }
+    for (Variable o : other.domain()) {
+      this.extend(o, other.getReplacement(o));
+    }
+    TreeSet<Variable> eq = new TreeSet<>();
+    for (Variable t : this.domain()) {
+      if (t.equals(this.getReplacement(t))) eq.add(t);
+    }
+    for (Variable t : eq) {
+      this.delete(t);
+    }
+    return true;
+  }
+
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("{");
     for (Variable v : _mapping.keySet()) {
