@@ -4,11 +4,11 @@ import hci.interfaces.UserInputView;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.*;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class InputView extends JFrame implements UserInputView {
     private InputPresenter inputPresenter;
@@ -26,6 +26,7 @@ public class InputView extends JFrame implements UserInputView {
     public InputView(String title) {
         initComponents(title);
         initEventListeners();
+        initKeyBindings();
     }
 
     private void initComponents(String title) {
@@ -83,7 +84,7 @@ public class InputView extends JFrame implements UserInputView {
     }
 
     private void initTextAreas() {
-        Font font = new Font("LucidaSans", Font.PLAIN, 28);
+        Font font = new Font("LucidaSans", Font.PLAIN, 16);
 
         ruleLabel = new JLabel("Rules");
         ruleLabel.setBounds(5, 0, 80, 30);
@@ -91,14 +92,17 @@ public class InputView extends JFrame implements UserInputView {
         ruleTextAreaLeft.setContentType("text/html;charset=UTF-8");
         ruleTextAreaLeft.setFont(font);
         ruleTextAreaLeft.setEditable(false);
+        ruleTextAreaLeft.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
         ruleTextAreaRight = new JTextPane();
         ruleTextAreaRight.setContentType("text/html;charset=UTF-8");
         ruleTextAreaRight.setFont(font);
         ruleTextAreaRight.setEditable(false);
+        ruleTextAreaRight.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
         ruleTextAreaConstraint = new JTextPane();
         ruleTextAreaConstraint.setContentType("text/html;charset=UTF-8");
         ruleTextAreaConstraint.setFont(font);
         ruleTextAreaConstraint.setEditable(false);
+        ruleTextAreaConstraint.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
         JScrollPane ruleScroll1 = new JScrollPane(ruleTextAreaLeft);
         ruleScroll1.setSize(350, 300);
         ruleScroll1.setBounds(5, 30, 350, 300);
@@ -123,14 +127,17 @@ public class InputView extends JFrame implements UserInputView {
         equationTextAreaLeft.setContentType("text/html;charset=UTF-8");
         equationTextAreaLeft.setFont(font);
         equationTextAreaLeft.setEditable(false);
+        equationTextAreaLeft.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
         equationTextAreaRight = new JTextPane();
         equationTextAreaRight.setContentType("text/html;charset=UTF-8");
         equationTextAreaRight.setFont(font);
         equationTextAreaRight.setEditable(false);
+        equationTextAreaRight.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
         equationTextAreaConstraint = new JTextPane();
         equationTextAreaConstraint.setContentType("text/html;charset=UTF-8");
         equationTextAreaConstraint.setFont(font);
         equationTextAreaConstraint.setEditable(false);
+        equationTextAreaConstraint.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
         JScrollPane equationScroll1 = new JScrollPane(equationTextAreaLeft);
         equationScroll1.setSize(350, 300);
         equationScroll1.setBounds(5, 405, 350, 300);
@@ -164,6 +171,7 @@ public class InputView extends JFrame implements UserInputView {
         positionTextArea.setContentType("text/html;charset=UTF-8");
         positionTextArea.setFont(font);
         positionTextArea.setEditable(false);
+        positionTextArea.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
         JScrollPane positionScroll = new JScrollPane(positionTextArea);
         positionScroll.setSize(300, 300);
         positionScroll.setBounds(1100, 405, 300, 300);
@@ -200,6 +208,10 @@ public class InputView extends JFrame implements UserInputView {
         changeFontSize();
     }
 
+    private void initKeyBindings() {
+        changeFontSizeKeyBindings();
+    }
+
     private void userInputEnterActionPerformed() {
         userInput.addActionListener(e -> {
             String input = userInput.getText();
@@ -219,18 +231,29 @@ public class InputView extends JFrame implements UserInputView {
     }
 
     private void changeFontSize() {
-        increaseFontSize.addActionListener(e -> {
+       increaseFontSize.addActionListener(e -> {
             Font f = equationTextAreaLeft.getFont();
-            float size = f.getSize() + 1.0f;
+            float size = f.getSize() + 2.0f;
             setFontSizes(f, size);
             getPresenter().changeFontSize(size);
         });
         decreaseFontSize.addActionListener(e -> {
             Font f = equationTextAreaLeft.getFont();
-            float size = f.getSize() >= 2 ? f.getSize() - 1.0f : f.getSize();
+            float size = f.getSize() >= 4 ? f.getSize() - 2.0f : f.getSize();
             setFontSizes(f, size);
             getPresenter().changeFontSize(size);
         });
+    }
+
+    private void changeFontSizeKeyBindings() {
+        InputMap im = frame.getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        ActionMap am = frame.getRootPane().getActionMap();
+        KeyStroke plusKey = KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, KeyEvent.CTRL_MASK);
+        im.put(plusKey, "increaseFontSize");
+        am.put("increaseFontSize", increaseFontSize.getAction());
+        KeyStroke minusKey = KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, KeyEvent.CTRL_MASK);
+        im.put(minusKey, "decreaseFontSize");
+        am.put("decreaseFontSize", decreaseFontSize.getAction());
     }
 
     private void setFontSizes(Font f, float size) {

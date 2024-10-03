@@ -37,7 +37,7 @@ public class InputModel implements UserInputModel {
     private void initDefault() {
         _eqp = new EquivalenceProof(null, null, null, null);
         _lctrsIn = new LcTrsInputReader();
-        _fontSize = 20;
+        _fontSize = 16;
     }
 
     @Override
