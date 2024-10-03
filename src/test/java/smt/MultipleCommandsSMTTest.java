@@ -192,9 +192,6 @@ public class MultipleCommandsSMTTest {
         eq.applyNewUserCommand("simplify 0 6");
         eq.applyNewUserCommand("eqdelete");
         eq.applyNewUserCommand("delete");
-        eq.applyNewUserCommand("simplify");
-        eq.applyNewUserCommand("swap");
-        eq.applyNewUserCommand("simplify");
         eq.applyNewUserCommand("simplify 0 8");
         eq.applyNewUserCommand("delete");
 

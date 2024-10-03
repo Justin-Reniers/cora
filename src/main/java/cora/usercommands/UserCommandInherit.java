@@ -35,7 +35,7 @@ abstract class UserCommandInherit {
         if (!checkLVARcondition(proof, ruleIndex, gamma, c)) return null;
         ruleC = ruleC.substitute(gamma);
         if (pos != null && ruleIndex >= 0) {
-            if (z3.validity(c, ruleC, proof.getLcTrs().lookupSymbol("-->"))) return gamma;
+            if (z3.validity(c.substitute(gamma), ruleC, proof.getLcTrs().lookupSymbol("-->"))) return gamma;
         }
         return null;
     }

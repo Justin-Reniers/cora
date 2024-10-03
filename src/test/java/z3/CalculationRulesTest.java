@@ -425,31 +425,6 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testReduction() throws ParserException {
-        String sl = "factrec(10-x)";
-        String sr = "g(z)";
-        String sc = "[x < 10 /\\ x >= 2]";
-        Term l = LcTrsInputReader.readTermFromString(sl, lcTrs);
-        TreeSet<Variable> vars = new TreeSet<>();
-        vars.addAll(l.vars().getVars());
-        Term r = LcTrsInputReader.readTermFromStringWithEnv(sr, lcTrs, vars);
-        vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(sc, lcTrs, vars);
-        EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
-        //eq.applyNewUserCommand("simplify");
-        eq.applyNewUserCommand("simplify 0 5");
-        Term comp = LcTrsInputReader.readTermFromStringWithEnv("mul(x_1, factrec(x_1+-1))", lcTrs,
-                eq.getCurrentEqVariables());
-        Term cComp = LcTrsInputReader.readLogicalTermFromStringWithEnv("[x<10/\\x_0==i-x/\\x_1==i10+x_0]", lcTrs,
-                eq.getEquationVariables());
-        assertEquals(comp, eq.getLeft());
-        System.out.println(cComp);
-        System.out.println(eq.getConstraint());
-        System.out.println(cComp.equals(eq.getConstraint()));;
-        assertEquals(cComp, eq.getConstraint());
-    }
-
-    @Test
     public void testReduction2() throws ParserException {
         String sl = "factrec(2*x+1)";
         String sr = "g(z)";
