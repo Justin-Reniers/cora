@@ -46,9 +46,9 @@ public class ConstraintRewritingTest {
                 "(g\t Int -> Int)\n" +
                 ")\n" +
                 "(RULES\n" +
-                "\tf(y, z) -> g(1)\t[y>=z /\\ a ==i y + 1]\n" +
+                "\tf(y, z) -> g(1)\t[y>=z]\n" +
                 ")\n";
-        String t1 = "f(x + 1, 1)";
+        String t1 = "f(x + 3, 1)";
         String t2 = "f(x + 1, 1)";
         String c1 = "[x >= 0]";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(lctrs);
@@ -79,7 +79,7 @@ public class ConstraintRewritingTest {
                 ")\n";
         String t1 = "factrec(n)";
         String t2 = "iter(n, 1, 2)";
-        String c1 = "[n >= 1]";
+        String c1 = "[n ==i 1]";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(lctrs);
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
@@ -107,7 +107,7 @@ public class ConstraintRewritingTest {
                 ")\n";
         String t1 = "factrec(n)";
         String t2 = "iter(n, 1, 2)";
-        String c1 = "[n >= 1]";
+        String c1 = "[n > 3]";
         TRS lcTrs = LcTrsInputReader.readLcTrsFromString(lctrs);
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
@@ -121,4 +121,6 @@ public class ConstraintRewritingTest {
         Term l2 = LcTrsInputReader.readTermFromStringWithEnv("mul(n, factrec(n - 1))", lcTrs, eq.getEquationVariables());
         assertEquals(eq.getLeft(), l2);
     }
+
+
 }

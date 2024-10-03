@@ -1,19 +1,15 @@
 package cora.usercommands;
 
-import cora.exceptions.InvalidRuleApplicationException;
-import cora.exceptions.InvalidSubstitutionTypingException;
 import cora.interfaces.rewriting.Rule;
 import cora.interfaces.terms.*;
 import cora.interfaces.types.Type;
 import cora.rewriting.FirstOrderRule;
 import cora.smt.EquivalenceProof;
-import cora.terms.Constant;
 import cora.terms.FunctionalTerm;
 import cora.terms.Subst;
 import cora.terms.Var;
 import cora.z3.Z3TermHandler;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.TreeSet;
 
 import static cora.types.Sort.boolSort;
@@ -24,37 +20,33 @@ import static cora.types.Sort.intSort;
  * This inherit provides default functionality for such rewriting rules.
  */
 abstract class UserCommandInherit {
-
-    /** Helper function to return the current classname for use in Errors. */
-    private String queryMyClassName() { return "RuleInherit (" + this.getClass().getSimpleName() + ")"; }
-
     protected Substitution rewrittenConstraintValid(EquivalenceProof proof, int ruleIndex, Position pos,
                                                     Substitution gamma) {
-        //Substitution s = freshVariables(proof, (FirstOrderRule) proof.getLcTrs().queryRule(ruleIndex));
         if (gamma == null) gamma = new Subst();
-        Term l = proof.getLeft();
-        Term r = proof.getRight();
+        Term s = proof.getLeft();
         Term c = proof.getConstraint();
         Term ruleC = proof.getLcTrs().queryRule(ruleIndex).queryConstraint().substitute(gamma);//.substitute(s);
         Term ruleL = proof.getLcTrs().queryRule(ruleIndex).queryLeftSide().substitute(gamma);//.substitute(s);
-        Term ruleR = proof.getLcTrs().queryRule(ruleIndex).queryRightSide().substitute(gamma);//.substitute(s);
-        Term lAtPos = l.querySubterm(pos);
-        Substitution y = ruleL.match(lAtPos);
-        //ruleC = ruleC.substitute(y);
-        Term t = l.replaceSubterm(pos, ruleR);
-        ArrayList<Term> ruleConstraints = new ArrayList<>();
-        getEqualities(ruleC, ruleConstraints);
-        for (Term eq : ruleConstraints) {
-            if (eq.queryImmediateSubterm(1).isVariable()) {
-                y.extend((Variable)eq.queryImmediateSubterm(1), eq.queryImmediateSubterm(2));
-            }
-        }
-        TreeSet<Variable> LVar = LVar(ruleL, ruleR, ruleC);
+        Term sAtPos = s.querySubterm(pos);
+        Substitution y = ruleL.match(sAtPos);
+        gamma.compose(y);
         if (y == null) return null;
+        Z3TermHandler z3 = new Z3TermHandler(proof.getLcTrs());
+        if (!checkLVARcondition(proof, ruleIndex, gamma, c)) return null;
+        ruleC = ruleC.substitute(gamma);
+        if (pos != null && ruleIndex >= 0) {
+            if (z3.validity(c, ruleC, proof.getLcTrs().lookupSymbol("-->"))) return gamma;
+        }
+        return null;
+    }
 
+    protected boolean checkLVARcondition(EquivalenceProof eq, int ruleIndex, Substitution y, Term c) {
+        FirstOrderRule r = (FirstOrderRule) eq.getLcTrs().queryRule(ruleIndex);
+        TreeSet<Variable> LVar = LVar(r.queryLeftSide(), r.queryRightSide(),
+                r.queryConstraint());
         for (Variable v : LVar) {
-            TreeSet<Variable> cvars = c.vars().getVars();
             boolean inSubst = false;
+            TreeSet<Variable> cvars = c.vars().getVars();
             for (Variable v2 : y.domain()) {
                 Term yx = y.getReplacement(v);
                 if (yx instanceof Var && cvars.contains(yx)) inSubst = true;
@@ -65,76 +57,56 @@ abstract class UserCommandInherit {
                 }
                 if (y.getReplacement(v2).equals(v) || v.equals(v2)) inSubst = true;
             }
-            if (!inSubst) return null;
+            if (!inSubst) return false;
         }
-        if (pos != null && ruleIndex >= 0) {
-            Z3TermHandler z3 = new Z3TermHandler(proof.getLcTrs());
-            if (z3.validity(c, ruleC.substitute(gamma), proof.getLcTrs().lookupSymbol("-->"))) return gamma;
-        }
-        return null;
+        return true;
     }
 
     protected void rewriteConstraintCalc(EquivalenceProof proof) {
         proof.setLeft(applyConstraintSubstitutions(proof, proof.getConstraint()));
         Term newConstraint = freshSubstitutionsConstraint(proof);
         while(!proof.getConstraint().equals(newConstraint)) {
-            proof.setConstraint(freshSubstitutionsConstraint(proof));
+            proof.setConstraint(newConstraint);
             proof.setLeft(applyConstraintSubstitutions(proof, proof.getConstraint()));
             newConstraint = freshSubstitutionsConstraint(proof);
         }
-        Z3TermHandler z3 = new Z3TermHandler(proof.getLcTrs());
-        proof.setLeft(z3.simplify(proof.getLeft()));
-        proof.setConstraint(z3.simplify(proof.getConstraint()));
+        proof.setLeft(simplifyValuesOnlyEquations(proof, proof.getLeft()));
+        proof.setConstraint(simplifyValuesOnlyEquations(proof, proof.getConstraint()));
+    }
+
+    protected Term simplifyValuesOnlyEquations(EquivalenceProof eq, Term t) {
+        Z3TermHandler z3 = new Z3TermHandler(eq.getLcTrs());
+        boolean changed = true;
+        while (changed) {
+            changed = false;
+            for (Position p : t.queryAllPositions()) {
+                Term ti = t.querySubterm(p);
+                if (ti.isConstant() || ti.isVariable()) continue;
+                if (ti.isFunctionalTerm() && !ti.queryRoot().queryName().equals("-")) {
+                    boolean allConst = true;
+                    for (int j = 1; j < ti.numberImmediateSubterms() + 1; j++) {
+                        Term tj = ti.queryImmediateSubterm(j);
+                        if (!tj.isConstant() && !(tj.isFunctionalTerm() && tj.queryRoot().queryName().equals("-")
+                                && tj.queryImmediateSubterm(1).isConstant())) {
+                            allConst = false;
+                        }
+                    }
+                    if (allConst && ti.numberImmediateSubterms() > 1 &&
+                            eq.getLcTrs().queryTheorySymbols().contains(ti.queryRoot())) {
+                        t = t.replaceSubterm(p, z3.simplify(ti));
+                        changed = true;
+                    }
+                }
+            }
+        }
+        return t;
     }
 
     protected void rewriteConstraintConstrainedRule(EquivalenceProof proof, Position pos, int ruleIndex,
                                                     Substitution y) {
-        ArrayList<Term> ceqs = new ArrayList<>();
-        Term l = proof.getLeft();
-        Term r = proof.getRight();
-        Term proofRuleConstraint = proof.getLcTrs().queryRule(ruleIndex).queryConstraint();
-        proofRuleConstraint = proofRuleConstraint.substitute(y);
-        getEqualities(proofRuleConstraint, ceqs);
-        Term newConstraint = proof.getConstraint();
-        Substitution y2 = proofRuleConstraint.match(newConstraint);
-        Substitution repl = new Subst();
-        ArrayList<Term> proofConstraintEqs = new ArrayList<>();
-        getEqualities(newConstraint, proofConstraintEqs);
-        for (Term eq : ceqs) {
-            if (eq.queryImmediateSubterm(2).isConstant()) continue;
-            else {
-                for (Variable v : y.domain()) {
-                    for (Term eqp : proofConstraintEqs) {
-                        Term e = eqp.queryImmediateSubterm(2).substitute(y);
-                        if (y.getReplacement(v).equals(eqp.queryImmediateSubterm(2))) {
-                            repl.extend((Variable) eqp.queryImmediateSubterm(1), v);
-                        }
-                    }
-                }
-            }
-            repl.extend((Variable) eq.queryImmediateSubterm(1), eq.queryImmediateSubterm(2));
-            newConstraint = new FunctionalTerm(proof.getLcTrs().lookupSymbol("/\\"),
-                    newConstraint, eq);
-        }
-        proof.setConstraint(newConstraint.substitute(y));
         Term applied = proof.getLcTrs().queryRule(ruleIndex).apply(proof.getLeft().querySubterm(pos)).substitute(y);
-        proof.setLeft(proof.getLeft().replaceSubterm(pos, applied).substitute(y));
-        proof.setRight(proof.getRight().substitute(y));
-    }
-
-    protected Term addSubstitutionToConstraint(EquivalenceProof proof, Term c, Substitution y) {
-        for (Variable v : y.domain()) {
-            if (v.queryType().equals(intSort)) {
-                c = new FunctionalTerm(proof.getLcTrs().lookupSymbol("/\\"), c,
-                        new FunctionalTerm(proof.getLcTrs().lookupSymbol("==i"), v, y.getReplacement(v)));
-            } else if (v.queryType().equals(boolSort)) {
-                c = new FunctionalTerm(proof.getLcTrs().lookupSymbol("/\\"), c,
-                        new FunctionalTerm(proof.getLcTrs().lookupSymbol("==b"), v, y.getReplacement(v)));
-            } else {
-                throw new InvalidSubstitutionTypingException(v, y.getReplacement(v));
-            }
-        }
-        return c;
+        proof.setLeft(proof.getLeft().replaceSubterm(pos, applied));
+        proof.setRight(proof.getRight());
     }
 
     protected TreeSet<Variable> LVar(Term l, Term r, Term c) {
@@ -149,40 +121,41 @@ abstract class UserCommandInherit {
     protected Term freshSubstitutionsConstraint(EquivalenceProof proof) {
         Term temp = proof.getLeft();
         Term constraint = proof.getConstraint();
+        TreeSet<Variable> cVars = constraint.vars().getVars();
         ArrayList<Term> t_vars = new ArrayList<>();
-        containsVarsInFunctionalTerms(temp, t_vars);
-
-        for (int i = 0; i < t_vars.size(); i++) {
-            Term t = t_vars.get(i);
+        varsInFunctionalTerms(proof, temp, null, t_vars);
+        for (Term t : t_vars) {
             Term eq = null;
-            if (t.queryType().equals(intSort)) {
+            boolean LVarCondition = true;
+            for (int i = 1; i <= t.numberImmediateSubterms(); i++) {
+                if (!t.queryImmediateSubterm(i).isConstant() && (t.queryImmediateSubterm(i).isVariable()
+                        && !cVars.contains(t.queryImmediateSubterm(i)))) LVarCondition = false;
+            }
+            if (t.queryType().equals(intSort) && LVarCondition) {
                 eq = new FunctionalTerm(proof.getLcTrs().lookupSymbol("==i"),
                         getFreshVar(proof, t.queryType()), t);
-            }
-            else if (t.queryType().equals(boolSort)) {
+            } else if (t.queryType().equals(boolSort) && LVarCondition) {
                 eq = new FunctionalTerm(proof.getLcTrs().lookupSymbol("==b"),
                         getFreshVar(proof, t.queryType()), t);
             }
-            constraint = new FunctionalTerm(proof.getLcTrs().lookupSymbol("/\\"),
-                    constraint, eq);
+            if (LVarCondition) {
+                constraint = new FunctionalTerm(proof.getLcTrs().lookupSymbol("/\\"),
+                        constraint, eq);
+            }
         }
         return constraint;
     }
 
-    protected void containsVarsInFunctionalTerms(Term c, ArrayList<Term> vars) {
-        ArrayList<String> ops = new ArrayList<>(Arrays.asList("-", "*", "/", "%", "+"));
-        if (c.isFunctionalTerm() && !ops.contains(c.queryRoot().queryName())) {
-            for (int i = 1; i < c.numberImmediateSubterms() + 1; i++) {
-                containsVarsInFunctionalTerms(c.queryImmediateSubterm(i), vars);
+    protected void varsInFunctionalTerms(EquivalenceProof eq, Term c, Term parent, ArrayList<Term> vars) {
+        if (c.isConstant()) return;
+        if (c.isVariable()) {
+            if (parent != null && eq.getLcTrs().queryTheorySymbols().contains(parent.queryRoot())) {
+                if (!vars.contains(parent)) vars.add(parent);
             }
-        } else if (c.isFunctionalTerm() && ops.contains(c.queryRoot().queryName())) {
-            if (c.queryImmediateSubterm(1).isVariable()) vars.add(c);
-            else if (c.queryImmediateSubterm(2).isVariable()) vars.add(c);
-            else {
-                if (c.queryImmediateSubterm(1).isConstant() || c.queryImmediateSubterm(2).isConstant()) return;
-                containsVarsInFunctionalTerms(c.queryImmediateSubterm(1), vars);
-                containsVarsInFunctionalTerms(c.queryImmediateSubterm(2), vars);
-            }
+            return;
+        }
+        for (int i = 1; i < c.numberImmediateSubterms() + 1; i++) {
+            varsInFunctionalTerms(eq, c.queryImmediateSubterm(i), c, vars);
         }
     }
 
@@ -214,18 +187,6 @@ abstract class UserCommandInherit {
         }
     }
 
-    protected void getEqualities(Substitution y, ArrayList<Term> equalities, EquivalenceProof proof) {
-        for (Variable v : y.domain()) {
-            if (v.queryType().equals(intSort)) {
-                equalities.add(new FunctionalTerm(proof.getLcTrs().lookupSymbol("==i"), v, y.getReplacement(v)));
-            } else if (v.queryType().equals(boolSort)) {
-                equalities.add(new FunctionalTerm(proof.getLcTrs().lookupSymbol("==b"), v, y.getReplacement(v)));
-            } else {
-                throw new InvalidSubstitutionTypingException(v, y.getReplacement(v));
-            }
-        }
-    }
-
     protected Term replaceSubtermsInTerm(Term t, Term eql, Term eqr) {
         for (Position pos : t.queryAllPositions()) {
             Term sub = t.querySubterm(pos);
@@ -233,25 +194,6 @@ abstract class UserCommandInherit {
             else if (sub.isFunctionalTerm() && sub.equals(eqr)) t = t.replaceSubterm(pos, eql);
         }
         return t;
-    }
-
-    private Substitution freshVariables(EquivalenceProof proof, FirstOrderRule r) {
-        Subst s = new Subst();
-        for (Variable v : r.queryLeftSide().vars()) {
-            Var fresh = getFreshVar(proof, v.queryType());
-            s.extend(v, fresh);
-        }
-        for (Variable v : r.queryRightSide().vars()) {
-            if (s.domain().contains(v)) continue;
-            Var fresh = getFreshVar(proof, v.queryType());
-            s.extend(v, fresh);
-        }
-        for (Variable v : r.queryConstraint().vars()) {
-            if (s.domain().contains(v)) continue;
-            Var fresh = getFreshVar(proof, v.queryType());
-            s.extend(v, fresh);
-        }
-        return s;
     }
 
     public Var getFreshVar(EquivalenceProof proof, Type expectedType) {
@@ -272,9 +214,11 @@ abstract class UserCommandInherit {
     }
 
     protected boolean isConstructorTerm(Term t, EquivalenceProof _proof) {
-        for (int i = 0; i < _proof.getLcTrs().queryRuleCount(); i++) {
-            Rule rule = _proof.getLcTrs().queryRule(i);
-            if (!t.isVariable() && rule.queryLeftSide().queryRoot().equals(t.queryRoot())) return false;
+        if (!t.isVariable() && _proof.getLcTrs().queryTheorySymbols().contains(t.queryRoot())) {
+            for (int i = 0; i < _proof.getLcTrs().queryRuleCount(); i++) {
+                Rule rule = _proof.getLcTrs().queryRule(i);
+                if (!t.isVariable() && rule.queryLeftSide().queryRoot().equals(t.queryRoot())) return false;
+            }
         }
         return true;
     }

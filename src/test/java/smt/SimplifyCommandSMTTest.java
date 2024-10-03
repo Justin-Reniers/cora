@@ -26,6 +26,7 @@ public class SimplifyCommandSMTTest {
             "    (factrec\tInt -> Int)\n" +
             "    (mul        Int Int -> Int)\n" +
             "   (f Int -> Int)\n" +
+            "   (fl Int -> Int)\n" +
             ")\n" +
             "(RULES\n" +
             "\tfactiter(x) -> iter(x, 1, 1)\n" +
@@ -35,6 +36,7 @@ public class SimplifyCommandSMTTest {
             "\tfactrec(x) -> mul(x, factrec(x-1))\t[x > 1]\n" +
             "\tmul(x, return(y)) -> return(x*y)\n" +
             "\titer(n, a, b) -> mul(n, iter(m, x, y))\t[n>=1 /\\ m ==i n - 1 /\\ b ==i y + 1 /\\ a ==i x * y]" +
+            "\tfl(z) -> z\n" +
             ")\n";
 
     static {
@@ -80,6 +82,24 @@ public class SimplifyCommandSMTTest {
         eq.applyNewUserCommand("simplify");
         Term l2 = LcTrsInputReader.readTermFromStringWithEnv("f(2)", lcTrs, eq.getEquationVariables());
         assertEquals(eq.getLeft().toString(), l2.toString());
+    }
+
+    @Test
+    public void testMultipleFreshVars() throws ParserException {
+        String t1 = "f(x + y + 1)";
+        String t2 = "f(x)";
+        String c1 = "[x <= 2 /\\ y >= 4]";
+        Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
+        TreeSet<Variable> vars = new TreeSet<>();
+        vars.addAll(l.vars().getVars());
+        Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
+        vars.addAll(r.vars().getVars());
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
+        EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
+        eq.applyNewUserCommand("simplify");
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("f(x_1)", lcTrs, eq.getEquationVariables());
+        assertEquals(eq.getLeft().toString(), l2.toString());
+        System.out.println(eq.getConstraint());
     }
 
     @Test
@@ -254,11 +274,12 @@ public class SimplifyCommandSMTTest {
         assertEquals(eq.getLeft().toString(), l2.toString());
     }
 
-    @Test
+    @Test (expected = InvalidRuleApplicationException.class)
     public void testSimplifyUnusedVariables() throws ParserException {
         String t1 = "iter(k, 2, 3)";
         String t2 = "mul(k, iter(l, 1, 2))";
         String c1 = "[~(k <= 1) /\\ l ==i k - 1]";
+        String rule = "iter(n, a, b) -> mul(n, iter(m, x, y))\t[n>=1 /\\ m ==i n - 1 /\\ b ==i y + 1 /\\ a ==i x * y]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
@@ -266,9 +287,9 @@ public class SimplifyCommandSMTTest {
         vars.addAll(r.vars().getVars());
         Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
-        eq.applyNewUserCommand("simplify ε 7 [x := 1, y := 2]");
+        eq.applyNewUserCommand("simplify ε 7 [  x := 1, y := 2]");
         Term l2 = LcTrsInputReader.readTermFromStringWithEnv("mul(k, iter(n-1, 1, 2))", lcTrs, eq.getEquationVariables());
-        assertNotEquals(eq.getLeft().toString(), l2.toString());
+        assertEquals(eq.getLeft().toString(), l2.toString());
     }
 
     @Test  (expected = InvalidRuleApplicationException.class)
@@ -286,6 +307,23 @@ public class SimplifyCommandSMTTest {
         eq.applyNewUserCommand("simplify ε 7");
         Term l2 = LcTrsInputReader.readTermFromStringWithEnv("mul(k, iter(n-1, 1, 2))", lcTrs, eq.getEquationVariables());
         assertEquals(eq.getLeft().toString(), l2.toString());
+    }
+
+    @Test
+    public void testSimplifyComposition() throws ParserException {
+        String t1 = "fl(x)";
+        String t2 = "x";
+        String c1 = "[x ==i 3]";
+        Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
+        TreeSet<Variable> vars = new TreeSet<>();
+        vars.addAll(l.vars().getVars());
+        Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
+        vars.addAll(r.vars().getVars());
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
+        EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
+        eq.applyNewUserCommand("simplify 0 8");
+        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("x", lcTrs, eq.getEquationVariables());
+        assertEquals(eq.getLeft(), l2);
     }
     private static EquivalenceProof testProof(String filePath) throws Exception {
         TRS rec_fac = readInput(filePath);

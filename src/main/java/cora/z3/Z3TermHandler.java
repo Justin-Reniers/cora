@@ -15,6 +15,7 @@ import cora.types.Sort;
 import java.util.*;
 
 import static cora.z3.Z3Helper.*;
+import static java.lang.Integer.parseInt;
 
 public class Z3TermHandler {
     private Solver _s;
@@ -41,7 +42,7 @@ public class Z3TermHandler {
 
     public Expr deconstruct(Term t) {
         if (t.isConstant()) {
-            if (t.queryType().equals(Sort.intSort)) return getIntVal(_ctx, Integer.parseInt(t.queryRoot().queryName()));
+            if (t.queryType().equals(Sort.intSort)) return getIntVal(_ctx, parseInt(t.queryRoot().queryName()));
             if (t.queryType().equals(Sort.boolSort)) {
                 return getBoolVal(_ctx, Boolean.parseBoolean(t.queryRoot().queryName()));
             }
@@ -122,7 +123,7 @@ public class Z3TermHandler {
         if (e.getSort().equals(_ctx.getBoolSort())) {
             Goal g = _ctx.mkGoal(true, true, false); //params: models, unsatCores, proofs
             g.add(e);
-            Tactic css = _ctx.mkTactic("solver-subsumption");
+            Tactic css = _ctx.mkTactic("ctx-solver-simplify");
             ApplyResult ar = css.apply(g);
             Term s = null;
             for (Goal sg : ar.getSubgoals())
@@ -144,7 +145,7 @@ public class Z3TermHandler {
 
     private static boolean isNumeric(String s) {
         try {
-            Integer.parseInt(s);
+            parseInt(s);
             return true;
         } catch (NumberFormatException e) {
             return false;
@@ -156,7 +157,12 @@ public class Z3TermHandler {
             return new FunctionalTerm(_lcTrs.lookupSymbol("-"), reconstruct(e.getArgs()[0], env));
         }
         if (e.isInt() && !e.isApp()) {
-            if (isNumeric(e.toString())) return new Constant(e.toString(), Sort.intSort);
+            if (isNumeric(e.toString())) {
+                int val = parseInt(e.toString());
+                if (val >= 0) return new Constant(String.valueOf(val), Sort.intSort);
+                return new FunctionalTerm(_lcTrs.lookupSymbol("-"), new Constant(String.valueOf(val*-1),
+                        Sort.intSort));
+            }
             return new Var(e.toString(), Sort.intSort);
         }
         if (e.isBool() && !e.isApp()) {
@@ -217,6 +223,7 @@ public class Z3TermHandler {
             }
         }
         if (e.isMul()) {
+            if (e.getArgs()[0].isInt())
             return new FunctionalTerm(_lcTrs.lookupSymbol("*"), reconstruct(e.getArgs()[0], env),
                     reconstruct(e.getArgs()[1], env));
         }

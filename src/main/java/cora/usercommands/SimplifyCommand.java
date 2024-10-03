@@ -11,6 +11,7 @@ import cora.terms.Var;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.TreeSet;
 
 /**
  * Simplify is a user command that tries to simplify terms on the left hand side of
@@ -77,16 +78,18 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
         Term subTerm;
         if (_pos == null) return false;
         subTerm = t.querySubterm(_pos);
-        if (_gamma != null) {
+        if (_gamma != null && _ruleIndex >= 0) {
+            TreeSet<Variable> lvar = LVar(lcTrs.queryRule(_ruleIndex).queryLeftSide(),
+                    lcTrs.queryRule(_ruleIndex).queryRightSide(), lcTrs.queryRule(_ruleIndex).queryConstraint());
             for (Variable v : _gamma.domain()) {
-                if (LVar(_proof.getLeft(), _proof.getRight(), _proof.getConstraint()).contains(v)) return false;
+                if (!lvar.contains(v)) return false;
             }
         }
         if (!lcTrs.queryRule(_ruleIndex).applicable(subTerm)) {
             return false;
         }
         FunctionSymbol fSymbol = lcTrs.queryRule(_ruleIndex).queryConstraint().queryRoot();
-        if (fSymbol.queryRoot().equals(lcTrs.lookupSymbol("TRUE"))) return true;
+        //if (fSymbol.queryRoot().equals(lcTrs.lookupSymbol("TRUE"))) return true;
         if (fSymbol.queryRoot().equals(lcTrs.lookupSymbol("FALSE"))) return false;
         else {
             _gamma = rewrittenConstraintValid(_proof, _ruleIndex, _pos, _gamma);
@@ -148,24 +151,6 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
             else if (sub.isFunctionalTerm() && sub.equals(eqr)) t = t.replaceSubterm(pos, eql);
         }
         return t;
-    }
-
-    @Override
-    protected void containsVarsInFunctionalTerms(Term c, ArrayList<Term> vars) {
-        ArrayList<String> ops = new ArrayList<>(Arrays.asList("-", "*", "/", "%", "+"));
-        if (c.isFunctionalTerm() && !ops.contains(c.queryRoot().queryName())) {
-            for (int i = 1; i < c.numberImmediateSubterms() + 1; i++) {
-                containsVarsInFunctionalTerms(c.queryImmediateSubterm(i), vars);
-            }
-        } else if (c.isFunctionalTerm() && ops.contains(c.queryRoot().queryName())) {
-            if (c.queryImmediateSubterm(1).isVariable()) vars.add(c);
-            else if (c.queryImmediateSubterm(2).isVariable()) vars.add(c);
-            else {
-                if (c.queryImmediateSubterm(1).isConstant() || c.queryImmediateSubterm(2).isConstant()) return;
-                containsVarsInFunctionalTerms(c.queryImmediateSubterm(1), vars);
-                containsVarsInFunctionalTerms(c.queryImmediateSubterm(2), vars);
-            }
-        }
     }
 
     /**

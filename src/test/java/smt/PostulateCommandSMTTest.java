@@ -96,7 +96,7 @@ public class PostulateCommandSMTTest {
         Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
-        eq.applyNewUserCommand("postulate g(1+x) f(2+x) [x>=3]");
+        eq.applyNewUserCommand("postulate g((1+x)) f(2+x) [x>=3]");
         assertTrue(eq.getCompleteness());
     }
 }

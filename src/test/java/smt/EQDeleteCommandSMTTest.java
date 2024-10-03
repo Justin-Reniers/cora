@@ -57,7 +57,12 @@ public class EQDeleteCommandSMTTest {
         eq.applyNewUserCommand("eqdelete");
         String nc = "[n ==i y /\\ m ==i n - 1 /\\ y_1 ==i y + 1 /\\ x_1 ==i x * y /\\ ~(x_1 ==i n*x)]";
         Term newC = LcTrsInputReader.readLogicalTermFromStringWithEnv(nc, lcTrs, eq.getEquationVariables());
+        System.out.println(eq.getConstraint());
+        System.out.println(newC);
         assertEquals(eq.getConstraint(), newC);
+        //"n==iy/\\m==in+-1/\\y_1==iy+1/\\x_1==ix*y/\\~(x_1==in*x)"
+        //"n==iy/\\m==in+-1/\\y_1==iy+1/\\x_1==ix*y/\\~(x_1==in*x)";
+        //"n==iy/\\m==in+-1/\\y_1==iy+1/\\x_1==ix*y/\\~(x_1==in*x)";
     }
 
     @Test
