@@ -144,4 +144,5 @@ NUM                 : [0-9]+ ;
 
 DOT                 : '.' ;
 
-EMPTYPOS            : 'ε' ;
+EMPTYPOS            : 'ε'
+                    | '0' ;

@@ -60,5 +60,7 @@ public interface TRS {
   void addRule(Rule r);
 
   List<FunctionSymbol> querySymbols();
+
+  List<FunctionSymbol> queryTheorySymbols();
 }
 

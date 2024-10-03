@@ -220,6 +220,11 @@ public class TrsReadingTest {
       return null;
     }
 
+    @Override
+    public List<FunctionSymbol> queryTheorySymbols() {
+      return null;
+    }
+
     public FunctionSymbol lookupSymbol(String name) { return _symbols.get(name); }
   }
 

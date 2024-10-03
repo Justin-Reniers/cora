@@ -159,7 +159,8 @@ public class LcTrsInputReader extends InputReader{
      * integer operations and integer comparisons to the data.
      * @param data The data to be updated with all the basic signature declarations.
      */
-    public void handleBasicSignature(ParseData data) {
+    public ArrayList<FunctionSymbol> handleBasicSignature(ParseData data) {
+        ArrayList<FunctionSymbol> theorySymbols = new ArrayList<FunctionSymbol>();
         boolean infix = true;
         Type unaryBool = new ArrowType(boolSort, boolSort);
         Type unaryInt = new ArrowType(intSort, intSort);
@@ -184,7 +185,9 @@ public class LcTrsInputReader extends InputReader{
         data.addFunctionSymbol(new Constant("!=i", intComparison, true, 7));
         data.addFunctionSymbol(new Constant("==b", boolOperation, true, 7));
         data.addFunctionSymbol(new Constant("!=b", boolOperation, true, 7));
+        theorySymbols.addAll(data.queryCurrentAlphabet().queryAlphabetSymbols());
         addBooleanConstantsToData(data);
+        return theorySymbols;
     }
 
     private void addBooleanConstantsToData(ParseData data) {
@@ -311,6 +314,9 @@ public class LcTrsInputReader extends InputReader{
         if (expectedType != null && !expectedType.isBaseType()) {
             throw buildError(tree, "Trying to read a term of a non-basic type!");
         }
+        if (checkChild(tree, 0).equals("rule enclosedterm")) {
+            return readEnclosedTerm(tree.getChild(0), data, expectedType, mstrs);
+        }
         if (tree.getChildCount() == 1) {
             return readConstantOrVariable(tree.getChild(0), data, expectedType, mstrs);
         }
@@ -340,6 +346,8 @@ public class LcTrsInputReader extends InputReader{
                 verifyChildIsRule(tree, 0, "term", "a term");
                 verifyChildIsRule(tree, 2, "term", "a term");
                 ret = getNewFunctionalTermArityTwo(tree, data, tree.getChild(1).getText(), mstrs);
+            } else if (checkChild(tree, 0).equals("token BRACKETOPEN")){
+                ret = readEnclosedTerm(tree, data, expectedType, mstrs);
             } else {
                 ret = getNewFunctionalTermHighArity(tree, data, mstrs);
                 if (expectedType != null && !ret.queryType().equals(expectedType)) {
@@ -347,6 +355,26 @@ public class LcTrsInputReader extends InputReader{
                             expectedType.toString());
                 }
             }
+        }
+        return ret;
+    }
+
+    private Term readEnclosedTerm(ParseTree tree, ParseData data, Type expectedType,
+                                  boolean mstrs) throws ParserException {
+        ArrayList<String> symbols = new ArrayList<>(Arrays.asList("token CONJUNCTION", "token DISJUNCTION",
+                "token CONDITIONAL", "token BICONDITIONAL", "token MULT", "token DIV", "token MOD",
+                "token PLUS", "token LT", "token LTEQ", "token GT", "token GTEQ", "token EQUALITYI", "token NEQI",
+                "token EQUALITYB", "token NEQB"));
+        Term ret = null;
+        verifyChildIsToken(tree, 0, "BRACKETOPEN", "Opening bracket '('");
+        verifyChildIsToken(tree, tree.getChildCount()-1, "BRACKETCLOSE", "Closing bracket ')'");
+        if (tree.getChildCount()-2 == 1) {
+            ret = readTermType(tree.getChild(1), data, expectedType, mstrs);
+        }
+        if (tree.getChildCount()-2 == 3 && symbols.contains(checkChild(tree, 3))) {
+            verifyChildIsRule(tree, 0, "term", "a term");
+            verifyChildIsRule(tree, 2, "term", "a term");
+            ret = getNewFunctionalTermArityTwo(tree, data, tree.getChild(1).getText(), mstrs);
         }
         return ret;
     }
@@ -489,7 +517,7 @@ public class LcTrsInputReader extends InputReader{
 
     private TRS readLCTRS(ParseTree tree) throws ParserException {
         ParseData data = new ParseData();
-        handleBasicSignature(data);
+        ArrayList<FunctionSymbol> theorySymbols = handleBasicSignature(data);
         int k = 0;
         String kind = checkChild(tree, k);
         if (kind.equals("rule varlist")) {
@@ -503,7 +531,7 @@ public class LcTrsInputReader extends InputReader{
         }
         verifyChildIsRule(tree, k, "ruleslist", "List of rules");
         ArrayList<Rule> rules = readRuleList(tree.getChild(k), data, true);
-        return new TermRewritingSystem(data.queryCurrentAlphabet(), rules);
+        return new TermRewritingSystem(data.queryCurrentAlphabet(), rules, theorySymbols);
     }
 
     /* ========= USER INPUT METHODS ========= */

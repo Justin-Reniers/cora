@@ -36,6 +36,7 @@ import cora.interfaces.rewriting.TRS;
 public class TermRewritingSystem implements TRS {
   private Alphabet _alphabet;
   private List<Rule> _rules;
+  private List<FunctionSymbol> _theorySymbols;
 
   /** Create an TermRewritingSystem with the given alphabet and rules. */
   public TermRewritingSystem(Alphabet alphabet, List<Rule> rules) {
@@ -49,6 +50,21 @@ public class TermRewritingSystem implements TRS {
 
     _alphabet = alphabet.copy();
     _rules = new ArrayList<Rule>(rules);
+    _theorySymbols = new ArrayList<>();
+  }
+
+  public TermRewritingSystem(Alphabet alphabet, List<Rule> rules, List<FunctionSymbol> theorySymbols) {
+    if (alphabet == null) throw new NullInitialisationError("TermRewritingSystem", "alphabet");
+    if (rules == null) throw new NullInitialisationError("TermRewritingSystem", "rules set");
+    for (int i = 0; i < rules.size(); i++) {
+      if (rules.get(i) == null) {
+        throw new NullInitialisationError("TermRewritingSystem", "rule " + i);
+      }
+    }
+
+    _alphabet = alphabet.copy();
+    _rules = new ArrayList<Rule>(rules);
+    _theorySymbols = new ArrayList<FunctionSymbol>(theorySymbols);
   }
 
   public TermRewritingSystem(TRS trs) {
@@ -57,6 +73,7 @@ public class TermRewritingSystem implements TRS {
     for (int i = 0; i < trs.queryRuleCount(); i++) {
       _rules.add(trs.queryRule(i));
     }
+    _theorySymbols = new ArrayList<>();
   }
 
   /** Gives a human-readable representation of the term rewriting system. */
@@ -154,5 +171,8 @@ public class TermRewritingSystem implements TRS {
     public List<FunctionSymbol> querySymbols() {
         return _alphabet.queryAlphabetSymbols();
     }
+
+    @Override
+    public List<FunctionSymbol> queryTheorySymbols() {return _theorySymbols;}
 }
 

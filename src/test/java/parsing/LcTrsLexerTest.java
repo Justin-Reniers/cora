@@ -392,4 +392,19 @@ public class LcTrsLexerTest {
         String s = "[1 >= t-3/4]\n";
         ArrayList<Token> ts = tokenize(s);
     }
+
+    @Test
+    public void testTokenizingEnclosedTerm() {
+        String s = "POSTUlate f(x+1) g(x+2) [x>=3]\n";
+        ArrayList<Token> ts = tokenize(s);
+        System.out.println(ts);
+        assertEquals(ts.get(0).getType(), LcTrsLexer.POSTULATE);
+        assertEquals(ts.get(1).getType(), LcTrsLexer.WORD);
+        assertEquals(ts.get(2).getType(), LcTrsLexer.BRACKETOPEN);
+        assertEquals(ts.get(3).getType(), LcTrsLexer.WORD);
+        assertEquals(ts.get(4).getType(), LcTrsLexer.PLUS);
+        assertEquals(ts.get(5).getType(), LcTrsLexer.NUM);
+        assertEquals(ts.get(6).getType(), LcTrsLexer.BRACKETCLOSE);
+        assertEquals(ts.get(7).getType(), LcTrsLexer.WORD);
+    }
 }

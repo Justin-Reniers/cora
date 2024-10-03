@@ -146,6 +146,11 @@ public class LcTrsUserReadingTest {
         LcTrsInputReader.readUserInputFromString("POSTUlate f(x+1) g(x+2) [x>=3]", eq);
     }
 
+    @Test
+    public void readPostulateTheorySymbols() throws ParserException {
+        LcTrsInputReader.readUserInputFromString("postulate (-2) (3+(2+1)) [x>=1]", eq);
+    }
+
     @Test (expected = UnsupportedRewritingRuleException.class)
     public void readGeneralization() throws ParserException {
         LcTrsInputReader.readUserInputFromString("generaliZE", eq);

@@ -24,11 +24,9 @@ options {
   tokenVocab = LcTrsLexer;
 }
 
-trs                 : varlist? siglist? ruleslist EOF
+trs                 : siglist ruleslist EOF
                     | rewritinginduction EOF
                     ;
-
-varlist             : BRACKETOPEN VARDECSTART identifier* BRACKETCLOSE ;
 
 siglist             : BRACKETOPEN SIGSTART fundec* BRACKETCLOSE ;
 
@@ -46,20 +44,21 @@ add optional argument for infix function symbol
 
 trsrule             : term ARROW term logicalconstraint? ;
 
-term                : identifier
+term                : identifier BRACKETOPEN termlist BRACKETCLOSE
                     | identifier BRACKETOPEN BRACKETCLOSE
-                    | identifier BRACKETOPEN termlist BRACKETCLOSE
+                    | identifier
+                    | enclosedterm
                     | MINUS term
                     | MINUS (BRACKETOPEN term BRACKETCLOSE)
                     | NEGATION (term | BRACKETOPEN term BRACKETCLOSE)
                     | term (MULT | DIV | MOD) term
                     | term (PLUS | MINUS) term
-                    | term (LT | LTEQ | GT | GTEQ)*? term
-                    | term (EQUALITYI | NEQI)*? term
-                    | term (CONJUNCTION | DISJUNCTION)*? term
+                    | term (LT | LTEQ | GT | GTEQ) term
+                    | term (EQUALITYI | NEQI) term
+                    | term (CONJUNCTION | DISJUNCTION) term
                     | <assoc=right> term CONDITIONAL term
                     | term BICONDITIONAL term
-                    | term (EQUALITYB | NEQB)*? term
+                    | term (EQUALITYB | NEQB) term
                     | numeric
                     ;
 
@@ -75,6 +74,8 @@ numeric             : NUM
                     ;
 
 logicalconstraint   : SQUAREOPEN term SQUARECLOSE ;
+
+enclosedterm        : BRACKETOPEN term BRACKETCLOSE ;
 
 rewritinginduction  : SIMPLIFICATION (pos NUM subst?)?
                     | EXPANSION pos termination?

@@ -5,6 +5,7 @@ import cora.interfaces.rewriting.Rule;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.Proof;
 import cora.interfaces.smt.UserCommand;
+import cora.interfaces.terms.FunctionSymbol;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
 import cora.interfaces.types.Type;
@@ -27,6 +28,7 @@ public class EquivalenceProof implements Proof {
     private TRS _lcTrs;
     private boolean _completeness;
     private ArrayList<Equation> _equations, _completenessEquations;
+    private ArrayList<String> _calculationSymbols;
     private Equation _cur_eq;
     private ArrayList<ProofHistory> _history;
     private TreeSet<Variable> _env;
@@ -139,7 +141,8 @@ public class EquivalenceProof implements Proof {
                 uc.apply();
                 updateVariables();
                 if (_completeness && _equations.isEmpty() && _bottom) _proven = 2;
-                if (_completeness && _equations.isEmpty()) _proven = 1;
+                else if (_equations.isEmpty()) _proven = 1;
+                else _proven = 0;
             } else {
                 throw new InvalidRuleApplicationException(uCommand);
             };
