@@ -3,6 +3,7 @@ package hci;
 import hci.interfaces.UserInputView;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -222,6 +223,9 @@ public class InputView extends JFrame implements UserInputView {
     private void loadFileActionPerformed() {
         loadFile.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setAcceptAllFileFilterUsed(false);
+            FileNameExtensionFilter filter = new FileNameExtensionFilter("LCTRS files", "lctrs");
+            fileChooser.addChoosableFileFilter(filter);
             int option = fileChooser.showOpenDialog(frame);
             if (option == JFileChooser.APPROVE_OPTION)  {
                 File file = fileChooser.getSelectedFile();
@@ -266,9 +270,6 @@ public class InputView extends JFrame implements UserInputView {
         ruleTextAreaRight.setFont(f.deriveFont(size));
         ruleTextAreaConstraint.setFont(f.deriveFont(size));
         positionTextArea.setFont(f.deriveFont(size));
-
-        System.out.println(size);
-        System.out.println(f.getSize());
     }
 
     private void enterEquivalenceProofActionPerformed() {
@@ -285,6 +286,9 @@ public class InputView extends JFrame implements UserInputView {
     private void saveProofActionPerformed() {
         saveProof.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setAcceptAllFileFilterUsed(false);
+            FileNameExtensionFilter filter = new FileNameExtensionFilter("Proof files", "prf");
+            fileChooser.addChoosableFileFilter(filter);
             int option = fileChooser.showOpenDialog(frame);
             if (option == JFileChooser.APPROVE_OPTION) {
                 File file = fileChooser.getSelectedFile();
@@ -296,6 +300,9 @@ public class InputView extends JFrame implements UserInputView {
     private void loadProofActionPerformed() {
         loadProof.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setAcceptAllFileFilterUsed(false);
+            FileNameExtensionFilter filter = new FileNameExtensionFilter("Proof files", "prf");
+            fileChooser.addChoosableFileFilter(filter);
             int option = fileChooser.showOpenDialog(frame);
             if (option == JFileChooser.APPROVE_OPTION) {
                 File file = fileChooser.getSelectedFile();
@@ -311,7 +318,7 @@ public class InputView extends JFrame implements UserInputView {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_UP) {
-                    //getPresenter().getModel().addUserInput(userInput.getText());
+                    //getPresenter().getSatStatus().addUserInput(userInput.getText());
                     userInput.setText(getPresenter().getModel().getPreviousInput());
                 }
             }

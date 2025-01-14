@@ -114,7 +114,6 @@ public class InputModel implements UserInputModel {
     @Override
     public void enterProof(String ls, String rs, String cs) throws ParserException {
         TreeSet<Variable> vars = new TreeSet<Variable>();
-        System.out.println(ls + rs + cs);
         Term l = LcTrsInputReader.readTermFromString(ls, _lcTrs);
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(rs, _lcTrs, vars);
@@ -133,14 +132,20 @@ public class InputModel implements UserInputModel {
         s.append("<font size=\"" + _fontSize + "\"></font>");
         ArrayList<Character> counter = new ArrayList<>();
         counter.add('A');
+        int count = 1;
         for (int i = 0; i < _eqp.getLcTrs().queryRuleCount(); i++) {
+            System.out.println(_eqp.getLcTrs().queryRule(i));
             if (_eqp.getLcTrs().queryRule(i).inCompletenessSet()) {
                 s.append(" ");
-                for (Character c : counter) s.append(c);
-                s.append("\t: ").append(_eqp.getLcTrs().queryRule(i).toHTMLString()).append("<br>");
+                for (Character c : counter) {
+                    s.append(c);
+                }
+                s.append("(").append(count).append(")");
+                s.append("\t\t: ").append(_eqp.getLcTrs().queryRule(i).toHTMLString()).append("<br>");
                 updateCounter(counter);
+                count++;
             } else {
-                s.append(" ").append(i+1).append("\t: ")
+                s.append(" ").append(i+1).append("\t\t: ")
                         .append(_eqp.getLcTrs().queryRule(i).toHTMLString()).append("<br>");
             }
         }
@@ -155,14 +160,16 @@ public class InputModel implements UserInputModel {
         s.append("<font size=\"" + _fontSize + "\"></font>");
         ArrayList<Character> counter = new ArrayList<>();
         counter.add('A');
+        int count = 0;
         for (int i = 0; i < _eqp.getLcTrs().queryRuleCount(); i++) {
             if (_eqp.getLcTrs().queryRule(i).inCompletenessSet()) {
                 s.append(" ");
                 for (Character c : counter) s.append(c);
-                s.append("\t: ").append(_eqp.getLcTrs().queryRule(i).queryLeftSide().toHTMLString()).append("<br>");
+                s.append("(").append(count + _eqp.getLcTrs().queryRuleCount()).append(")");
+                s.append("\t\t: ").append(_eqp.getLcTrs().queryRule(i).queryLeftSide().toHTMLString()).append("<br>");
                 updateCounter(counter);
             } else {
-                s.append(" ").append(i+1).append("\t: ")
+                s.append(" ").append(i+1).append("\t\t: ")
                         .append(_eqp.getLcTrs().queryRule(i).queryLeftSide().toHTMLString()).append("<br>");
             }
         }
