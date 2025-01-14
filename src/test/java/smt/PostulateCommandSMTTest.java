@@ -24,22 +24,22 @@ public class PostulateCommandSMTTest {
     private final static TRS lcTrs;
 
     private final static String s = "(SIG\n" +
-            "    (factiter\tInt -> Int)\n" +
-            "    (iter\t\tInt Int Int -> Int)\n" +
-            "\t(return\t\tInt -> Int)\n" +
-            "    (factrec\tInt -> Int)\n" +
-            "    (mul        Int Int -> Int)\n" +
+            "    (sumiter    Int -> Result)\n" +
+            "    (iter       Int Int Int -> Result)\n" +
+            "    (return     Int -> Result)\n" +
+            "    (sumrec     Int -> Result)\n" +
+            "    (add        Int Result -> Result)\n" +
             "   (f Int -> Int)\n" +
             "   (h Int Int Int -> Int)\n" +
             ")\n" +
             "(RULES\n" +
-            "\tfactiter(x) -> iter(x, 1, 1)\n" +
-            "\titer(x, z, i) -> iter(x, z*i, i+1)\t[i <= x]\n" +
-            "\titer(x, z, i) -> return(z)\t\t\t[i > x]\n" +
-            "\tfactrec(x) -> return(1)\t\t\t\t[x <= 1]\n" +
-            "\tfactrec(x) -> mul(x, factrec(x-1))\t[x > 1]\n" +
-            "\tmul(x, return(y)) -> return(x*y)\n" +
-            ")\n";
+            "    sumiter(x) -> iter(x, 0, 0)\n" +
+            "    iter(x, z, i) -> iter(x, z+i, i+1)  [i <= x]\n" +
+            "    iter(x, z, i) -> return(z)          [i > x]\n" +
+            "    sumrec(x) -> return(0)              [x <= 0]\n" +
+            "    sumrec(x) -> add(x, sumrec(x-1))    [x > 0]\n" +
+            "    add(x, return(y)) -> return(x+y)\n" +
+            ")";
 
     static {
         try {
@@ -97,6 +97,36 @@ public class PostulateCommandSMTTest {
         vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("postulate g((1+x)) f(2+x) [x>=3]");
+        assertTrue(eq.getCompleteness());
+    }
+
+    @Test (expected = ParserException.class)
+    public void logicalTermNoNonTheorySymbol() throws ParserException {
+        String t1 = "return(2)";
+        String t2 = "return(1)";
+        String c1 = "[x==i return(1)]";
+        Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
+        TreeSet<Variable> vars = new TreeSet<>();
+        vars.addAll(l.vars().getVars());
+        Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
+        vars.addAll(r.vars().getVars());
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
+    }
+
+    @Test (expected = InvalidRuleParseException.class)
+    public void logicalTermNoNonTheorySymbol2() throws ParserException {
+        String t1 = "return(2)";
+        String t2 = "return(1)";
+        String c1 = "[x==i 2]";
+        Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
+        TreeSet<Variable> vars = new TreeSet<>();
+        vars.addAll(l.vars().getVars());
+        Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
+        vars.addAll(r.vars().getVars());
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
+        vars.addAll(c.vars().getVars());
+        EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
+        eq.applyNewUserCommand("postulate f(1+x) f(2+x)  [x>=return(3)]");
         assertTrue(eq.getCompleteness());
     }
 }

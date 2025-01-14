@@ -11,6 +11,7 @@ import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
 import cora.parsers.LcTrsInputReader;
 import cora.smt.EquivalenceProof;
+import cora.z3.SatisfiabilityEnum;
 import cora.z3.Z3Helper;
 import cora.z3.Z3TermHandler;
 import org.junit.Test;
@@ -59,7 +60,7 @@ public class CalculationRulesTest {
         Expr<BoolSort> e1 = getBoolVar(_ctx, "x");
         Expr<BoolSort> e2 = getNot(_ctx, e1);
         Expr<BoolSort> e3 = getNot(_ctx, e2);
-        assertTrue(z3.satisfiable(e2));
+        assertTrue(z3.satisfiable(e2) == SatisfiabilityEnum.SAT);
     }
 
     @Test
@@ -67,7 +68,7 @@ public class CalculationRulesTest {
         Expr<BoolSort> e1 = getBoolVar(_ctx, "x");
         Expr<BoolSort> e2 = getNot(_ctx, e1);
         Expr<BoolSort> e3 = getAnd(_ctx, e1, e2);
-        assertFalse(z3.satisfiable(e3));
+        assertTrue(z3.satisfiable(e3) == SatisfiabilityEnum.UNSAT);
     }
 
     @Test
@@ -83,7 +84,6 @@ public class CalculationRulesTest {
         Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(sc, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("simplify");
-        Term t = eq.getLeft();
         assertTrue(eq.getLeft().isVariable());
     }
 
@@ -148,8 +148,6 @@ public class CalculationRulesTest {
         Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(sc, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("simplify");
-        //assertEquals(l, eq.getLeft());
-        System.out.println(eq.getConstraint());
         assertEquals(c, eq.getConstraint());
     }
 
@@ -424,7 +422,7 @@ public class CalculationRulesTest {
         assertEquals(comp, eq.getLeft());
     }
 
-    @Test
+    @Test (expected = InvalidRuleApplicationException.class)
     public void testReduction2() throws ParserException {
         String sl = "factrec(2*x+1)";
         String sr = "g(z)";
@@ -493,5 +491,74 @@ public class CalculationRulesTest {
         eq.applyNewUserCommand("simplify");
         assertNotEquals(l, eq.getLeft());
         assertNotEquals(c, eq.getConstraint());
+    }
+
+    @Test
+    public void testInfiniteRewrite() throws ParserException {
+        String sl = "factrec(x)";
+        String sr = "x";
+        String sc = "[x ==i y /\\ y ==i x]";
+        Term l = LcTrsInputReader.readTermFromString(sl, lcTrs);
+        TreeSet<Variable> vars = new TreeSet<>();
+        vars.addAll(l.vars().getVars());
+        Term r = LcTrsInputReader.readTermFromStringWithEnv(sr, lcTrs, vars);
+        vars.addAll(r.vars().getVars());
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(sc, lcTrs, vars);
+        EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
+        eq.applyNewUserCommand("simplify");
+        assertEquals(l, eq.getLeft());
+    }
+
+    @Test
+    public void testReduction6() throws ParserException {
+        String sl = "factrec(u+v)";
+        String sr = "u";
+        String sc = "[u >= 3 /\\ v > 1]";
+        Term l = LcTrsInputReader.readTermFromString(sl, lcTrs);
+        TreeSet<Variable> vars = new TreeSet<>();
+        vars.addAll(l.vars().getVars());
+        Term r = LcTrsInputReader.readTermFromStringWithEnv(sr, lcTrs, vars);
+        vars.addAll(r.vars().getVars());
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(sc, lcTrs, vars);
+        EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
+        eq.applyNewUserCommand("simplify");
+        eq.applyNewUserCommand("simplify 0 5");
+        Term comp = LcTrsInputReader.readTermFromStringWithEnv("mul(x_0, factrec(x_0-1))", lcTrs,
+                eq.getCurrentEqVariables());
+        assertEquals(comp, eq.getLeft());
+    }
+
+    @Test
+    public void testRedundant() throws ParserException {
+        String sl = "factrec(y + (n + 2))";
+        String sr = "y";
+        String sc = "[x ==i y + (n + 2)]";
+        Term l = LcTrsInputReader.readTermFromString(sl, lcTrs);
+        TreeSet<Variable> vars = new TreeSet<>();
+        vars.addAll(l.vars().getVars());
+        Term r = LcTrsInputReader.readTermFromStringWithEnv(sr, lcTrs, vars);
+        vars.addAll(r.vars().getVars());
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(sc, lcTrs, vars);
+        EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
+        eq.applyNewUserCommand("simplify");
+        Term comp = LcTrsInputReader.readTermFromStringWithEnv("factrec(x)", lcTrs, eq.getEquationVariables());
+        assertEquals(comp, eq.getLeft());
+    }
+
+    @Test
+    public void testValuesSimplifiedFirst() throws ParserException {
+        String sl = "factrec(3 + 4)";
+        String sr = "7";
+        String sc = "[x ==i y + (n + 2)]";
+        Term l = LcTrsInputReader.readTermFromString(sl, lcTrs);
+        TreeSet<Variable> vars = new TreeSet<>();
+        vars.addAll(l.vars().getVars());
+        Term r = LcTrsInputReader.readTermFromStringWithEnv(sr, lcTrs, vars);
+        vars.addAll(r.vars().getVars());
+        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(sc, lcTrs, vars);
+        EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
+        eq.applyNewUserCommand("simplify");
+        Term comp = LcTrsInputReader.readTermFromStringWithEnv("factrec(7)", lcTrs, eq.getEquationVariables());
+        assertEquals(comp, eq.getLeft());
     }
 }

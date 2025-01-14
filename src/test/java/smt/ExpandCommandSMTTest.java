@@ -24,21 +24,21 @@ public class ExpandCommandSMTTest {
     private final static TRS lcTrs;
 
     private final static String s = "(SIG\n" +
-            "    (factiter\tInt -> Int)\n" +
-            "    (iter\t\tInt Int Int -> Int)\n" +
-            "\t(return\t\tInt -> Int)\n" +
-            "    (factrec\tInt -> Int)\n" +
-            "    (mul        Int Int -> Int)\n" +
-            "   (f Int -> Int)\n" +
+            "    (sumiter    Int -> Result)\n" +
+            "    (iter       Int Int Int -> Result)\n" +
+            "    (return     Int -> Result)\n" +
+            "    (sumrec     Int -> Result)\n" +
+            "    (add        Int Result -> Result)\n" +
+            "    (f Int -> Int)\n" +
             ")\n" +
             "(RULES\n" +
-            "\tfactiter(x) -> iter(x, 1, 1)\n" +
-            "\titer(x, z, i) -> iter(x, z*i, i+1)\t[i <= x]\n" +
-            "\titer(x, z, i) -> return(z)\t\t\t[i > x]\n" +
-            "\tfactrec(x) -> return(1)\t\t\t\t[x <= 1]\n" +
-            "\tfactrec(x) -> mul(x, factrec(x-1))\t[x > 1]\n" +
-            "\tmul(x, return(y)) -> return(x*y)\n" +
-            ")\n";
+            "    sumiter(x) -> iter(x, 0, 0)\n" +
+            "    iter(x, z, i) -> iter(x, z+i, i+1)  [i <= x]\n" +
+            "    iter(x, z, i) -> return(z)          [i > x]\n" +
+            "    sumrec(x) -> return(0)              [x <= 0]\n" +
+            "    sumrec(x) -> add(x, sumrec(x-1))    [x > 0]\n" +
+            "    add(x, return(y)) -> return(x+y)\n" +
+            ")";
 
     static {
         try {
@@ -50,7 +50,7 @@ public class ExpandCommandSMTTest {
 
     @Test
     public void expandExampleTest() throws ParserException {
-        String t1 = "factrec(n)";
+        String t1 = "sumrec(n)";
         String t2 = "iter(n, 1, 2)";
         String c1 = "[n >= 1]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
@@ -69,7 +69,7 @@ public class ExpandCommandSMTTest {
     @Test
     public void expandExampleTest2() throws ParserException {
         String t1 = "iter(n, a, b)";
-        String t2 = "mul(n, iter(m, x, y))";
+        String t2 = "add(n, iter(m, x, y))";
         String c1 = "[n>=y/\\m==i n+-1/\\b==iy+1/\\a==ix*y]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
@@ -86,8 +86,8 @@ public class ExpandCommandSMTTest {
 
     @Test
     public void expandNonTerminatingTest() throws ParserException {
-        String t1 = "factrec(n)";
-        String t2 = "factiter(n+1)";
+        String t1 = "sumrec(n)";
+        String t2 = "sumiter(n+1)";
         String c1 = "[n >= 1]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
@@ -104,7 +104,7 @@ public class ExpandCommandSMTTest {
 
     @Test (expected = UnsupportedOperationException.class)
     public void expandExampleTestTerminationNotSupported() throws ParserException {
-        String t1 = "factrec(n)";
+        String t1 = "sumrec(n)";
         String t2 = "iter(n, 1, 2)";
         String c1 = "[n >= 1]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
@@ -122,7 +122,7 @@ public class ExpandCommandSMTTest {
 
     @Test (expected = InvalidPositionException.class)
     public void invalidExpandTest() throws ParserException {
-        String t1 = "factrec(n)";
+        String t1 = "sumrec(n)";
         String t2 = "iter(n, 1, 2)";
         String c1 = "[n >= 1]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);

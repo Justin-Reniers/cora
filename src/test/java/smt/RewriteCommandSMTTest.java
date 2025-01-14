@@ -1,20 +1,21 @@
 package smt;
 
-import cora.exceptions.BottomException;
+import cora.exceptions.InvalidRuleApplicationException;
 import cora.exceptions.ParserException;
-import cora.exceptions.TypingException;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
+import cora.parsers.CoraInputReader;
 import cora.parsers.LcTrsInputReader;
+import cora.parsers.TrsInputReader;
 import cora.smt.EquivalenceProof;
 import org.junit.Test;
 
 import java.util.TreeSet;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-public class DisproveCommandSMTTest {
+public class RewriteCommandSMTTest {
 
     private final static TRS lcTrs;
 
@@ -24,7 +25,7 @@ public class DisproveCommandSMTTest {
             "    (return     Int -> Result)\n" +
             "    (sumrec     Int -> Result)\n" +
             "    (add        Int Result -> Result)\n" +
-            "   (f Int -> Int)\n" +
+            "    (f Int -> Int)\n" +
             ")\n" +
             "(RULES\n" +
             "    sumiter(x) -> iter(x, 0, 0)\n" +
@@ -43,21 +44,39 @@ public class DisproveCommandSMTTest {
         }
     }
 
-    @Test(expected = BottomException.class)
-    public void disproveExampleTest() throws ParserException {
-        String t1 = "return(2)";
-        String t2 = "return(1)";
-        String c1 = "[x==i2]";
+    private static String getExtension(String filename) {
+        int i = filename.lastIndexOf('.');
+        if (i >= 0) return filename.substring(i+1);
+        return "";
+    }
+
+    private static TRS readInput(String file) throws Exception {
+        String extension = getExtension(file);
+        if (extension.equals("trs") || extension.equals("mstrs")) {
+            return TrsInputReader.readTrsFromFile(file);
+        }
+        if (extension.equals("cora")) {
+            return CoraInputReader.readProgramFromFile(file);
+        }
+        if (extension.equals("lctrs")) {
+            return LcTrsInputReader.readLcTrsFromFile(file);
+        }
+        throw new Exception("Unknown file extension: " + extension + ".");
+    }
+
+    @Test (expected = InvalidRuleApplicationException.class)
+    public void invalidRewriteTest() throws ParserException {
+        String t1 = "f(1 + 1)";
+        String t2 = "f(z)";
+        String c1 = "[TRUE]";
         Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
         TreeSet<Variable> vars = new TreeSet<>();
         vars.addAll(l.vars().getVars());
         Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
         vars.addAll(r.vars().getVars());
         Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
-        vars.addAll(c.vars().getVars());
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
-        eq.applyNewUserCommand("constructor");
-        eq.applyNewUserCommand("disprove");
-        eq.applyNewUserCommand("simplify");
+        eq.applyNewUserCommand("rewrite [TRUE] [x ==i x]");
+        assertEquals(eq.getLeft(), r);
     }
 }

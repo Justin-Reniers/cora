@@ -20,21 +20,21 @@ public class SwapCommandSMTTest {
     private final static TRS lcTrs;
 
     private final static String s = "(SIG\n" +
-            "    (factiter\tInt -> Int)\n" +
-            "    (iter\t\tInt Int Int -> Int)\n" +
-            "\t(return\t\tInt -> Int)\n" +
-            "    (factrec\tInt -> Int)\n" +
-            "    (mul        Int Int -> Int)\n" +
-            "   (f Int -> Int)\n" +
+            "    (sumiter    Int -> Result)\n" +
+            "    (iter       Int Int Int -> Result)\n" +
+            "    (return     Int -> Result)\n" +
+            "    (sumrec     Int -> Result)\n" +
+            "    (add        Int Result -> Result)\n" +
+            "    (f Int -> Int)\n" +
             ")\n" +
             "(RULES\n" +
-            "\tfactiter(x) -> iter(x, 1, 1)\n" +
-            "\titer(x, z, i) -> iter(x, z*i, i+1)\t[i <= x]\n" +
-            "\titer(x, z, i) -> return(z)\t\t\t[i > x]\n" +
-            "\tfactrec(x) -> return(1)\t\t\t\t[x <= 1]\n" +
-            "\tfactrec(x) -> mul(x, factrec(x-1))\t[x > 1]\n" +
-            "\tmul(x, return(y)) -> return(x*y)\n" +
-            ")\n";
+            "    sumiter(x) -> iter(x, 0, 0)\n" +
+            "    iter(x, z, i) -> iter(x, z+i, i+1)  [i <= x]\n" +
+            "    iter(x, z, i) -> return(z)          [i > x]\n" +
+            "    sumrec(x) -> return(0)              [x <= 0]\n" +
+            "    sumrec(x) -> add(x, sumrec(x-1))    [x > 0]\n" +
+            "    add(x, return(y)) -> return(x+y)\n" +
+            ")";
 
     static {
         try {

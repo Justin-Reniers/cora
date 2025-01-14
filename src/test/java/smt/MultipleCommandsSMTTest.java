@@ -43,20 +43,20 @@ public class MultipleCommandsSMTTest {
     }
 
     private final static String sum = "(SIG\n" +
-            "    (sumiter\tInt -> Int)\n" +
-            "    (iter\t\tInt Int Int -> Int)\n" +
-            "\t(return\t\tInt -> Int)\n" +
-            "    (sumrec\tInt -> Int)\n" +
-            "    (add        Int Int -> Int)\n" +
+            "    (sumiter    Int -> Result)\n" +
+            "    (iter       Int Int Int -> Result)\n" +
+            "    (return     Int -> Result)\n" +
+            "    (sumrec     Int -> Result)\n" +
+            "    (add        Int Result -> Result)\n" +
             ")\n" +
             "(RULES\n" +
-            "\tsumiter(x) -> iter(x, 0, 0)\n" +
-            "\titer(x, z, i) -> iter(x, z+i, i+1)\t[i <= x]\n" +
-            "\titer(x, z, i) -> return(z)\t\t\t[i > x]\n" +
-            "\tsumrec(x) -> return(0)\t\t\t\t[x <= 0]\n" +
-            "\tsumrec(x) -> add(x, sumrec(x-1))\t[x > 0]\n" +
-            "\tadd(x, return(y)) -> return(x+y)\n" +
-            ")\n";
+            "    sumiter(x) -> iter(x, 0, 0)\n" +
+            "    iter(x, z, i) -> iter(x, z+i, i+1)  [i <= x]\n" +
+            "    iter(x, z, i) -> return(z)          [i > x]\n" +
+            "    sumrec(x) -> return(0)              [x <= 0]\n" +
+            "    sumrec(x) -> add(x, sumrec(x-1))    [x > 0]\n" +
+            "    add(x, return(y)) -> return(x+y)\n" +
+            ")";
 
     static {
         try {
@@ -116,15 +116,12 @@ public class MultipleCommandsSMTTest {
         eq.applyNewUserCommand("swap");
         eq.applyNewUserCommand("simplify 2.0 7 [n:=x_0]");
         eq.applyNewUserCommand("postulate mul(n, iter(m, x, y)) iter(n, a, b) " +
-                "[n>=y/\\m==in-1/\\b==iy+1/\\a==ix*y]");
+                "[n>=1 /\\ n>=y/\\m==in-1/\\b==iy+1/\\a==ix*y]");
         eq.applyNewUserCommand("swap 1 2");
         eq.applyNewUserCommand("swap");
         eq.applyNewUserCommand("expand 0 terminating");
         eq.applyNewUserCommand("swap");
         eq.applyNewUserCommand("simplify 0 8 [n:=n, m:=x_0, x := 1, y := 2]");//, a := 2, b := 3]");
-        //eq.applyNewUserCommand("simplify");
-        //eq.applyNewUserCommand("swap");
-        //eq.applyNewUserCommand("simplify");
         eq.applyNewUserCommand("delete");
         eq.applyNewUserCommand("swap 1 2");
         eq.applyNewUserCommand("swap");
@@ -138,14 +135,11 @@ public class MultipleCommandsSMTTest {
         eq.applyNewUserCommand("swap");
         eq.applyNewUserCommand("simplify");
         eq.applyNewUserCommand("simplify 0 8 [n:=n, m:=m, a:=x_1, b:=x_2, x:=a, y:=b]");
-        //eq.applyNewUserCommand("simplify");
-        //eq.applyNewUserCommand("swap");
-        //eq.applyNewUserCommand("simplify");
         eq.applyNewUserCommand("delete");
 
-        eq.saveStateToFile("factorial.prf");
-
         assertTrue(eq.getEquations().isEmpty());
+
+        eq.saveStateToFile("factorial.prf");
     }
 
     @Test
@@ -177,14 +171,13 @@ public class MultipleCommandsSMTTest {
         eq.applyNewUserCommand("swap");
         eq.applyNewUserCommand("simplify 2.0 7 [n:=x_0]");
         eq.applyNewUserCommand("postulate add(n, iter(m, x, y)) iter(n, a, b) " +
-                "[n>=y/\\m==i n-1/\\b==i y+1/\\a==i x+y]");
+                "[n>=0 /\\ n>=y/\\m==i n-1/\\b==i y+1/\\a==i x+y]");
         eq.applyNewUserCommand("swap 1 2");
         eq.applyNewUserCommand("swap");
         eq.applyNewUserCommand("expand 0 terminating");
         eq.applyNewUserCommand("simplify");
         eq.applyNewUserCommand("swap");
         eq.applyNewUserCommand("simplify 0 8  [n := n, m:=x_0, x := 0, y := 1]");//, a:= 1, b:=2]");
-        //eq.applyNewUserCommand("simplify");
         eq.applyNewUserCommand("delete");
         eq.applyNewUserCommand("swap 1 2");
         eq.applyNewUserCommand("swap");
@@ -192,12 +185,19 @@ public class MultipleCommandsSMTTest {
         eq.applyNewUserCommand("simplify 0 6");
         eq.applyNewUserCommand("eqdelete");
         eq.applyNewUserCommand("delete");
-        eq.applyNewUserCommand("simplify 0 8");
+        eq.applyNewUserCommand("swap");
+        eq.applyNewUserCommand("simplify 2.0 2");
+        eq.applyNewUserCommand("simplify");
+        eq.applyNewUserCommand("swap");
+        eq.applyNewUserCommand("simplify");
+        System.out.println(eq.getLcTrs().queryRule(7));
+        System.out.println(eq.getCurrentEquation());
+        eq.applyNewUserCommand("simplify 0 8 [n:=n, m:=m, a:=x_1, b:=x_2, x:=a, y:=b]");
         eq.applyNewUserCommand("delete");
 
-        eq.saveStateToFile("sum.prf");
-
         assertTrue(eq.getEquations().isEmpty());
+
+        eq.saveStateToFile("sum.prf");
     }
 
     @Test
@@ -236,9 +236,9 @@ public class MultipleCommandsSMTTest {
         eq.applyNewUserCommand("simplify 0 3");
         eq.applyNewUserCommand("disprove");
 
-        eq.saveStateToFile("sumdisprove.prf");
-
         assertTrue(eq.getBottom());
+
+        eq.saveStateToFile("sumdisprove.prf");
     }
 
     @Test
