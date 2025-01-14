@@ -3,14 +3,9 @@ package cora.z3;
 import com.microsoft.z3.*;
 import cora.exceptions.IndexingError;
 import cora.interfaces.rewriting.TRS;
-import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.*;
-import cora.interfaces.types.Type;
 import cora.terms.Constant;
 import cora.terms.FunctionalTerm;
-import cora.terms.Subst;
-import cora.terms.Var;
-import cora.types.ArrowType;
 import cora.types.Sort;
 import java.util.*;
 
@@ -48,8 +43,12 @@ public class Z3TermHandler {
             }
         }
         if (t.isVariable()) {
-            if (t.queryType().equals(Sort.intSort)) return getIntVar(_ctx, t.queryVariable().queryName());
-            if (t.queryType().equals(Sort.boolSort)) return getBoolVar(_ctx, t.queryVariable().queryName());
+            if (t.queryType().equals(Sort.intSort)) {
+                return getIntVar(_ctx, t.queryVariable().queryName() + t.queryVariable().queryVariableIndex());
+            }
+            if (t.queryType().equals(Sort.boolSort)) {
+                return getBoolVar(_ctx, t.queryVariable().queryName() + t.queryVariable().queryVariableIndex());
+            }
         }
         if (t.isFunctionalTerm()) {
             switch(t.queryRoot().queryName()) {
@@ -120,25 +119,6 @@ public class Z3TermHandler {
     public Term simplify(Term t) {
         Environment env = t.vars();
         Expr e = deconstruct(t);
-        if (e.getSort().equals(_ctx.getBoolSort())) {
-            Goal g = _ctx.mkGoal(true, true, false); //params: models, unsatCores, proofs
-            g.add(e);
-            Tactic css = _ctx.mkTactic("ctx-solver-simplify");
-            ApplyResult ar = css.apply(g);
-            Term s = null;
-            for (Goal sg : ar.getSubgoals())
-                if (sg.isDecidedSat() && sg.getFormulas().length==0) {
-                    s = t;
-                }
-                else {
-                    s = reconstruct(ar.getSubgoals()[0].getFormulas()[0], env);
-                }
-            for (int i = 1; i < ar.getSubgoals()[0].getFormulas().length; i++) {
-                s = new FunctionalTerm(_lcTrs.lookupSymbol("/\\"), s,
-                        reconstruct(ar.getSubgoals()[0].getFormulas()[i], env));
-            }
-            return s;
-        }
         e = e.simplify();
         return reconstruct(e, env);
     }
@@ -163,12 +143,12 @@ public class Z3TermHandler {
                 return new FunctionalTerm(_lcTrs.lookupSymbol("-"), new Constant(String.valueOf(val*-1),
                         Sort.intSort));
             }
-            return new Var(e.toString(), Sort.intSort);
+            //return new Var(e.toString(), Sort.intSort);
         }
         if (e.isBool() && !e.isApp()) {
             if (e.isTrue()) return _lcTrs.lookupSymbol("TRUE");
             if (e.isFalse()) return _lcTrs.lookupSymbol("FALSE");
-            return new Var(e.toString(), Sort.boolSort);
+            //return new Var(e.toString(), Sort.boolSort);
         }
         if (e.isNot()) {
             if (e.getArgs()[0].isEq() && e.getArgs()[1].isBool()) {
@@ -243,7 +223,7 @@ public class Z3TermHandler {
             return new FunctionalTerm(_lcTrs.lookupSymbol("-"), reconstruct(e.getArgs()[0], env),
                     reconstruct(e.getArgs()[1], env));
         }
-        if (e.isApp()) {
+        /**if (e.isApp()) {
             Type type;
             List<Term> args = new ArrayList<>();
             if (e.getSort().equals(_ctx.getIntSort())) type = Sort.intSort;
@@ -265,42 +245,28 @@ public class Z3TermHandler {
             }
             if (_lcTrs.lookupSymbol(fSymbol) != null) return new FunctionalTerm(_lcTrs.lookupSymbol(fSymbol), args);
             return new FunctionalTerm(new Constant(fSymbol, type), args);
-        }
+        }**/
         return null;
     }
 
-    public boolean validity(Term left, Term right, FunctionSymbol f) {
-        TreeSet<Variable> rightVars = right.vars().getVars();
-        ArrayList<Expr> freeVars = new ArrayList<>();
-        for (Variable v : rightVars) if (!left.vars().getVars().contains(v)) freeVars.add(this.deconstruct(v));
-        Expr l = deconstruct(left);
-        Expr r = deconstruct(right);
-        if (!freeVars.isEmpty()) r = getExists(_ctx, freeVars, r);
-        Expr e;
-        if (f.queryName().equals("-->")) {
-            e = getNot(_ctx, (getImplies(_ctx, l, r)));
-        } else {
-            e = getNot(_ctx, (getIff(_ctx, l, r)));
-        }
-        return !satisfiable(e);
+    public boolean validity(Term valid) {
+        Expr v = deconstruct(valid);
+        Expr e = getNot(_ctx, v);
+        return satisfiable(e) == SatisfiabilityEnum.UNSAT;
     }
 
-    public Model getModel() {
-        if (Z3Helper.getModel(_s) == null) return null;
+    public SatisfiabilityEnum getSatStatus() {
         return Z3Helper.getModel(_s);
     }
 
-    public boolean satisfiable(Term constraint) {
+    public SatisfiabilityEnum satisfiable(Term constraint) {
         Expr e = deconstruct(constraint);
         _s.add(e);
-        return getModel() != null;
+        return getSatStatus();
     }
 
-    public boolean satisfiable(Expr constraint) {
+    public SatisfiabilityEnum satisfiable(Expr constraint) {
         _s.add(constraint);
-        if (getModel()!= null) {
-            Model m = getModel();
-        }
-        return getModel() != null;
+        return getSatStatus();
     }
 }

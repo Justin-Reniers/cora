@@ -113,11 +113,14 @@ public class Z3Helper {
         return func;
     }
 
-    public static Model getModel(Solver s) {
+    public static SatisfiabilityEnum getModel(Solver s) {
         Status q = s.check();
         if (q == Status.SATISFIABLE) {
-            return s.getModel();
+            return SatisfiabilityEnum.SAT;
+        } else if (q == Status.UNKNOWN) {
+            return SatisfiabilityEnum.UNKNOWN;
         }
-        return null;
+        return SatisfiabilityEnum.UNSAT;
     }
 }
+

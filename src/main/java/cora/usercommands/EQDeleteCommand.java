@@ -1,6 +1,8 @@
 package cora.usercommands;
 
+import com.microsoft.z3.IntSort;
 import cora.interfaces.smt.UserCommand;
+import cora.interfaces.terms.FunctionSymbol;
 import cora.interfaces.terms.Position;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
@@ -17,9 +19,11 @@ import static cora.types.Sort.intSort;
 
 public class EQDeleteCommand extends UserCommandInherit implements UserCommand {
     private EquivalenceProof _proof;
+    private ArrayList<Term> _ineqs;
 
     public EQDeleteCommand() {
         super();
+        _ineqs = new ArrayList<Term>();
     }
 
     @Override
@@ -31,57 +35,44 @@ public class EQDeleteCommand extends UserCommandInherit implements UserCommand {
     public boolean applicable() {
         Term l = _proof.getLeft();
         Term r = _proof.getRight();
-        return l.queryRoot().equals(r.queryRoot());
+        if (!l.queryRoot().equals(r.queryRoot())) return false;
+        ArrayList<FunctionSymbol> tSymbs = (ArrayList<FunctionSymbol>) _proof.getLcTrs().queryTheorySymbols();
+        TreeSet<Variable> vars = _proof.getConstraint().vars().getVars();
+        _ineqs = new ArrayList<>();
+        for (int i = 1; i <= l.numberImmediateSubterms(); i++) {
+            Term li = l.queryImmediateSubterm(i);
+            Term ri = r.queryImmediateSubterm(i);
+            if (li.isVariable() && !vars.contains(li)) return false;
+            if (ri.isVariable() && !vars.contains(ri)) return false;
+            if ((li.isVariable() && vars.contains(li) && tSymbs.contains(ri.queryRoot())) ||
+                    (ri.isVariable() && vars.contains(ri) && tSymbs.contains(li.queryRoot()))
+                    && li.queryType().equals(ri.queryType())) {
+                if (li.queryType().equals(intSort)) {
+                    _ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==i"), li, ri));
+                }
+                else if (li.queryType().equals(boolSort)) {
+                    _ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("<-->"), li, ri));
+                }
+            }
+            else if (tSymbs.contains(li.queryRoot()) && tSymbs.contains(ri.queryRoot())) {
+                if (li.queryRoot().equals(ri.queryRoot())) {
+                    if (li.queryType().equals(intSort)) {
+                        _ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==i"), li, ri));
+                    }
+                    if (li.queryType().equals(boolSort)) {
+                        _ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("<-->"), li, ri));
+                    }
+                }
+            } else return false;
+        }
+        return true;
     }
 
     @Override
     public void apply() {
-        Term l = _proof.getLeft();
-        Term r = _proof.getRight();
-        ArrayList<Term> ineqs = new ArrayList<>();
-        TreeSet<Variable> vars = _proof.getConstraint().vars().getVars();
-        compareTerms(l, r, ineqs, vars);
-        Term ct = constructConstraintAddition(ineqs);
+        Term ct = constructConstraintAddition(_ineqs);
         _proof.setConstraint(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("/\\"),
                 _proof.getConstraint(), ct));
-    }
-
-    private void compareTerms(Term l, Term r, ArrayList<Term> ineqs, TreeSet<Variable> vars) {
-        for (int i = 1; i <= l.numberImmediateSubterms() || i <= r.numberImmediateSubterms(); i++) {
-            Term lt = l.queryImmediateSubterm(i);
-            Term rt = r.queryImmediateSubterm(i);
-            if (lt.equals(rt)) continue;
-            else if (lt.isVariable() && rt.isVariable() && vars.contains((Variable) lt) &&
-                    vars.contains((Variable) rt) && !lt.equals(rt)) {
-                if (lt.queryType().equals(intSort)) {
-                    ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==i"), lt, rt));
-                } else if (lt.queryType().equals(boolSort)) {
-                    ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==b"), lt, rt));
-                }
-            } else if (lt.isVariable() && vars.contains((Variable) lt)) {
-                if (lt.queryType().equals(intSort)) {
-                    ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==i"), lt, rt));
-                } else if (lt.queryType().equals(boolSort)) {
-                    ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==b"), lt, rt));
-                }
-            } else if (rt.isVariable() && vars.contains((Variable) rt)) {
-                if (lt.queryType().equals(intSort)) {
-                    ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==i"), rt, lt));
-                } else if (lt.queryType().equals(boolSort)) {
-                    ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==b"), rt, lt));
-                }
-            } else if (_proof.getLcTrs().lookupSymbol(lt.queryRoot().queryName()) != null &&
-                    _proof.getLcTrs().lookupSymbol(rt.queryRoot().queryName()) != null &&
-                    lt.queryRoot().equals(rt.queryRoot())) {
-                for (int j = 1; j <= lt.numberImmediateSubterms(); j++) compareTerms(lt, rt, ineqs, vars);
-            } else {
-                if (lt.queryType().equals(intSort)) {
-                    ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==i"), lt, rt));
-                } else if (lt.queryType().equals(boolSort)) {
-                    ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==b"), lt, rt));
-                }
-            }
-        }
     }
 
     private Term constructConstraintAddition(ArrayList<Term> ineqs) {

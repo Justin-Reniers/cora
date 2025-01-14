@@ -5,6 +5,7 @@ import cora.interfaces.terms.Position;
 import cora.interfaces.types.Type;
 import cora.smt.EquivalenceProof;
 import cora.terms.Var;
+import cora.z3.SatisfiabilityEnum;
 import cora.z3.Z3TermHandler;
 
 public class DeleteCommand extends UserCommandInherit implements UserCommand {
@@ -22,7 +23,7 @@ public class DeleteCommand extends UserCommandInherit implements UserCommand {
     public boolean applicable() {
         if (_proof.getLeft().equals(_proof.getRight())) return true;
         Z3TermHandler z3 = new Z3TermHandler(_proof.getLcTrs());
-        return !z3.satisfiable(_proof.getConstraint());
+        return z3.satisfiable(_proof.getConstraint()) == SatisfiabilityEnum.UNSAT;
     }
 
     @Override

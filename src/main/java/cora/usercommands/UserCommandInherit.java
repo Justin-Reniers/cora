@@ -5,6 +5,7 @@ import cora.interfaces.terms.*;
 import cora.interfaces.types.Type;
 import cora.rewriting.FirstOrderRule;
 import cora.smt.EquivalenceProof;
+import cora.terms.Constant;
 import cora.terms.FunctionalTerm;
 import cora.terms.Subst;
 import cora.terms.Var;
@@ -25,17 +26,18 @@ abstract class UserCommandInherit {
         if (gamma == null) gamma = new Subst();
         Term s = proof.getLeft();
         Term c = proof.getConstraint();
-        Term ruleC = proof.getLcTrs().queryRule(ruleIndex).queryConstraint().substitute(gamma);//.substitute(s);
-        Term ruleL = proof.getLcTrs().queryRule(ruleIndex).queryLeftSide().substitute(gamma);//.substitute(s);
+        Term ruleC = proof.getLcTrs().queryRule(ruleIndex).queryConstraint();
+        Term ruleL = proof.getLcTrs().queryRule(ruleIndex).queryLeftSide().substitute(gamma);
         Term sAtPos = s.querySubterm(pos);
         Substitution y = ruleL.match(sAtPos);
-        gamma.compose(y);
         if (y == null) return null;
+        gamma.compose(y);
         Z3TermHandler z3 = new Z3TermHandler(proof.getLcTrs());
         if (!checkLVARcondition(proof, ruleIndex, gamma, c)) return null;
         ruleC = ruleC.substitute(gamma);
         if (pos != null && ruleIndex >= 0) {
-            if (z3.validity(c.substitute(gamma), ruleC, proof.getLcTrs().lookupSymbol("-->"))) return gamma;
+            Term valid = new FunctionalTerm(proof.getLcTrs().lookupSymbol("-->"), c, ruleC);
+            if (z3.validity(valid)) return gamma;
         }
         return null;
     }
@@ -49,13 +51,13 @@ abstract class UserCommandInherit {
             TreeSet<Variable> cvars = c.vars().getVars();
             for (Variable v2 : y.domain()) {
                 Term yx = y.getReplacement(v);
-                if (yx instanceof Var && cvars.contains(yx)) inSubst = true;
-                else {
+                if (yx instanceof Var && cvars.contains(yx) || yx instanceof Constant) inSubst = true;
+                /*else {
                     for (Position p : c.queryAllPositions()) {
                         if (yx.equals(c.querySubterm(p))) inSubst = true;
                     }
-                }
-                if (y.getReplacement(v2).equals(v) || v.equals(v2)) inSubst = true;
+                }*/
+                //if (y.getReplacement(v2).equals(v) || v.equals(v2)) inSubst = true;
             }
             if (!inSubst) return false;
         }
@@ -71,7 +73,7 @@ abstract class UserCommandInherit {
             newConstraint = freshSubstitutionsConstraint(proof);
         }
         proof.setLeft(simplifyValuesOnlyEquations(proof, proof.getLeft()));
-        proof.setConstraint(simplifyValuesOnlyEquations(proof, proof.getConstraint()));
+            proof.setConstraint(simplifyValuesOnlyEquations(proof, proof.getConstraint()));
     }
 
     protected Term simplifyValuesOnlyEquations(EquivalenceProof eq, Term t) {

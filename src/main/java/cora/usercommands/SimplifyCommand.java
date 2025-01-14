@@ -4,13 +4,10 @@ import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.*;
 import cora.interfaces.types.Type;
-import cora.rewriting.FirstOrderRule;
 import cora.smt.EquivalenceProof;
-import cora.terms.FunctionalTerm;
 import cora.terms.Var;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.TreeSet;
 
 /**
@@ -88,13 +85,8 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
         if (!lcTrs.queryRule(_ruleIndex).applicable(subTerm)) {
             return false;
         }
-        FunctionSymbol fSymbol = lcTrs.queryRule(_ruleIndex).queryConstraint().queryRoot();
-        //if (fSymbol.queryRoot().equals(lcTrs.lookupSymbol("TRUE"))) return true;
-        if (fSymbol.queryRoot().equals(lcTrs.lookupSymbol("FALSE"))) return false;
-        else {
-            _gamma = rewrittenConstraintValid(_proof, _ruleIndex, _pos, _gamma);
-            return _gamma != null;
-        }
+        _gamma = rewrittenConstraintValid(_proof, _ruleIndex, _pos, _gamma);
+        return _gamma != null;
     }
 
     /**
@@ -112,17 +104,6 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
         //Case 3: Calculation rules
         if (_noArgs) {
             rewriteConstraintCalc(_proof);
-        }
-        else if (_gamma != null && _pos != null && _ruleIndex >= 0 &&
-                _proof.getLcTrs().queryRule(_ruleIndex).queryConstraint().queryRoot().queryName().equals("TRUE")) {
-            rewriteConstraintConstrainedRule(_proof, _pos, _ruleIndex, _gamma);
-        }
-        //Case 1: Constraint TRUE
-        else if (_pos != null && _ruleIndex >= 0 &&
-                _proof.getLcTrs().queryRule(_ruleIndex).queryConstraint().queryRoot().queryName().equals("TRUE")) {
-            Term temp = _proof.getLeft().querySubterm(_pos);
-            temp = _proof.getLcTrs().queryRule(_ruleIndex).apply(temp);
-            _proof.setLeft(_proof.getLeft().replaceSubterm(_pos, temp));
         }
         //Case 2: Constraint met
         else if (_pos != null && _ruleIndex >= 0) {

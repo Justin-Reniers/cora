@@ -14,6 +14,7 @@ import cora.terms.Var;
 import cora.z3.Z3TermHandler;
 
 import java.util.ArrayList;
+import java.util.TreeSet;
 
 public class RewriteConstraintCommand extends UserCommandInherit implements UserCommand {
     private EquivalenceProof _proof;
@@ -37,8 +38,20 @@ public class RewriteConstraintCommand extends UserCommandInherit implements User
         return null;
     }
 
+    private TreeSet<Variable> getConstraintVars(Term c) {
+        TreeSet<Variable> vars = new TreeSet<>();
+        for (Position p : c.queryAllPositions()) {
+            if (c.querySubterm(p).isVariable()) vars.add((Variable) c.querySubterm(p));
+        }
+        return vars;
+    }
+
     @Override
     public boolean applicable() {
+        TreeSet<Variable> vars_old = getConstraintVars(_old);
+        for (Variable v : getConstraintVars(_new)) {
+            if (!vars_old.contains(v)) return false;
+        }
         listifyConstraint(_proofComponents, _proof.getConstraint());
         listifyConstraint(_oldConstraintComponents, _old);
         for (Term t : _oldConstraintComponents) {
@@ -64,14 +77,18 @@ public class RewriteConstraintCommand extends UserCommandInherit implements User
         _proofComponents.add(_new.substitute(_s));
         Term nc = reconstructConstraint(_proofComponents);
         Z3TermHandler z3 = new Z3TermHandler(_proof.getLcTrs());
-        if (!z3.validity(c, nc, _proof.getLcTrs().lookupSymbol("<-->"))) {
-            if (!z3.validity(c, nc, _proof.getLcTrs().lookupSymbol("-->"))) {
-                throw new UnsatException(c.toString(), nc.toString(), "<-->");
-            }
+        Term _if = new FunctionalTerm(_proof.getLcTrs().lookupSymbol("-->"), c, nc);
+        Term _iff = new FunctionalTerm(_proof.getLcTrs().lookupSymbol("<-->"), c, nc);
+        if (z3.validity(_iff)) {
+            _newConstraint = nc;
+            return true;
+        } else if (z3.validity(_if)) {
             _completeness = false;
+            _newConstraint = nc;
+            return true;
+        } else {
+            throw new UnsatException(c.toString(), nc.toString(), "<-->");
         }
-        _newConstraint = nc;
-        return true;
     }
 
     @Override

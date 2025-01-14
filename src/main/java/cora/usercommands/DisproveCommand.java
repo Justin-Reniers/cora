@@ -10,22 +10,19 @@ import cora.smt.EquivalenceProof;
 import cora.terms.FunctionalTerm;
 import cora.terms.Var;
 import cora.types.Sort;
+import cora.z3.SatisfiabilityEnum;
 import cora.z3.Z3TermHandler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.function.Function;
 
 import static cora.types.Sort.intSort;
 
 public class DisproveCommand extends UserCommandInherit implements UserCommand {
     private EquivalenceProof _proof;
-    private ArrayList<String> _theorySymbols;
 
     public DisproveCommand() {
         super();
-        _theorySymbols = new ArrayList<>(Arrays.asList("~", "/\\", "\\/", "-->", "<-->", "-", "*", "/", "%", "+",
-                "<", ">", "<=", ">=", "==", "!="));
     }
     @Override
     public Position queryPosition() {
@@ -34,16 +31,18 @@ public class DisproveCommand extends UserCommandInherit implements UserCommand {
 
     @Override
     public boolean applicable() {
+        if (!_proof.getCompleteness()) return false;
         Term l = _proof.getLeft();
         Term r = _proof.getRight();
         Term c = _proof.getConstraint();
+        ArrayList<FunctionSymbol> tSymbs = (ArrayList<FunctionSymbol>) _proof.getLcTrs().queryTheorySymbols();
         Z3TermHandler z3 = new Z3TermHandler(_proof.getLcTrs());
         //s, t E Terms(Sigma_theory, V), i is a theory sort, and phi /\ s != t is satisfiable
         if ((l.queryType().equals(intSort) || l.queryType().equals(Sort.boolSort)) &&
             ((isNumeric(l.queryRoot().queryName()) && isNumeric(r.queryRoot().queryName()))) ||
-            (isNumeric(l.queryRoot().queryName()) && _theorySymbols.contains(r.queryRoot().queryName())) ||
-            (_theorySymbols.contains(l.queryRoot().queryName()) && isNumeric(r.queryRoot().queryName())) ||
-            ((_theorySymbols.contains(l.queryRoot().queryName()) && _theorySymbols.contains(r.queryRoot().queryName())))
+            (isNumeric(l.queryRoot().queryName()) && tSymbs.contains(r.queryRoot())) ||
+            (tSymbs.contains(l.queryRoot()) && isNumeric(r.queryRoot().queryName())) ||
+            ((tSymbs.contains(l.queryRoot()) && tSymbs.contains(r.queryRoot())))
         ) {
             Term ineq;
                 if (l.queryType().equals(r.queryType()) && l.queryType().equals(intSort)) {
@@ -52,11 +51,14 @@ public class DisproveCommand extends UserCommandInherit implements UserCommand {
                     ineq = new FunctionalTerm(_proof.getLcTrs().lookupSymbol("!=b"), l, r);
                 }
             Term nc = new FunctionalTerm(_proof.getLcTrs().lookupSymbol("/\\"), c, ineq);
-            if (z3.satisfiable(nc)) return true;
+            if (z3.satisfiable(nc) == SatisfiabilityEnum.SAT) return true;
         }
         //s = f(s->) and t = g(t->) with f, g distinct constructors and phi satisfiable
         if (l.isFunctionalTerm() && r.isFunctionalTerm() && !l.queryRoot().equals(r.queryRoot()) &&
-            isConstructorTerm(l, _proof) && isConstructorTerm(r, _proof) && z3.satisfiable(c)) return true;
+            isConstructorTerm(l, _proof) && isConstructorTerm(r, _proof) &&
+            z3.satisfiable(c) == SatisfiabilityEnum.SAT) {
+            return true;
+        }
 
         //s E V\Var(phi), phi satisfiable, at least two different constructors have output sort i,
         //and either t is a variable distinct from s or t has the form g(t->) with g E Cons
@@ -66,7 +68,7 @@ public class DisproveCommand extends UserCommandInherit implements UserCommand {
         }
         if (l.isVariable() && !c.vars().getVars().contains((Variable) l) && counter >= 2 &&
                 (r.isVariable() && !l.equals(r)) || (r.isFunctionalTerm() && isConstructorTerm(r, _proof))
-                && z3.satisfiable(c)) return true;
+                && z3.satisfiable(c) == SatisfiabilityEnum.SAT) return true;
         return false;
     }
 

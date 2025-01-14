@@ -36,7 +36,7 @@ public class UndoCommand extends UserCommandInherit implements UserCommand {
         _proof.setCompleteness(ph.getCompleteness());
         _proof.setBottom(ph.getBottom());
         _proof.setLcTrs(ph.getLcTrs());
-        _proof.deletePreviousState();
+        _proof.deleteLastState();
     }
 
     @Override

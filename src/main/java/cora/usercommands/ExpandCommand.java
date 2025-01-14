@@ -21,12 +21,14 @@ public class ExpandCommand extends UserCommandInherit implements UserCommand {
     private ArrayList<Equation> _equations;
     private ArrayList<Rule> _applicableRules;
     private Boolean _terminating;
+    private ArrayList<Substitution> _gammas;
 
     public ExpandCommand(Position p) {
         super();
         _p = p;
         _equations = new ArrayList<>();
         _applicableRules = new ArrayList<>();
+        _gammas = new ArrayList<>();
     }
 
     public ExpandCommand(Position p, Boolean terminating) {
@@ -34,6 +36,7 @@ public class ExpandCommand extends UserCommandInherit implements UserCommand {
         _p = p;
         _equations = new ArrayList<>();
         _applicableRules = new ArrayList<>();
+        _gammas = new ArrayList<>();
         _terminating = terminating;
     }
 
@@ -49,7 +52,10 @@ public class ExpandCommand extends UserCommandInherit implements UserCommand {
         for (int i = 0; i < _proof.getLcTrs().queryRuleCount(); i++) {
             Rule rule = _proof.getLcTrs().queryRule(i);
             Substitution gamma = rule.queryLeftSide().unify(lp);
-            if (gamma != null && rule.applicable(lp.substitute(gamma))) _applicableRules.add(rule);
+            if (gamma != null && rule.applicable(lp.substitute(gamma))) {
+                _applicableRules.add(rule);
+                _gammas.add(gamma);
+            }
         }
         return !_applicableRules.isEmpty();
     }
