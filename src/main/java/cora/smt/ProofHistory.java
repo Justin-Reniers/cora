@@ -3,6 +3,7 @@ package cora.smt;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.History;
 import cora.interfaces.smt.UserCommand;
+import cora.interfaces.terms.FunctionSymbol;
 import cora.rewriting.TermRewritingSystem;
 
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ public class ProofHistory implements History {
         _bottom = bottom;
         _cEqs = new ArrayList<>();
         for (Equation ceq : cEqs) _cEqs.add(new Equation(ceq));
-        if (lcTrs != null) _lcTrs = new TermRewritingSystem(lcTrs);
+        if (lcTrs != null) _lcTrs = new TermRewritingSystem(lcTrs, (ArrayList<FunctionSymbol>) lcTrs.queryTheorySymbols());
         else _lcTrs = null;
     }
 

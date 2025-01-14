@@ -43,6 +43,8 @@ public interface FunctionSymbol extends Term {
    */
   public boolean equals(FunctionSymbol other);
 
+  public boolean isTheorySymbol();
+
   public boolean isInfix();
 
   int precedence();

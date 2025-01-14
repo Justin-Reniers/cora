@@ -28,7 +28,6 @@ public class EquivalenceProof implements Proof {
     private TRS _lcTrs;
     private boolean _completeness;
     private ArrayList<Equation> _equations, _completenessEquations;
-    private ArrayList<String> _calculationSymbols;
     private Equation _cur_eq;
     private ArrayList<ProofHistory> _history;
     private TreeSet<Variable> _env;
@@ -237,7 +236,7 @@ public class EquivalenceProof implements Proof {
     }
 
     @Override
-    public void deletePreviousState() {
+    public void deleteLastState() {
         _history.remove(_history.size()-1);
     }
 

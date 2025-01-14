@@ -86,7 +86,7 @@ public interface Proof {
 
     ProofHistory getPreviousState();
 
-    void deletePreviousState();
+    void deleteLastState();
 
     void recordHistory();
 

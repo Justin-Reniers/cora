@@ -48,9 +48,8 @@ term                : identifier BRACKETOPEN termlist BRACKETCLOSE
                     | identifier BRACKETOPEN BRACKETCLOSE
                     | identifier
                     | enclosedterm
-                    | MINUS term
-                    | MINUS (BRACKETOPEN term BRACKETCLOSE)
-                    | NEGATION (term | BRACKETOPEN term BRACKETCLOSE)
+                    | MINUS term | MINUS enclosedterm
+                    | NEGATION term | NEGATION enclosedterm
                     | term (MULT | DIV | MOD) term
                     | term (PLUS | MINUS) term
                     | term (LT | LTEQ | GT | GTEQ) term
