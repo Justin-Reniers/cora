@@ -43,5 +43,7 @@ public interface Variable extends Term, Comparable<Variable> {
 
   /** A variable is uniquely defined by its ID (two Variables are equal iff they share indexes). */
   int queryVariableIndex();
+
+  boolean isTheoryTerm(Term constraint);
 }
 

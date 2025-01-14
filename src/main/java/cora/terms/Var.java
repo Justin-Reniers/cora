@@ -24,6 +24,7 @@ import cora.interfaces.types.Type;
 import cora.interfaces.terms.*;
 import cora.loggers.Logger;
 import cora.types.Sort;
+import org.antlr.runtime.tree.Tree;
 
 /**
  * Variables are both used as parts of constraints, as binders in an abstraction, as generic
@@ -132,11 +133,6 @@ public class Var extends LeafTermInherit implements Variable {
     return gamma.getReplacement(this);
   }
 
-  public Term unsubstitute(Substitution gamma) {
-    if (gamma == null) throw new NullCallError("Var", "substitute", "substitution gamma");
-    return this;
-  }
-
   /** 
    * This method updates gamma by adding the extension from x to the given other term, if x is not
    * yet mapped to anything.
@@ -183,7 +179,7 @@ public class Var extends LeafTermInherit implements Variable {
 
     @Override
     public String toHTMLString() {
-        return "<font color=red>" + _name + "</font>";
+        return _name;
     }
 
     /** Implements a total ordering on variables using the index. */
@@ -191,6 +187,17 @@ public class Var extends LeafTermInherit implements Variable {
     if (_index < other.queryVariableIndex()) return -1;
     if (_index > other.queryVariableIndex()) return 1;
     return 0;
+  }
+
+  @Override
+  public boolean isTheoryTerm(Term constraint) {
+    if (constraint.getVars().contains(this)) return true;
+    return false;
+  }
+
+  @Override
+  public TreeSet<Variable> getVars() {
+    return new TreeSet<>(Collections.singleton(this));
   }
 
   /** Creates a Hashcode for Variable based on its name and index */

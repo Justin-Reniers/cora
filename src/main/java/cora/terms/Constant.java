@@ -30,7 +30,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
  */
 public class Constant extends LeafTermInherit implements FunctionSymbol {
   private String _name;
-  private boolean _infix;
+  private boolean _infix, _theory;
   private int _precedence;
 
   /**
@@ -43,6 +43,7 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
     if (name == null) throw new NullInitialisationError("Constant", "name");
     if (name.equals("")) throw new Error("Function Symbol created with empty name.");
     _infix = false;
+    _theory = false;
   }
 
   public Constant(Constant c) {
@@ -50,6 +51,24 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
     _name = c.queryName();
   }
 
+  public Constant(String name, Type type, boolean theory, boolean infix, int precedence) {
+    super(type);
+    _name = name;
+    if (name == null) throw new NullInitialisationError("Constant", "name");
+    if (name.equals("")) throw new Error("Function Symbol created with empty name.");
+    _infix = infix;
+    _precedence = precedence;
+    _theory = theory;
+  }
+
+  public Constant(String name, Type type, boolean theory, boolean infix) {
+    super(type);
+    _name = name;
+    if (name == null) throw new NullInitialisationError("Constant", "name");
+    if (name.equals("")) throw new Error("Function Symbol created with empty name.");
+    _infix = infix;
+    _theory = theory;
+  }
   public Constant(String name, Type type, boolean infix) {
     super(type);
     _name = name;
@@ -97,13 +116,18 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
   }
 
     @Override
+    public boolean isTheorySymbol() {
+        return _theory;
+    }
+
+    @Override
   public boolean isInfix() {
     return _infix;
   }
 
   @Override
   public int precedence() {
-    return 0;
+    return _precedence;
   }
 
   /** @return false */
@@ -142,10 +166,6 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
     return this;
   }
 
-  public Term unsubstitute(Substitution gamma) {
-    return this;
-  }
-
   /**
    * This method checks that other is the same constant. If so, null is returned, otherwise a
    * description of the instantiation failure.
@@ -179,10 +199,32 @@ public class Constant extends LeafTermInherit implements FunctionSymbol {
     return null;
   }
 
+  public static boolean isNumeric(String str) {
+    try {
+      Integer.parseInt(str);
+      return true;
+    } catch(NumberFormatException e){
+      return false;
+    }
+  }
+
     @Override
     public String toHTMLString() {
-        if (this.queryArity() > 0) return "<font color=green>" + StringEscapeUtils.escapeHtml4(_name) + "</font>";
-        return "<font color=blue>" + _name + "</font>";
+      if (this._theory || isNumeric(this._name.toString())) {
+        return "<font color=blue>" + StringEscapeUtils.escapeHtml4(_name) + "</font>";
+      }
+      //if (this.isConstant()) return "<font color=blue>" + StringEscapeUtils.escapeHtml4(_name) + "</font>";
+      return "<font color=red>" + StringEscapeUtils.escapeHtml4(_name) + "</font>";
     }
+
+  @Override
+  public boolean isTheoryTerm(Term constraint) {
+    return this._theory;
+  }
+
+  @Override
+  public TreeSet<Variable> getVars() {
+    return new TreeSet<>();
+  }
 }
 

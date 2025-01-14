@@ -170,11 +170,6 @@ public class FunctionalTerm extends ApplicativeTermInherit implements Term {
     return reconstruct(newargs);
   }
 
-  public Term unsubstitute(Substitution gamma) {
-    List<Term> newargs = reverseSubstitute(gamma);
-    return reconstruct(newargs);
-  }
-
   /** 
    * This method checks that other has the same root symbol as we do, and if so, that all the
    * parameters match (updating the substitution as we go along).
@@ -278,10 +273,16 @@ public class FunctionalTerm extends ApplicativeTermInherit implements Term {
           if (l.isFunctionalTerm() && _f.precedence() < l.queryRoot().precedence()) {
             ret += "(" + l.toHTMLString() + ")";
           } else ret += l.toHTMLString();
-          ret += _f.toHTMLString();
-          if (r.isFunctionalTerm() && _f.precedence() < r.queryRoot().precedence()) {
-            ret += "(" + r.toHTMLString() + ")";
-          } else ret += r.toHTMLString();
+          if (_f.queryRoot().toString().equals("+") && r.isFunctionalTerm() && r.queryRoot().toString().equals("-")) {
+            if (r.isFunctionalTerm() && _f.precedence() < r.queryRoot().precedence()) {
+              ret += "(" + r.toHTMLString() + ")";
+            } else ret += r.toHTMLString();
+          } else {
+            ret += _f.toHTMLString();
+            if (r.isFunctionalTerm() && _f.precedence() < r.queryRoot().precedence()) {
+              ret += "(" + r.toHTMLString() + ")";
+            } else ret += r.toHTMLString();
+          }
         }
       }
       else {
@@ -291,6 +292,27 @@ public class FunctionalTerm extends ApplicativeTermInherit implements Term {
       }
       return ret;
     }
+
+  @Override
+  public boolean isTheoryTerm(Term constraint) {
+    if (this.isFunctionalTerm() && !this._f.isTheoryTerm(constraint)) return false;
+    else if (this.isFunctionalTerm() && this.isConstant() && !this._f.isTheoryTerm(constraint)) return false;
+    else {
+      for (int i = 1; i <= this.numberImmediateSubterms(); i++) {
+        if (!this.queryImmediateSubterm(i).isTheoryTerm(constraint)) return false;
+      }
+    }
+    return true;
+  }
+
+  @Override
+  public TreeSet<Variable> getVars() {
+    TreeSet<Variable> vars = new TreeSet<>();
+    for (int i = 1; i <= this.numberImmediateSubterms(); i++) {
+      vars.addAll(this.queryImmediateSubterm(i).getVars());
+    }
+    return vars;
+  }
 
     /** Hashcode for FunctionalTerm based on its root symbol and its arguments */
   @Override

@@ -15,10 +15,7 @@
 
 package cora.interfaces.terms;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import cora.interfaces.types.Type;
 
@@ -136,9 +133,6 @@ public interface Term {
    */
   Term substitute(Substitution gamma);
 
-
-  Term unsubstitute(Substitution cSub);
-
   /**
    * This method either extends gamma so that <this term> gamma = other and returns null, or
    * returns a string describing why other is not an instance of gamma.
@@ -168,5 +162,9 @@ public interface Term {
   Substitution unify(Term other);
 
   String toHTMLString();
+
+  boolean isTheoryTerm(Term constraint);
+
+  TreeSet<Variable> getVars();
 }
 
