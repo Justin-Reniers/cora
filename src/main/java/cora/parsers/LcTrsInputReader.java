@@ -159,40 +159,40 @@ public class LcTrsInputReader extends InputReader{
      * integer operations and integer comparisons to the data.
      * @param data The data to be updated with all the basic signature declarations.
      */
-    public ArrayList<FunctionSymbol> handleBasicSignature(ParseData data) {
+    public void handleBasicSignature(ParseData data) {
         ArrayList<FunctionSymbol> theorySymbols = new ArrayList<FunctionSymbol>();
-        boolean infix = true;
+        boolean theory = true, infix = true;
         Type unaryBool = new ArrowType(boolSort, boolSort);
         Type unaryInt = new ArrowType(intSort, intSort);
         Type boolOperation = new ArrowType(boolSort, new ArrowType(boolSort, boolSort));
         Type intOperation = new ArrowType(intSort, new ArrowType(intSort, intSort));
         Type intComparison = new ArrowType(intSort, new ArrowType(intSort, boolSort));
-        data.addFunctionSymbol(new Constant("~", unaryBool, infix, 2));
-        data.addFunctionSymbol(new Constant("/\\", boolOperation, true, 11));
-        data.addFunctionSymbol(new Constant("\\/", boolOperation, true, 12));
-        data.addFunctionSymbol(new Constant("-->", boolOperation, true, 13));
-        data.addFunctionSymbol(new Constant("<-->", boolOperation, true, 14));
-        data.addFunctionSymbol(new Constant("-", unaryInt, true, 2));
-        data.addFunctionSymbol(new Constant("*", intOperation, true, 3));
-        data.addFunctionSymbol(new Constant("/", intOperation, true, 3));
-        data.addFunctionSymbol(new Constant("%", intOperation, true, 3));
-        data.addFunctionSymbol(new Constant("+", intOperation, true, 4));
-        data.addFunctionSymbol(new Constant("<", intComparison, true, 6));
-        data.addFunctionSymbol(new Constant("<=", intComparison, true, 6));
-        data.addFunctionSymbol(new Constant(">", intComparison, true, 6));
-        data.addFunctionSymbol(new Constant(">=", intComparison, true, 6));
-        data.addFunctionSymbol(new Constant("==i", intComparison, true, 7));
-        data.addFunctionSymbol(new Constant("!=i", intComparison, true, 7));
-        data.addFunctionSymbol(new Constant("==b", boolOperation, true, 7));
-        data.addFunctionSymbol(new Constant("!=b", boolOperation, true, 7));
-        theorySymbols.addAll(data.queryCurrentAlphabet().queryAlphabetSymbols());
+        data.addFunctionSymbol(new Constant("~", unaryBool, theory, infix, 2));
+        data.addFunctionSymbol(new Constant("/\\", boolOperation,  theory, infix, 11));
+        data.addFunctionSymbol(new Constant("\\/", boolOperation,  theory, infix, 12));
+        data.addFunctionSymbol(new Constant("-->", boolOperation,  theory, infix, 13));
+        data.addFunctionSymbol(new Constant("<-->", boolOperation,  theory, infix, 14));
+        data.addFunctionSymbol(new Constant("-", unaryInt,  theory, infix, 2));
+        data.addFunctionSymbol(new Constant("*", intOperation,  theory, infix, 3));
+        data.addFunctionSymbol(new Constant("/", intOperation,  theory, infix, 3));
+        data.addFunctionSymbol(new Constant("%", intOperation,  theory, infix, 3));
+        data.addFunctionSymbol(new Constant("+", intOperation,  theory, infix, 4));
+        data.addFunctionSymbol(new Constant("<", intComparison,  theory, infix, 6));
+        data.addFunctionSymbol(new Constant("<=", intComparison,  theory, infix, 6));
+        data.addFunctionSymbol(new Constant(">", intComparison,  theory, infix, 6));
+        data.addFunctionSymbol(new Constant(">=", intComparison,  theory, infix, 6));
+        data.addFunctionSymbol(new Constant("==i", intComparison,  theory, infix, 7));
+        data.addFunctionSymbol(new Constant("!=i", intComparison,  theory, infix, 7));
+        data.addFunctionSymbol(new Constant("==b", boolOperation,  theory, infix, 7));
+        data.addFunctionSymbol(new Constant("!=b", boolOperation,  theory, infix, 7));
         addBooleanConstantsToData(data);
-        return theorySymbols;
+        theorySymbols.addAll(data.queryCurrentAlphabet().queryAlphabetSymbols());
+        for (FunctionSymbol t : theorySymbols) data.addTheorySymbol(t);
     }
 
     private void addBooleanConstantsToData(ParseData data) {
-        data.addFunctionSymbol(new Constant("TRUE", boolSort));
-        data.addFunctionSymbol(new Constant("FALSE", boolSort));
+        data.addFunctionSymbol(new Constant("TRUE", boolSort, true, false));
+        data.addFunctionSymbol(new Constant("FALSE", boolSort, true, false));
     }
 
     /**
@@ -237,21 +237,12 @@ public class LcTrsInputReader extends InputReader{
             Integer.parseInt(n);
             if (expectedType == boolSort) throw new TypingException(firstToken(tree), n, intSort.toString(),
                                             expectedType.toString());
-            return new Constant(n, intSort);
+            return new Constant(n, intSort, true, false);
         } catch (NumberFormatException ignored) {}
-        if (mstrs) {
-            if (expectedType == null) throw new DeclarationException(firstToken(tree), n);
-            Var x = new Var(n, expectedType);
-            data.addVariable(x);
-            return x;
-        } else {
-            if (expectedType != null && !expectedType.equals(unitSort)) {
-                throw new TypingException(firstToken(tree), n, unitSort.toString(), expectedType.toString());
-            }
-            Constant f = new Constant(n, unitSort);
-            data.addFunctionSymbol(f);
-            return f;
-        }
+        if (expectedType == null) throw new DeclarationException(firstToken(tree), n);
+        Var x = new Var(n, expectedType);
+        data.addVariable(x);
+        return x;
     }
 
     /**
@@ -326,37 +317,27 @@ public class LcTrsInputReader extends InputReader{
                 "token CONDITIONAL", "token BICONDITIONAL", "token MULT", "token DIV", "token MOD",
                 "token PLUS", "token LT", "token LTEQ", "token GT", "token GTEQ", "token EQUALITYI", "token NEQI",
                         "token EQUALITYB", "token NEQB"));
-        if (tree.getChildCount() == 4 && (checkChild(tree, 0).equals("token NEGATION") ||
-                checkChild(tree, 0).equals("token MINUS"))) {
-            ret = getNewFunctionalTermArityOne(tree, data, tree.getChild(0).getText(), mstrs);
-        }
-        else if (tree.getChildCount() == 2) {
-            kind = checkChild(tree, 0);
-            if (kind.equals("token NEGATION") || kind.equals("token MINUS")) {
-                ret = getNewFunctionalTermArityOne(tree, data, tree.getChild(0).getText(), mstrs);
-            }
+
+        if (tree.getChildCount() == 2) {
+            return getNewFunctionalTermArityOne(tree, data, tree.getChild(0).getText(), mstrs);
         }
         else if (tree.getChildCount() >= 3) {
             kind = checkChild(tree, 1);
             if (kind.equals("token MINUS")) {
                 verifyChildIsToken(tree, 1, "MINUS", "Minus operator '-'");
-                ret = subtractionOperation(tree, data, mstrs);
+                return subtractionOperation(tree, data, mstrs);
             }
             else if (symbols.contains(kind)) {
                 verifyChildIsRule(tree, 0, "term", "a term");
                 verifyChildIsRule(tree, 2, "term", "a term");
-                ret = getNewFunctionalTermArityTwo(tree, data, tree.getChild(1).getText(), mstrs);
+                return getNewFunctionalTermArityTwo(tree, data, tree.getChild(1).getText(), mstrs);
             } else if (checkChild(tree, 0).equals("token BRACKETOPEN")){
-                ret = readEnclosedTerm(tree, data, expectedType, mstrs);
+                return readEnclosedTerm(tree, data, expectedType, mstrs);
             } else {
-                ret = getNewFunctionalTermHighArity(tree, data, mstrs);
-                if (expectedType != null && !ret.queryType().equals(expectedType)) {
-                    throw new TypingException(firstToken(tree), ret.toString(), ret.queryType().toString(),
-                            expectedType.toString());
-                }
+                return getNewFunctionalTermHighArity(tree, data, expectedType, mstrs);
             }
         }
-        return ret;
+        return null;
     }
 
     private Term readEnclosedTerm(ParseTree tree, ParseData data, Type expectedType,
@@ -447,7 +428,8 @@ public class LcTrsInputReader extends InputReader{
      * This constructs the given term from the parse tree with arity two or higher.
      * Recursively constructs the two children of the binary operator.
      */
-    private Term getNewFunctionalTermHighArity(ParseTree tree, ParseData data, boolean mstrs) throws ParserException {
+    private Term getNewFunctionalTermHighArity(ParseTree tree, ParseData data, Type expected,
+                                               boolean mstrs) throws ParserException {
         verifyChildIsToken(tree, 1, "BRACKETOPEN", "Opening bracket '('");
         verifyChildIsToken(tree, tree.getChildCount()-1, "BRACKETCLOSE", "Closing bracket ')'");
         ArrayList<ParseTree> args = new ArrayList<>();
@@ -460,7 +442,12 @@ public class LcTrsInputReader extends InputReader{
             termargs.add(readTermType(arg, data, input, mstrs));
             type = type.queryArrowOutputType();
         }
-        return new FunctionalTerm(f, termargs);
+        Term ret = new FunctionalTerm(f, termargs);
+        if (expected != null && !ret.queryType().equals(expected)) {
+            throw new TypingException(firstToken(tree), ret.toString(), ret.queryType().toString(),
+                    expected.toString());
+        }
+        return ret;
     }
 
     /**
@@ -471,6 +458,13 @@ public class LcTrsInputReader extends InputReader{
         verifyChildIsRule(tree, 1, "term", "Logical Term");
         verifyChildIsToken(tree, 2, "SQUARECLOSE", "Closing square bracket ']'");
         Term t = readTermType(tree.getChild(1), data, boolSort, mstrs);
+        for (Position p : t.queryAllPositions()) {
+            if (t.querySubterm(p).isVariable() || t.querySubterm(p).isConstant()) continue;
+            FunctionSymbol f = data.lookupFunctionSymbol(t.querySubterm(p).queryRoot().queryName());
+            if (!f.isTheorySymbol()) {
+                throw new ParserException(firstToken(tree.getChild(1)), "Logical term contains non theory symbol");
+            }
+        }
         return t;
     }
 
@@ -490,8 +484,7 @@ public class LcTrsInputReader extends InputReader{
             verifyChildIsRule(tree, 3, "logicalconstraint", "Logical constraint");
             c = readLogicalConstraint(tree.getChild(3), data, mstrs);
         } else {
-            FunctionSymbol f;
-            c = new Constant("TRUE", boolSort);
+            c = data.lookupFunctionSymbol("TRUE");
         }
         try {
             return new FirstOrderRule(l, r, c);
@@ -517,21 +510,16 @@ public class LcTrsInputReader extends InputReader{
 
     private TRS readLCTRS(ParseTree tree) throws ParserException {
         ParseData data = new ParseData();
-        ArrayList<FunctionSymbol> theorySymbols = handleBasicSignature(data);
+        handleBasicSignature(data);
         int k = 0;
         String kind = checkChild(tree, k);
-        if (kind.equals("rule varlist")) {
-            handleVarList(tree.getChild(k), data);
-            k++;
-            kind = checkChild(tree, k);
-        }
         if (kind.equals("rule siglist")) {
             handleSignature(tree.getChild(k), data);
             k++;
         }
         verifyChildIsRule(tree, k, "ruleslist", "List of rules");
         ArrayList<Rule> rules = readRuleList(tree.getChild(k), data, true);
-        return new TermRewritingSystem(data.queryCurrentAlphabet(), rules, theorySymbols);
+        return new TermRewritingSystem(data.queryCurrentAlphabet(), rules);
     }
 
     /* ========= USER INPUT METHODS ========= */

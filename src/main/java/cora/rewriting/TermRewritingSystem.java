@@ -51,20 +51,9 @@ public class TermRewritingSystem implements TRS {
     _alphabet = alphabet.copy();
     _rules = new ArrayList<Rule>(rules);
     _theorySymbols = new ArrayList<>();
-  }
-
-  public TermRewritingSystem(Alphabet alphabet, List<Rule> rules, List<FunctionSymbol> theorySymbols) {
-    if (alphabet == null) throw new NullInitialisationError("TermRewritingSystem", "alphabet");
-    if (rules == null) throw new NullInitialisationError("TermRewritingSystem", "rules set");
-    for (int i = 0; i < rules.size(); i++) {
-      if (rules.get(i) == null) {
-        throw new NullInitialisationError("TermRewritingSystem", "rule " + i);
-      }
+    for (FunctionSymbol f : alphabet.queryAlphabetSymbols()) {
+      if (f.isTheorySymbol()) _theorySymbols.add(f);
     }
-
-    _alphabet = alphabet.copy();
-    _rules = new ArrayList<Rule>(rules);
-    _theorySymbols = new ArrayList<FunctionSymbol>(theorySymbols);
   }
 
   public TermRewritingSystem(TRS trs) {
@@ -74,6 +63,16 @@ public class TermRewritingSystem implements TRS {
       _rules.add(trs.queryRule(i));
     }
     _theorySymbols = new ArrayList<>();
+  }
+
+  public TermRewritingSystem(TRS trs, ArrayList<FunctionSymbol> tSymbs) {
+    _alphabet = new UserDefinedAlphabet(trs.querySymbols());
+    _rules = new ArrayList<>();
+    for (int i = 0; i < trs.queryRuleCount(); i++) {
+      _rules.add(trs.queryRule(i));
+    }
+    _theorySymbols = new ArrayList<>();
+    _theorySymbols.addAll(tSymbs);
   }
 
   /** Gives a human-readable representation of the term rewriting system. */

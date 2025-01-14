@@ -35,10 +35,13 @@ public class ParseData {
   private TreeMap<String,FunctionSymbol> _alphabet;   // function symbols
   private TreeMap<String,Variable> _environment;      // variables
 
+  private TreeMap<String, FunctionSymbol> _theory;    // theory symbols
+
   public ParseData() {
     _trs = null;
     _alphabet = new TreeMap<String,FunctionSymbol>();
     _environment = new TreeMap<String,Variable>();
+    _theory = new TreeMap<String,FunctionSymbol>();
   }
 
   /**
@@ -50,6 +53,7 @@ public class ParseData {
     _trs = trs;
     _alphabet = new TreeMap<String, FunctionSymbol>();
     _environment = new TreeMap<String, Variable>();
+    _theory = new TreeMap<String,FunctionSymbol>();
   }
 
     public ParseData(TRS trs, TreeSet<Variable> env) {
@@ -59,6 +63,7 @@ public class ParseData {
       for (Variable v : env) {
         _environment.put(v.queryName(), v);
       }
+      _theory = new TreeMap<String,FunctionSymbol>();
     }
 
     /**
@@ -72,6 +77,16 @@ public class ParseData {
   /** If the given symbol has been declared, this returns its type, otherwise null. */
   public FunctionSymbol lookupFunctionSymbol(String symbol) {
     FunctionSymbol ret = _alphabet.get(symbol);
+    if (ret == null && _trs != null) ret = _trs.lookupSymbol(symbol);
+    return ret;
+  }
+
+  public int queryNumberTheorySymbols() {
+    return _theory.size();
+  }
+
+  public FunctionSymbol lookupTheorySymbol(String symbol) {
+    FunctionSymbol ret = _theory.get(symbol);
     if (ret == null && _trs != null) ret = _trs.lookupSymbol(symbol);
     return ret;
   }
@@ -92,6 +107,18 @@ public class ParseData {
                       "previously declared symbol " + name);
     }
     _alphabet.put(name, symbol);
+  }
+
+  public void addTheorySymbol(FunctionSymbol symbol) {
+    if (symbol == null) throw new NullStorageError("ParseData", "function symbol");
+    String name = symbol.queryName();
+    Type type = symbol.queryType();
+    FunctionSymbol existing = lookupFunctionSymbol(name);
+    if (existing != null && !symbol.equals(existing)) {
+      throw new Error("Duplicate call to ParseData::addFunctionSymbol: trying to overwrite " +
+              "previously declared symbol " + name);
+    }
+    _theory.put(name, symbol);
   }
 
   /**
@@ -132,6 +159,13 @@ public class ParseData {
       throw new Error("Calling queryCurrentAlphabet for ParseData constructed with a given TRS!");
     }
     return new UserDefinedAlphabet(_alphabet.values());
+  }
+
+  public Alphabet queryTheorySymbols() {
+    if (_trs != null) {
+      throw new Error("LCTRS is not defined, theory symbols not defined");
+    }
+    return new UserDefinedAlphabet(_theory.values());
   }
 }
 
