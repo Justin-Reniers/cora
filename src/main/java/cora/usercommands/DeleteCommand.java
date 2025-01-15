@@ -1,5 +1,8 @@
 package cora.usercommands;
 
+import cora.exceptions.invalidruleapplications.InvalidDeleteApplicationException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
+import cora.interfaces.smt.IProofState;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Position;
 import cora.interfaces.types.Type;
@@ -20,15 +23,15 @@ public class DeleteCommand extends UserCommandInherit implements UserCommand {
     }
 
     @Override
-    public boolean applicable() {
-        if (_proof.getLeft().equals(_proof.getRight())) return true;
+    public IProofState apply(IProofState ps) throws InvalidRuleApplicationException {
+        if (ps.getS().equals(ps.getT())) {
+            ps.removeCurrentEquation();
+            return ps;
+        }
         Z3TermHandler z3 = new Z3TermHandler(_proof.getLcTrs());
-        return z3.satisfiable(_proof.getConstraint()) == SatisfiabilityEnum.UNSAT;
-    }
-
-    @Override
-    public void apply() {
-        _proof.removeCurrentEquation();
+        if (z3.satisfiable(_proof.getConstraint()) == SatisfiabilityEnum.UNSAT) ps.removeCurrentEquation();
+        else throw new InvalidDeleteApplicationException("No delete cases apply");
+        return ps;
     }
 
     @Override

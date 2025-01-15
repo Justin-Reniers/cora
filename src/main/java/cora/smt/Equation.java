@@ -4,45 +4,45 @@ import cora.interfaces.smt.ProofEquation;
 import cora.interfaces.terms.Term;
 
 public class Equation implements ProofEquation {
-    private Term _left, _right, _constraint;
-    public Equation(Term l, Term r, Term c) {
-        _left = l;
-        _right = r;
-        _constraint = c;
+    private Term _s, _t, _c;
+    public Equation(Term s, Term t, Term c) {
+        _s = s;
+        _t = t;
+        _c = c;
     }
 
-    public Equation(Equation eq) {
-        _left = eq.getLeft();
-        _right = eq.getRight();
-        _constraint = eq.getConstraint();
+    public Equation(ProofEquation pe) {
+        _s = pe.getLeft();
+        _t = pe.getRight();
+        _c = pe.getConstraint();
     }
 
     @Override
-    public Term getLeft() { return _left; }
+    public Term getLeft() { return _s; }
 
     @Override
-    public Term getRight() { return _right; }
+    public Term getRight() { return _t; }
 
     @Override
-    public Term getConstraint() { return  _constraint; }
+    public Term getConstraint() { return _c; }
 
     @Override
     public String toString() {
-        return _left.toString() + "\t" + _right.toString() + "\t[" + _constraint.toString() + "]";
+        return _s.toString() + "\t" + _t.toString() + "\t[" + _c.toString() + "]";
     }
 
     @Override
     public String toHTMLString() {
-        return _left.toHTMLString() + "\t≈" +
-                "\t" + _right.toHTMLString() + "\t\t[" + _constraint.toHTMLString() + "]";
+        return _s.toHTMLString() + "\t≈" +
+                "\t" + _t.toHTMLString() + "\t\t[" + _c.toHTMLString() + "]";
     }
 
     @Override
-    public void setLeft(Term left) { if (left != null) _left = left; }
+    public void setLeft(Term left) { if (left != null) _s = left; }
 
     @Override
-    public void setRight(Term right) { if (right != null) _right = right; }
+    public void setRight(Term right) { if (right != null) _t = right; }
 
     @Override
-    public void setConstraint(Term constraint) { if (constraint != null) _constraint = constraint; }
+    public void setConstraint(Term constraint) { if (constraint != null) _c = constraint; }
 }

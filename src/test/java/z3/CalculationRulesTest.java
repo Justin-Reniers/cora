@@ -4,7 +4,7 @@ import com.microsoft.z3.BoolSort;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.Solver;
-import cora.exceptions.InvalidRuleApplicationException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
 import cora.exceptions.ParserException;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
@@ -72,7 +72,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testSimplificationCase() throws ParserException {
+    public void testSimplificationCase() throws ParserException, InvalidRuleApplicationException {
         String sl = "x + 0";
         String sr = "g(x)";
         String sc = "[x >= 2]";
@@ -88,7 +88,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testSimplificationCase2() throws ParserException {
+    public void testSimplificationCase2() throws ParserException, InvalidRuleApplicationException {
         String sl = "x*0";
         String sr = "g(x)";
         String sc = "[x ==i 3]";
@@ -104,7 +104,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testSimplificationCase3() throws ParserException {
+    public void testSimplificationCase3() throws ParserException, InvalidRuleApplicationException {
         String sl = "x*1";
         String sr = "g(x)";
         String sc = "[x < 18]";
@@ -120,7 +120,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testSimplificationCase5() throws ParserException {
+    public void testSimplificationCase5() throws ParserException, InvalidRuleApplicationException {
         String sl = "g(x) + 0";
         String sr = "g(x)";
         String sc = "[TRUE]";
@@ -136,7 +136,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testNoFreshVariables() throws ParserException {
+    public void testNoFreshVariables() throws ParserException, InvalidRuleApplicationException {
         String sl = "g(x+1+y+3) + 0";
         String sr = "g(x)";
         String sc = "[TRUE]";
@@ -152,7 +152,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testMultipleFreshVariables2() throws ParserException {
+    public void testMultipleFreshVariables2() throws ParserException, InvalidRuleApplicationException {
         String sl = "g(x + (y + 3))";
         String sr = "g(x)";
         String sc = "[x < 3 /\\ y > 1]";
@@ -169,7 +169,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testFreshVariables() throws ParserException {
+    public void testFreshVariables() throws ParserException, InvalidRuleApplicationException {
         String sl = "g(1+x)";
         String sr = "g(x)";
         String sc = "[x > 1]";
@@ -185,7 +185,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testFreshVariables2() throws ParserException {
+    public void testFreshVariables2() throws ParserException, InvalidRuleApplicationException {
         String sl = "g(1+x)";
         String sr = "g(x)";
         String sc = "[TRUE]";
@@ -202,7 +202,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testFreshVariables3() throws ParserException {
+    public void testFreshVariables3() throws ParserException, InvalidRuleApplicationException {
         String sl = "g(x)";
         String sr = "g(x)";
         String sc = "[x ==i y + 1]";
@@ -219,7 +219,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testFreshVariables4() throws ParserException {
+    public void testFreshVariables4() throws ParserException, InvalidRuleApplicationException {
         String sl = "g(-x)";
         String sr = "g(x)";
         String sc = "[x > 2]";
@@ -235,7 +235,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testFreshVariables5() throws ParserException {
+    public void testFreshVariables5() throws ParserException, InvalidRuleApplicationException {
         String sl = "f(x, 2+1)";
         String sr = "g(x)";
         String sc = "[x ==i 2+1]";
@@ -252,7 +252,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testFreshVariables6() throws ParserException {
+    public void testFreshVariables6() throws ParserException, InvalidRuleApplicationException {
         String sl = "g(0)";
         String sr = "g(x)";
         String sc = "[x ==i 0]";
@@ -269,7 +269,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testFreshVariables7() throws ParserException {
+    public void testFreshVariables7() throws ParserException, InvalidRuleApplicationException {
         String sl = "g((2*y)+1)";
         String sr = "g(x)";
         String sc = "[x ==i (2*y)+1]";
@@ -286,7 +286,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testFreshVariables8() throws ParserException {
+    public void testFreshVariables8() throws ParserException, InvalidRuleApplicationException {
         String sl = "g(1 + (2*y))";
         String sr = "g(x)";
         String sc = "[x ==i 1 + (2*y)]";
@@ -303,7 +303,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testFreshVariables9() throws ParserException {
+    public void testFreshVariables9() throws ParserException, InvalidRuleApplicationException {
         String sl = "g(x+2)";
         String sr = "g(x)";
         String sc = "[x ==i 2]";
@@ -320,7 +320,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testFreshVariables10() throws ParserException {
+    public void testFreshVariables10() throws ParserException, InvalidRuleApplicationException {
         String sl = "g(y)";
         String sr = "g(z)";
         String sc = "[y ==i 3]";
@@ -337,7 +337,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testFreshVariables11() throws ParserException {
+    public void testFreshVariables11() throws ParserException, InvalidRuleApplicationException {
         String sl = "g(y)";
         String sr = "g(z)";
         String sc = "[y ==i 3]";
@@ -355,7 +355,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testFreshVariables12() throws ParserException {
+    public void testFreshVariables12() throws ParserException, InvalidRuleApplicationException {
         String sl = "g(y)";
         String sr = "g(z)";
         String sc = "[y ==i y_0 + 1 /\\ y_0 ==i z + 1]";
@@ -372,7 +372,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testFreshVariables13() throws ParserException {
+    public void testFreshVariables13() throws ParserException, InvalidRuleApplicationException {
         String sl = "g(x + (y + 3))";
         String sr = "g(z)";
         String sc = "[x >= y]";
@@ -389,7 +389,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testFreshVariablesNotAllowed() throws ParserException {
+    public void testFreshVariablesNotAllowed() throws ParserException, InvalidRuleApplicationException {
         String sl = "g(y)";
         String sr = "g(z)";
         String sc = "[y ==i y_0 + 1 /\\ y_0 ==i z + 1]";
@@ -406,7 +406,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testNoNewVariables() throws ParserException {
+    public void testNoNewVariables() throws ParserException, InvalidRuleApplicationException {
         String sl = "factrec(x+(y+1))";
         String sr = "g(z)";
         String sc = "[x>=y]";
@@ -423,7 +423,7 @@ public class CalculationRulesTest {
     }
 
     @Test (expected = InvalidRuleApplicationException.class)
-    public void testReduction2() throws ParserException {
+    public void testReduction2() throws ParserException, InvalidRuleApplicationException {
         String sl = "factrec(2*x+1)";
         String sr = "g(z)";
         String sc = "[x > 0]";
@@ -443,7 +443,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testReduction3() throws ParserException {
+    public void testReduction3() throws ParserException, InvalidRuleApplicationException {
         String sl = "factrec(5)";
         String sr = "g(z)";
         String sc = "[x ==i 5]";
@@ -460,7 +460,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testReduction4() throws ParserException {
+    public void testReduction4() throws ParserException, InvalidRuleApplicationException {
         String sl = "factrec(x+2)";
         String sr = "g(z)";
         String sc = "[TRUE]";
@@ -477,7 +477,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testReduction5() throws ParserException {
+    public void testReduction5() throws ParserException, InvalidRuleApplicationException {
         String sl = "factrec(x+2)";
         String sr = "g(z)";
         String sc = "[x ==i 2 + 2]";
@@ -494,7 +494,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testInfiniteRewrite() throws ParserException {
+    public void testInfiniteRewrite() throws ParserException, InvalidRuleApplicationException {
         String sl = "factrec(x)";
         String sr = "x";
         String sc = "[x ==i y /\\ y ==i x]";
@@ -510,7 +510,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testReduction6() throws ParserException {
+    public void testReduction6() throws ParserException, InvalidRuleApplicationException {
         String sl = "factrec(u+v)";
         String sr = "u";
         String sc = "[u >= 3 /\\ v > 1]";
@@ -529,7 +529,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testRedundant() throws ParserException {
+    public void testRedundant() throws ParserException, InvalidRuleApplicationException {
         String sl = "factrec(y + (n + 2))";
         String sr = "y";
         String sc = "[x ==i y + (n + 2)]";
@@ -546,7 +546,7 @@ public class CalculationRulesTest {
     }
 
     @Test
-    public void testValuesSimplifiedFirst() throws ParserException {
+    public void testValuesSimplifiedFirst() throws ParserException, InvalidRuleApplicationException {
         String sl = "factrec(3 + 4)";
         String sr = "7";
         String sc = "[x ==i y + (n + 2)]";

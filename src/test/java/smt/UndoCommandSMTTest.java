@@ -1,7 +1,9 @@
 package smt;
 
 import cora.exceptions.ParserException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
 import cora.interfaces.rewriting.TRS;
+import cora.interfaces.smt.IProofState;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
 import cora.loggers.ConsoleLogger;
@@ -47,7 +49,7 @@ public class UndoCommandSMTTest {
     }
 
     @Test
-    public void testSingleUndo() throws ParserException {
+    public void testSingleUndo() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(1 + 1)";
         String t2 = "f(z)";
         String c1 = "[z ==i x + 0]";
@@ -63,7 +65,7 @@ public class UndoCommandSMTTest {
     }
 
     @Test
-    public void testMultipleUndo() throws ParserException {
+    public void testMultipleUndo() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(z)";
         String t2 = "f(x + 0)";
         String c1 = "[z ==i x + 0]";
@@ -75,10 +77,12 @@ public class UndoCommandSMTTest {
         Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
         EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
         eq.applyNewUserCommand("swap");
+        IProofState ps = eq.getProofState();
         eq.applyNewUserCommand("simplify");
+        IProofState ps2 = eq.getProofState();
         eq.applyNewUserCommand("delete");
         eq.applyNewUserCommand("undo");
         eq.applyNewUserCommand("undo");
-        assertNotNull(eq.getEquations());
+        assertEquals(eq.getCurrentEquation(), ps.getCurrentEquation());
     }
 }

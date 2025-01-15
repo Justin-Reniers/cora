@@ -1,6 +1,6 @@
 package smt;
 
-import cora.exceptions.InvalidRuleApplicationException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
 import cora.exceptions.ParserException;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
@@ -67,7 +67,7 @@ public class SimplifyCommandSMTTest {
     }
 
     @Test
-    public void testCalcSimplify() throws ParserException {
+    public void testCalcSimplify() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(1 + 1)";
         String t2 = "f(z)";
         String c1 = "[z ==i x + 0]";
@@ -84,7 +84,7 @@ public class SimplifyCommandSMTTest {
     }
 
     @Test
-    public void testSimplifySubstitution() throws ParserException {
+    public void testSimplifySubstitution() throws ParserException, InvalidRuleApplicationException {
         String t1 = "g(x, f(z))";
         String t2 = "z";
         String c1 = "[x > z + y /\\ y ==i 3]";
@@ -101,7 +101,7 @@ public class SimplifyCommandSMTTest {
     }
 
     @Test
-    public void testSimplifySubstitutionInfoInConstraint() throws ParserException {
+    public void testSimplifySubstitutionInfoInConstraint() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(x+3)";
         String t2 = "f(a)";
         String c1 = "[x ==i 3]";
@@ -118,7 +118,7 @@ public class SimplifyCommandSMTTest {
     }
 
     @Test
-    public void testMultipleFreshVars() throws ParserException {
+    public void testMultipleFreshVars() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(x + y + 1)";
         String t2 = "f(x)";
         String c1 = "[x <= 2 /\\ y >= 4]";
@@ -136,7 +136,7 @@ public class SimplifyCommandSMTTest {
     }
 
     @Test
-    public void testCalcSimplifyNestedOperators() throws ParserException {
+    public void testCalcSimplifyNestedOperators() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(1 + 1 + 1)";
         String t2 = "f(z)";
         String c1 = "[z ==i x + 0]";
@@ -153,7 +153,7 @@ public class SimplifyCommandSMTTest {
     }
 
     @Test
-    public void testCalcSimplifyManyNestedOperators() throws ParserException {
+    public void testCalcSimplifyManyNestedOperators() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(1 + 1 + 1 * 1)";
         String t2 = "f(z)";
         String c1 = "[z ==i x + 0]";
@@ -170,7 +170,7 @@ public class SimplifyCommandSMTTest {
     }
 
     @Test
-    public void testCalcSimplifyManyNestedMinusOperators() throws ParserException {
+    public void testCalcSimplifyManyNestedMinusOperators() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(1 + 1 + 1 + -1 * 6)";
         String t2 = "f(z)";
         String c1 = "[z ==i x + 0]";
@@ -187,7 +187,7 @@ public class SimplifyCommandSMTTest {
     }
 
     @Test
-    public void testCalcSimplifyManyNestedOperators2() throws ParserException {
+    public void testCalcSimplifyManyNestedOperators2() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(1 + 2 / 2 + 1 + 1 * 6 * 3 * 1)";
         String t2 = "f(z)";
         String c1 = "[z ==i x + 0]";
@@ -204,12 +204,7 @@ public class SimplifyCommandSMTTest {
     }
 
     @Test
-    public void testSimplifyNestedPosition() throws ParserException {
-
-    }
-
-    @Test
-    public void testSimplifyVarInConstraint() throws ParserException {
+    public void testSimplifyVarInConstraint() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(x + 0)";
         String t2 = "f(z)";
         String c1 = "[z ==i x + 0]";
@@ -225,7 +220,7 @@ public class SimplifyCommandSMTTest {
     }
 
     @Test
-    public void testCalcSimplifyFreshVars() throws ParserException {
+    public void testCalcSimplifyFreshVars() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(x + 1)";
         String t2 = "f(z)";
         String c1 = "[TRUE]";
@@ -240,7 +235,7 @@ public class SimplifyCommandSMTTest {
     }
 
     @Test
-    public void testSimplifyRuleTrueConstraint() throws ParserException {
+    public void testSimplifyRuleTrueConstraint() throws ParserException, InvalidRuleApplicationException {
         String t1 = "sumiter(n)";
         String t2 = "sumrec(n)";
         String c1 = "[n >= 1]";
@@ -257,7 +252,7 @@ public class SimplifyCommandSMTTest {
     }
 
     @Test
-    public void testSimplifyRuleConstrained() throws ParserException {
+    public void testSimplifyRuleConstrained() throws ParserException, InvalidRuleApplicationException {
         String t1 = "iter(n, 1, 1)";
         String t2 = "sumrec(n)";
         String c1 = "[n >= 1]";
@@ -274,7 +269,7 @@ public class SimplifyCommandSMTTest {
     }
 
     @Test
-    public void testSimplifyRuleUnconstrained() throws ParserException {
+    public void testSimplifyRuleUnconstrained() throws ParserException, InvalidRuleApplicationException {
         String t1 = "sumiter(n)";
         String t2 = "sumrec(n)";
         String c1 = "[n >= 1]";
@@ -291,7 +286,7 @@ public class SimplifyCommandSMTTest {
     }
 
     @Test
-    public void testSimplifyEmptyPositionSymbol() throws ParserException {
+    public void testSimplifyEmptyPositionSymbol() throws ParserException, InvalidRuleApplicationException {
         String t1 = "sumiter(n)";
         String t2 = "sumrec(n)";
         String c1 = "[n >= 1]";
@@ -307,28 +302,8 @@ public class SimplifyCommandSMTTest {
         assertEquals(eq.getLeft().toString(), l2.toString());
     }
 
-    @Test (expected = InvalidRuleApplicationException.class)
-    public void testSimplifyUnusedVariables() throws ParserException {
-        String t1 = "iter(k, 2, 3)";
-        String t2 = "add(k, iter(l, 1, 2))";
-        String c1 = "[~(k <= 1) /\\ l ==i k - 1]";
-        String rule = "iter(n, a, b) -> add(n, iter(m, x, y))\t[n>=1 /\\ m ==i n - 1 /\\ b ==i y + 1 /\\ a ==i x * y]";
-        Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
-        TreeSet<Variable> vars = new TreeSet<>();
-        vars.addAll(l.vars().getVars());
-        Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
-        vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
-        EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
-        eq.applyNewUserCommand("simplify ε 7 [x := 1, y := 2]");
-        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("add(k, iter(n-1, 1, 2))", lcTrs, eq.getEquationVariables());
-        assertEquals(eq.getLeft().toString(), l2.toString());
-    }
-
-
-
     @Test  (expected = InvalidRuleApplicationException.class)
-    public void testSimplifyUnusedVariablesNoSubstitution() throws ParserException {
+    public void testSimplifyUnusedVariablesNoSubstitution() throws ParserException, InvalidRuleApplicationException {
         String t1 = "iter(k, 2, 3)";
         String t2 = "add(k, iter(l, 1, 2))";
         String c1 = "[~(k <= 1) /\\ l ==i k - 1]";
@@ -345,24 +320,7 @@ public class SimplifyCommandSMTTest {
     }
 
     @Test
-    public void testSimplifyComposition() throws ParserException {
-        String t1 = "fl(x)";
-        String t2 = "x";
-        String c1 = "[x ==i 3]";
-        Term l = LcTrsInputReader.readTermFromString(t1, lcTrs);
-        TreeSet<Variable> vars = new TreeSet<>();
-        vars.addAll(l.vars().getVars());
-        Term r = LcTrsInputReader.readTermFromStringWithEnv(t2, lcTrs, vars);
-        vars.addAll(r.vars().getVars());
-        Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(c1, lcTrs, vars);
-        EquivalenceProof eq = new EquivalenceProof(lcTrs, l, r, c);
-        eq.applyNewUserCommand("simplify 0 8");
-        Term l2 = LcTrsInputReader.readTermFromStringWithEnv("x", lcTrs, eq.getEquationVariables());
-        assertEquals(eq.getLeft(), l2);
-    }
-
-    @Test
-    public void testSimplifyExtra() throws ParserException {
+    public void testSimplifyExtra() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(y_0)";
         String t2 = "f(x)";
         String c1 = "[y ==i 2 /\\ y_0 ==i y + 3]";

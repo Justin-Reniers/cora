@@ -57,7 +57,12 @@ public class FirstOrderRule extends RuleInherit implements Rule {
     }
   }
 
-  @Override
+    public FirstOrderRule(FirstOrderRule rule) {
+        super(rule._left, rule._right, rule._completenessSet);
+        _constraint = rule._constraint;
+    }
+
+    @Override
   public Term queryConstraint() {
     if (_constraint != null) return _constraint;
     return null;

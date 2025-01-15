@@ -1,6 +1,9 @@
 package cora.usercommands;
 
 import cora.exceptions.UnsatException;
+import cora.exceptions.invalidruleapplications.InvalidRewriteApplicationException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
+import cora.interfaces.smt.IProofState;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Position;
 import cora.interfaces.terms.Substitution;
@@ -47,10 +50,12 @@ public class RewriteConstraintCommand extends UserCommandInherit implements User
     }
 
     @Override
-    public boolean applicable() {
+    public IProofState apply(IProofState ps) throws InvalidRuleApplicationException {
         TreeSet<Variable> vars_old = getConstraintVars(_old);
         for (Variable v : getConstraintVars(_new)) {
-            if (!vars_old.contains(v)) return false;
+            if (!vars_old.contains(v)) {
+                throw new InvalidRewriteApplicationException("Variable " + v + " not in Var(" + _old + ")");
+            }
         }
         listifyConstraint(_proofComponents, _proof.getConstraint());
         listifyConstraint(_oldConstraintComponents, _old);
@@ -61,14 +66,14 @@ public class RewriteConstraintCommand extends UserCommandInherit implements User
                 if (s != null) {
                     for (Variable v : s.domain()) {
                         if (!(s.getReplacement(v) instanceof Var)) {
-                            return false;
+                            throw new InvalidRewriteApplicationException("Replacement of " + s + " is not a variable");
                         }
                         _s.extend(v, s.getReplacement(v));
                     }
                 }
                 if (t.substitute(_s).equals(l)) inProof = true;
             }
-            if (!inProof) return false;
+            if (!inProof) throw new InvalidRewriteApplicationException("Term " + t + " not in " + _old);
         }
         Term c = _proof.getConstraint();
 
@@ -81,24 +86,17 @@ public class RewriteConstraintCommand extends UserCommandInherit implements User
         Term _iff = new FunctionalTerm(_proof.getLcTrs().lookupSymbol("<-->"), c, nc);
         if (z3.validity(_iff)) {
             _newConstraint = nc;
-            return true;
         } else if (z3.validity(_if)) {
             _completeness = false;
             _newConstraint = nc;
-            return true;
         } else {
             throw new UnsatException(c.toString(), nc.toString(), "<-->");
         }
-    }
 
-    @Override
-    public void apply() {
-        _proof.setConstraint(_newConstraint);
-        if (!_completeness) _proof.setCompleteness(_completeness);
-        /**_oldConstraintComponents.replaceAll(term -> term.substitute(_s));
-        _proofComponents.removeAll(_oldConstraintComponents);
-        _proofComponents.add(_new.substitute(_s));
-        _proof.setConstraint(reconstructConstraint(_proofComponents));**/
+
+        ps.setC(_newConstraint);
+        if (!_completeness) ps.setCompleteness(_completeness);
+        return ps;
     }
 
     @Override

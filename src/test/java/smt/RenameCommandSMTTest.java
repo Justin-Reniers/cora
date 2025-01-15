@@ -1,6 +1,6 @@
 package smt;
 
-import cora.exceptions.InvalidRuleApplicationException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
 import cora.exceptions.ParserException;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
@@ -43,7 +43,7 @@ public class RenameCommandSMTTest {
     }
 
     @Test
-    public void renameTest() throws ParserException {
+    public void renameTest() throws ParserException, InvalidRuleApplicationException {
         String t1 = "sumiter(n)";
         String t2 = "sumrec(n)";
         String c1 = "[n >= 1 /\\ n > 2 /\\ n < 4]";
@@ -59,7 +59,7 @@ public class RenameCommandSMTTest {
     }
 
     @Test (expected = InvalidRuleApplicationException.class)
-    public void invalidRenameTest() throws ParserException {
+    public void invalidRenameTest() throws ParserException, InvalidRuleApplicationException {
         String t1 = "sumiter(n)";
         String t2 = "sumrec(n)";
         String c1 = "[n >= 1 /\\ n > 2 /\\ n < 4]";
@@ -75,7 +75,7 @@ public class RenameCommandSMTTest {
     }
 
     @Test (expected = InvalidRuleApplicationException.class)
-    public void invalidRename2Test() throws ParserException {
+    public void invalidRename2Test() throws ParserException, InvalidRuleApplicationException {
         String t1 = "sumiter(n)";
         String t2 = "sumrec(n)";
         String c1 = "[n >= 1 /\\ n > 2 /\\ n < 4]";
@@ -91,7 +91,7 @@ public class RenameCommandSMTTest {
     }
 
     @Test (expected = InvalidRuleApplicationException.class)
-    public void invalidRename3Test() throws ParserException {
+    public void invalidRename3Test() throws ParserException, InvalidRuleApplicationException {
         String t1 = "sumiter(n)";
         String t2 = "sumrec(n)";
         String c1 = "[n >= 1 /\\ n > 2 /\\ n < 4]";
@@ -107,7 +107,7 @@ public class RenameCommandSMTTest {
     }
 
     @Test (expected = InvalidRuleApplicationException.class)
-    public void invalidRename4Test() throws ParserException {
+    public void invalidRename4Test() throws ParserException, InvalidRuleApplicationException {
         String t1 = "sumiter(n)";
         String t2 = "sumrec(n)";
         String c1 = "[n >= 1 /\\ n > 2 /\\ n < 4]";

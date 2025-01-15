@@ -1,5 +1,6 @@
 package cora.interfaces.smt;
 
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
 import cora.interfaces.terms.Position;
 import cora.interfaces.types.Type;
 import cora.smt.EquivalenceProof;
@@ -11,11 +12,10 @@ public interface UserCommand {
         should be applied if the command has an argument position. */
     Position queryPosition();
 
-    /** Returns whether the user command can be applied to the term. */
-    boolean applicable();
-
-    /** Applies the user command to Term t, otherwise it returns null. */
-    void apply();
+    /**
+     * Applies the user command to the given proof state, otherwise it throws an error.
+     */
+    IProofState apply(IProofState ps) throws InvalidRuleApplicationException;
 
     /** Gives a string representation of the current user command situation. */
     String toString();

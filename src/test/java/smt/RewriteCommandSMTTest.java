@@ -1,6 +1,6 @@
 package smt;
 
-import cora.exceptions.InvalidRuleApplicationException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
 import cora.exceptions.ParserException;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
@@ -65,7 +65,7 @@ public class RewriteCommandSMTTest {
     }
 
     @Test (expected = InvalidRuleApplicationException.class)
-    public void invalidRewriteTest() throws ParserException {
+    public void invalidRewriteTest() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(1 + 1)";
         String t2 = "f(z)";
         String c1 = "[TRUE]";

@@ -3,6 +3,7 @@ package smt;
 import cora.exceptions.BottomException;
 import cora.exceptions.ParserException;
 import cora.exceptions.TypingException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
@@ -44,7 +45,7 @@ public class DisproveCommandSMTTest {
     }
 
     @Test(expected = BottomException.class)
-    public void disproveExampleTest() throws ParserException {
+    public void disproveExampleTest() throws ParserException, InvalidRuleApplicationException {
         String t1 = "return(2)";
         String t2 = "return(1)";
         String c1 = "[x==i2]";

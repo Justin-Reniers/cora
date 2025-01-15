@@ -1,6 +1,7 @@
 package smt;
 
 import cora.exceptions.ParserException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
@@ -40,7 +41,7 @@ public class ConstraintRewritingTest {
     }
 
     @Test
-    public void testConstraintRewrite() throws ParserException {
+    public void testConstraintRewrite() throws ParserException, InvalidRuleApplicationException {
         String lctrs = "(SIG\n" +
                 "(f\t Int Int -> Int)\n" +
                 "(g\t Int -> Int)\n" +
@@ -66,7 +67,7 @@ public class ConstraintRewritingTest {
     }
 
     @Test
-    public void testConstraintRewrite2() throws ParserException {
+    public void testConstraintRewrite2() throws ParserException, InvalidRuleApplicationException {
         String lctrs = "(SIG\n" +
                 "(factrec\t Int -> Int)\n" +
                 "(return\t Int -> Int)\n" +
@@ -94,7 +95,7 @@ public class ConstraintRewritingTest {
     }
 
     @Test
-    public void testConstraintRewrite3() throws ParserException {
+    public void testConstraintRewrite3() throws ParserException, InvalidRuleApplicationException {
         String lctrs = "(SIG\n" +
                 "(factrec\t Int -> Int)\n" +
                 "(return\t Int -> Int)\n" +
@@ -121,6 +122,4 @@ public class ConstraintRewritingTest {
         Term l2 = LcTrsInputReader.readTermFromStringWithEnv("mul(n, factrec(n - 1))", lcTrs, eq.getEquationVariables());
         assertEquals(eq.getLeft(), l2);
     }
-
-
 }

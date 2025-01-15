@@ -1,5 +1,9 @@
 package cora.usercommands;
 
+import cora.exceptions.invalidruleapplications.InvalidCompletenessApplicationException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
+import cora.interfaces.smt.IProofState;
+import cora.interfaces.smt.ProofEquation;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Position;
 import cora.interfaces.types.Type;
@@ -20,17 +24,15 @@ public class CompletenessCommand extends UserCommandInherit implements UserComma
     }
 
     @Override
-    public boolean applicable() {
-        for (Equation eq : _proof.getEquations()) {
-            if (!_proof.getCompletenessEquationSet().contains(eq)) return false;
+    public IProofState apply(IProofState ps) throws InvalidRuleApplicationException {
+        if (ps.getCompleteness()) throw new InvalidCompletenessApplicationException("Completeness flag is COMPLETE");
+        for (ProofEquation eq : ps.getE()) {
+            if (!ps.getCompletenessE().contains(eq)) throw new InvalidCompletenessApplicationException(eq + " not" +
+                    " in completeness set");
         }
-        return !_proof.getCompleteness();
-    }
-
-    @Override
-    public void apply() {
-        _proof.setCompleteness(true);
-        _proof.emptyCompletenessEquationSet();
+        ps.setCompleteness(true);
+        ps.emptyCompletenessSet();
+        return ps;
     }
 
     @Override

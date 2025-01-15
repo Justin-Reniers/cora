@@ -1,17 +1,15 @@
 package smt;
 
-import cora.exceptions.InvalidRuleApplicationException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
 import cora.exceptions.ParserException;
 import cora.exceptions.TypingException;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
 import cora.parsers.LcTrsInputReader;
-import cora.rewriting.FirstOrderRule;
 import cora.smt.EquivalenceProof;
 import org.junit.Test;
 
-import javax.swing.text.html.parser.Parser;
 import java.util.TreeSet;
 
 import static org.junit.Assert.*;
@@ -48,7 +46,7 @@ public class ConstructorCommandSMTTest {
     }
 
     @Test
-    public void constructorExampleTest() throws ParserException {
+    public void constructorExampleTest() throws ParserException, InvalidRuleApplicationException {
         String t1 = "return(2)";
         String t2 = "return(1)";
         String c1 = "[x==i2]";
@@ -66,7 +64,7 @@ public class ConstructorCommandSMTTest {
     }
 
     @Test
-    public void constructorTestMultipleArgs() throws ParserException {
+    public void constructorTestMultipleArgs() throws ParserException, InvalidRuleApplicationException {
         String t1 = "h(x, 1, 2)";
         String t2 = "h(x, 3, 4)";
         String c1 = "[x ==i 2]";
@@ -84,7 +82,7 @@ public class ConstructorCommandSMTTest {
     }
 
     @Test (expected = TypingException.class)
-    public void invalidTypingConstructor() throws ParserException {
+    public void invalidTypingConstructor() throws ParserException, InvalidRuleApplicationException {
         String t1 = "return(x+3)";
         String t2 = "return(add(1, error))";
         String c1 = "[x ==i 2]";
@@ -102,7 +100,7 @@ public class ConstructorCommandSMTTest {
     }
 
     @Test (expected = InvalidRuleApplicationException.class)
-    public void invalidConstructor() throws ParserException {
+    public void invalidConstructor() throws ParserException, InvalidRuleApplicationException {
         String t1 = "return(3)";
         String t2 = "error";
         String c1 = "[x ==i 2]";

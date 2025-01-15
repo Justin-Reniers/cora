@@ -1,16 +1,17 @@
 package cora.interfaces.smt;
 
 import cora.interfaces.rewriting.TRS;
-import cora.smt.Equation;
 
 import java.util.ArrayList;
 
 public interface History {
     String toString();
 
-    ArrayList<Equation> getEquations();
+    IProofState getProofState();
 
-    ArrayList<Equation> getCompletenessEquations();
+    ArrayList<ProofEquation> getEquations();
+
+    ArrayList<ProofEquation> getCompletenessEquations();
 
     boolean getCompleteness();
 
