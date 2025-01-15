@@ -1,5 +1,8 @@
 package cora.usercommands;
 
+import cora.exceptions.invalidruleapplications.InvalidRenameApplicationException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
+import cora.interfaces.smt.IProofState;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Position;
 import cora.interfaces.terms.Substitution;
@@ -34,21 +37,16 @@ public class RenameCommand extends UserCommandInherit implements UserCommand {
     }
 
     @Override
-    public boolean applicable() {
-        if (_old == null || _new == null) return false;
-        TreeSet<Variable> env = new TreeSet<>();
-        env.addAll(_proof.getLeft().vars().getVars());
-        env.addAll(_proof.getRight().vars().getVars());
-        env.addAll(_proof.getConstraint().vars().getVars());
-        return !env.contains(_new);
-    }
-
-    @Override
-    public void apply() {
+    public IProofState apply(IProofState ps) throws InvalidRuleApplicationException {
+        if (_old == null || _new == null) throw new InvalidRenameApplicationException("Old or new variable is null");
+        if (ps.getCurrentEqVariables().contains(_new)) {
+            throw new InvalidRenameApplicationException(_new + " already exists");
+        }
         _s.extend(_old, _new);
-        _proof.setLeft(_proof.getLeft().substitute(_s));
-        _proof.setRight(_proof.getRight().substitute(_s));
-        _proof.setConstraint(_proof.getConstraint().substitute(_s));
+        ps.setS(ps.getS().substitute(_s));
+        ps.setT(ps.getT().substitute(_s));
+        ps.setC(ps.getC().substitute(_s));
+        return ps;
     }
 
     @Override

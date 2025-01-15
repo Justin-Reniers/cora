@@ -3,6 +3,7 @@ package smt;
 import cora.exceptions.InvalidRuleParseException;
 import cora.exceptions.ParserException;
 import cora.exceptions.UnsatException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
@@ -43,7 +44,7 @@ public class RewriteConstraintCommandTest {
     }
 
     @Test
-    public void constraintRewrite1Test() throws ParserException {
+    public void constraintRewrite1Test() throws ParserException, InvalidRuleApplicationException {
         String t1 = "factiter(n)";
         String t2 = "factrec(n)";
         String c1 = "[n >= 1 /\\ n > 2 /\\ n < 4]";
@@ -60,7 +61,7 @@ public class RewriteConstraintCommandTest {
     }
 
     @Test
-    public void constraintRewrite2Test() throws ParserException {
+    public void constraintRewrite2Test() throws ParserException, InvalidRuleApplicationException {
         String t1 = "factiter(n)";
         String t2 = "factrec(n)";
         String c1 = "[n >= 1 /\\ n > 2 /\\ n < 4]";
@@ -77,7 +78,7 @@ public class RewriteConstraintCommandTest {
     }
 
     @Test (expected = UnsatException.class)
-    public void invalidConstraintRewrite2Test() throws ParserException {
+    public void invalidConstraintRewrite2Test() throws ParserException, InvalidRuleApplicationException {
         String t1 = "factiter(n)";
         String t2 = "factrec(n)";
         String c1 = "[n >= 1 /\\ n > 2 /\\ n > 4]";
@@ -92,7 +93,7 @@ public class RewriteConstraintCommandTest {
     }
 
     @Test (expected = InvalidRuleParseException.class)
-    public void invalidConstraintRewriteTest() throws ParserException {
+    public void invalidConstraintRewriteTest() throws ParserException, InvalidRuleApplicationException {
         String t1 = "factiter(n)";
         String t2 = "factrec(n)";
         String c1 = "[n >= 1 /\\ n > 2 /\\ n < 4]";
@@ -107,7 +108,7 @@ public class RewriteConstraintCommandTest {
     }
 
     @Test (expected = UnsatException.class)
-    public void unsatConstraintRewriteTest() throws ParserException {
+    public void unsatConstraintRewriteTest() throws ParserException, InvalidRuleApplicationException {
         String t1 = "factiter(n)";
         String t2 = "factrec(n)";
         String c1 = "[n >= 1 /\\ n > 2 /\\ n < 4]";
@@ -122,7 +123,7 @@ public class RewriteConstraintCommandTest {
     }
 
     @Test (expected = UnsatException.class)
-    public void unsatConstraintRewrite2Test() throws ParserException {
+    public void unsatConstraintRewrite2Test() throws ParserException, InvalidRuleApplicationException {
         String t1 = "factiter(n)";
         String t2 = "factrec(n)";
         String c1 = "[n >= 1 /\\ n > 2 /\\ n < 4]";
@@ -137,7 +138,7 @@ public class RewriteConstraintCommandTest {
     }
 
     @Test
-    public void unsatConstraintFreeVarTest() throws ParserException {
+    public void unsatConstraintFreeVarTest() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(x, z)";
         String t2 = "f(x, z)";
         String c1 = "[x > y /\\ y >= z]";

@@ -1,6 +1,9 @@
 package smt;
 
+import cora.exceptions.InvalidRuleParseException;
 import cora.exceptions.ParserException;
+import cora.exceptions.invalidruleapplications.InvalidConstraintRewritingException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
@@ -88,7 +91,7 @@ public class MultipleCommandsSMTTest {
     }
 
     @Test
-    public void testFactProof() throws ParserException, IOException {
+    public void testFactProof() throws ParserException, IOException, InvalidRuleApplicationException {
         String l = "factiter(n)";
         String r = "factrec(n)";
         String c = "[n>=1]";
@@ -143,7 +146,7 @@ public class MultipleCommandsSMTTest {
     }
 
     @Test
-    public void testSumProof() throws ParserException, IOException {
+    public void testSumProof() throws ParserException, IOException, InvalidRuleApplicationException {
         String l = "sumiter(n)";
         String r = "sumrec(n)";
         String c = "[n>=0]";
@@ -201,7 +204,7 @@ public class MultipleCommandsSMTTest {
     }
 
     @Test
-    public void testSumProofNotInductiveTheorem() throws ParserException, IOException {
+    public void testSumProofNotInductiveTheorem() throws ParserException, IOException, InvalidRuleApplicationException {
         String l = "sumiter(n)";
         String r = "sumrec(n+1)";
         String c = "[n ==i 1]";
@@ -242,7 +245,7 @@ public class MultipleCommandsSMTTest {
     }
 
     @Test
-    public void testReverseProof() throws ParserException, IOException {
+    public void testReverseProof() throws ParserException, IOException, InvalidRuleApplicationException {
         String l = "rev(rev(n))";
         String r = "n";
         String c = "[TRUE]";
@@ -255,7 +258,6 @@ public class MultipleCommandsSMTTest {
         Term tc = LcTrsInputReader.readLogicalTermFromStringWithEnv(c, lcTrsreverse, vars);
         vars.addAll(tc.vars().getVars());
         eq.addEquation(new Equation(tl, tr, tc));
-        eq.setCurrentEquation();
 
         eq.applyNewUserCommand("postulate app(xs, nil) xs [TRUE]");
         eq.applyNewUserCommand("swap 1 2");

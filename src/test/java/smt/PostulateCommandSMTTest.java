@@ -1,8 +1,8 @@
 package smt;
 
-import cora.exceptions.InvalidRuleApplicationException;
 import cora.exceptions.InvalidRuleParseException;
 import cora.exceptions.ParserException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
@@ -12,7 +12,6 @@ import cora.parsers.LcTrsInputReader;
 import cora.smt.EquivalenceProof;
 import org.junit.Test;
 
-import javax.swing.text.html.parser.Parser;
 import java.util.TreeSet;
 
 import static org.junit.Assert.*;
@@ -50,7 +49,7 @@ public class PostulateCommandSMTTest {
     }
 
     @Test
-    public void postulateExampleTest() throws ParserException {
+    public void postulateExampleTest() throws ParserException, InvalidRuleApplicationException {
         String t1 = "return(2)";
         String t2 = "return(1)";
         String c1 = "[x==i 2]";
@@ -67,7 +66,7 @@ public class PostulateCommandSMTTest {
     }
 
     @Test
-    public void postulateExampleTest2() throws ParserException {
+    public void postulateExampleTest2() throws ParserException, InvalidRuleApplicationException {
         String t1 = "return(2)";
         String t2 = "return(1)";
         String c1 = "[x==i 2]";
@@ -84,7 +83,7 @@ public class PostulateCommandSMTTest {
     }
 
     @Test (expected = InvalidRuleParseException.class)
-    public void postulateInvalidFunctionsExampleTest() throws ParserException {
+    public void postulateInvalidFunctionsExampleTest() throws ParserException, InvalidRuleApplicationException {
         String t1 = "return(2)";
         String t2 = "return(1)";
         String c1 = "[x==i 2]";
@@ -101,7 +100,7 @@ public class PostulateCommandSMTTest {
     }
 
     @Test (expected = ParserException.class)
-    public void logicalTermNoNonTheorySymbol() throws ParserException {
+    public void logicalTermNoNonTheorySymbol() throws ParserException, InvalidRuleApplicationException {
         String t1 = "return(2)";
         String t2 = "return(1)";
         String c1 = "[x==i return(1)]";
@@ -114,7 +113,7 @@ public class PostulateCommandSMTTest {
     }
 
     @Test (expected = InvalidRuleParseException.class)
-    public void logicalTermNoNonTheorySymbol2() throws ParserException {
+    public void logicalTermNoNonTheorySymbol2() throws ParserException, InvalidRuleApplicationException {
         String t1 = "return(2)";
         String t2 = "return(1)";
         String c1 = "[x==i 2]";

@@ -2,6 +2,8 @@ package cora.smt;
 
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.History;
+import cora.interfaces.smt.IProofState;
+import cora.interfaces.smt.ProofEquation;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.FunctionSymbol;
 import cora.rewriting.TermRewritingSystem;
@@ -13,26 +15,23 @@ import java.util.ArrayList;
  * It serves as a record type for
  */
 public class ProofHistory implements History {
-    private final ArrayList<Equation> _eqs, _cEqs;
-    private final boolean _completeness, _bottom;
+    private final boolean _bottom;
 
     private final UserCommand _uCommand;
 
     private final TRS _lcTrs;
+    private final IProofState _ps;
 
     /**
      * This constructor is used to create a Proof History record.
      */
-    public ProofHistory(ArrayList<Equation> eqs, UserCommand uCommand, boolean completeness,
-                        ArrayList<Equation> cEqs, boolean bottom, TRS lcTrs) {
-        _eqs = new ArrayList<>();
-        for (Equation eq : eqs) _eqs.add(new Equation(eq));
-        _uCommand = uCommand;
-        _completeness = completeness;
+    public ProofHistory(IProofState ps, UserCommand uc, boolean bottom, TRS lctrs) {
+        _ps = ps;
+        _uCommand = uc;
         _bottom = bottom;
-        _cEqs = new ArrayList<>();
-        for (Equation ceq : cEqs) _cEqs.add(new Equation(ceq));
-        if (lcTrs != null) _lcTrs = new TermRewritingSystem(lcTrs, (ArrayList<FunctionSymbol>) lcTrs.queryTheorySymbols());
+        if (lctrs != null) {
+            _lcTrs = new TermRewritingSystem(lctrs, (ArrayList<FunctionSymbol>) lctrs.queryTheorySymbols());
+        }
         else _lcTrs = null;
     }
 
@@ -40,23 +39,28 @@ public class ProofHistory implements History {
      * This function gives a String representation of a proof history record.
      */
     public String toString() {
-        return _eqs.toString().replace("[", "").replace("]", "") + //"\tCompleteness: " + _completeness +
+        return _ps.getE().toString().replace("[", "").replace("]", "") + //"\tCompleteness: " + _completeness +
                 (_uCommand != null ? "\n" + _uCommand : "");
     }
 
     @Override
-    public ArrayList<Equation> getEquations() {
-        return _eqs;
+    public IProofState getProofState() {
+        return _ps;
     }
 
     @Override
-    public ArrayList<Equation> getCompletenessEquations() {
-        return _cEqs;
+    public ArrayList<ProofEquation> getEquations() {
+        return _ps.getE();
+    }
+
+    @Override
+    public ArrayList<ProofEquation> getCompletenessEquations() {
+        return _ps.getCompletenessE();
     }
 
     @Override
     public boolean getCompleteness() {
-        return _completeness;
+        return _ps.getCompleteness();
     }
 
     /**

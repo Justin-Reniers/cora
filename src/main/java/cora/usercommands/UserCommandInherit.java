@@ -1,6 +1,9 @@
 package cora.usercommands;
 
+import cora.exceptions.invalidruleapplications.InvalidConstraintRewritingException;
 import cora.interfaces.rewriting.Rule;
+import cora.interfaces.rewriting.TRS;
+import cora.interfaces.smt.IProofState;
 import cora.interfaces.terms.*;
 import cora.interfaces.types.Type;
 import cora.rewriting.FirstOrderRule;
@@ -21,29 +24,29 @@ import static cora.types.Sort.intSort;
  * This inherit provides default functionality for such rewriting rules.
  */
 abstract class UserCommandInherit {
-    protected Substitution rewrittenConstraintValid(EquivalenceProof proof, int ruleIndex, Position pos,
-                                                    Substitution gamma) {
+    protected Substitution rewrittenConstraintValid(IProofState ps, TRS lctrs, int ruleIndex, Position pos,
+                                                    Substitution gamma) throws InvalidConstraintRewritingException {
         if (gamma == null) gamma = new Subst();
-        Term s = proof.getLeft();
-        Term c = proof.getConstraint();
-        Term ruleC = proof.getLcTrs().queryRule(ruleIndex).queryConstraint();
-        Term ruleL = proof.getLcTrs().queryRule(ruleIndex).queryLeftSide().substitute(gamma);
+        FirstOrderRule r = (FirstOrderRule) lctrs.queryRule(ruleIndex);
+        Term s = ps.getS();
+        Term c = ps.getC();
+        Term ruleC = r.queryConstraint();
+        Term ruleL = r.queryLeftSide().substitute(gamma);
         Term sAtPos = s.querySubterm(pos);
         Substitution y = ruleL.match(sAtPos);
-        if (y == null) return null;
+        if (y == null) throw new InvalidConstraintRewritingException("Cannot rewrite constraint, y is null");
         gamma.compose(y);
-        Z3TermHandler z3 = new Z3TermHandler(proof.getLcTrs());
-        if (!checkLVARcondition(proof, ruleIndex, gamma, c)) return null;
+        Z3TermHandler z3 = new Z3TermHandler(lctrs);
+        if (!checkLVARcondition(r, gamma, c)) return null;
         ruleC = ruleC.substitute(gamma);
         if (pos != null && ruleIndex >= 0) {
-            Term valid = new FunctionalTerm(proof.getLcTrs().lookupSymbol("-->"), c, ruleC);
+            Term valid = new FunctionalTerm(lctrs.lookupSymbol("-->"), c, ruleC);
             if (z3.validity(valid)) return gamma;
         }
-        return null;
+        throw new InvalidConstraintRewritingException("Cannot rewrite constraint, y is null");
     }
 
-    protected boolean checkLVARcondition(EquivalenceProof eq, int ruleIndex, Substitution y, Term c) {
-        FirstOrderRule r = (FirstOrderRule) eq.getLcTrs().queryRule(ruleIndex);
+    protected boolean checkLVARcondition(FirstOrderRule r, Substitution y, Term c) {
         TreeSet<Variable> LVar = LVar(r.queryLeftSide(), r.queryRightSide(),
                 r.queryConstraint());
         for (Variable v : LVar) {
@@ -52,32 +55,29 @@ abstract class UserCommandInherit {
             for (Variable v2 : y.domain()) {
                 Term yx = y.getReplacement(v);
                 if (yx instanceof Var && cvars.contains(yx) || yx instanceof Constant) inSubst = true;
-                /*else {
-                    for (Position p : c.queryAllPositions()) {
-                        if (yx.equals(c.querySubterm(p))) inSubst = true;
-                    }
-                }*/
-                //if (y.getReplacement(v2).equals(v) || v.equals(v2)) inSubst = true;
             }
             if (!inSubst) return false;
         }
         return true;
     }
 
-    protected void rewriteConstraintCalc(EquivalenceProof proof) {
-        proof.setLeft(applyConstraintSubstitutions(proof, proof.getConstraint()));
-        Term newConstraint = freshSubstitutionsConstraint(proof);
-        while(!proof.getConstraint().equals(newConstraint)) {
-            proof.setConstraint(newConstraint);
-            proof.setLeft(applyConstraintSubstitutions(proof, proof.getConstraint()));
-            newConstraint = freshSubstitutionsConstraint(proof);
+    protected IProofState rewriteConstraintCalc(IProofState ps, EquivalenceProof proof) {
+        TRS lctrs = proof.getLcTrs();
+        ps.setS(applyConstraintSubstitutions(ps, ps.getC()));
+        ps.setS(applyConstraintSubstitutions(ps, ps.getC()));
+        Term newConstraint = freshSubstitutionsConstraint(ps, lctrs, proof);
+        while(!ps.getC().equals(newConstraint)) {
+            ps.setC(newConstraint);
+            ps.setS(applyConstraintSubstitutions(ps, ps.getC()));
+            newConstraint = freshSubstitutionsConstraint(ps, lctrs, proof);
         }
-        proof.setLeft(simplifyValuesOnlyEquations(proof, proof.getLeft()));
-            proof.setConstraint(simplifyValuesOnlyEquations(proof, proof.getConstraint()));
+        ps.setS(simplifyValuesOnlyEquations(lctrs, ps.getS()));
+        ps.setC(simplifyValuesOnlyEquations(lctrs, ps.getC()));
+        return ps;
     }
 
-    protected Term simplifyValuesOnlyEquations(EquivalenceProof eq, Term t) {
-        Z3TermHandler z3 = new Z3TermHandler(eq.getLcTrs());
+    protected Term simplifyValuesOnlyEquations(TRS lctrs, Term t) {
+        Z3TermHandler z3 = new Z3TermHandler(lctrs);
         boolean changed = true;
         while (changed) {
             changed = false;
@@ -94,7 +94,7 @@ abstract class UserCommandInherit {
                         }
                     }
                     if (allConst && ti.numberImmediateSubterms() > 1 &&
-                            eq.getLcTrs().queryTheorySymbols().contains(ti.queryRoot())) {
+                            lctrs.queryTheorySymbols().contains(ti.queryRoot())) {
                         t = t.replaceSubterm(p, z3.simplify(ti));
                         changed = true;
                     }
@@ -104,11 +104,12 @@ abstract class UserCommandInherit {
         return t;
     }
 
-    protected void rewriteConstraintConstrainedRule(EquivalenceProof proof, Position pos, int ruleIndex,
+    protected IProofState rewriteConstraintConstrainedRule(IProofState ps, EquivalenceProof proof, Position pos, int ruleIndex,
                                                     Substitution y) {
-        Term applied = proof.getLcTrs().queryRule(ruleIndex).apply(proof.getLeft().querySubterm(pos)).substitute(y);
-        proof.setLeft(proof.getLeft().replaceSubterm(pos, applied));
-        proof.setRight(proof.getRight());
+        Term applied = proof.getLcTrs().queryRule(ruleIndex).apply(ps.getS().querySubterm(pos)).substitute(y);
+        ps.setS(ps.getS().replaceSubterm(pos, applied));
+        ps.setT(ps.getT());
+        return ps;
     }
 
     protected TreeSet<Variable> LVar(Term l, Term r, Term c) {
@@ -120,9 +121,9 @@ abstract class UserCommandInherit {
         return LVar;
     }
 
-    protected Term freshSubstitutionsConstraint(EquivalenceProof proof) {
-        Term temp = proof.getLeft();
-        Term constraint = proof.getConstraint();
+    protected Term freshSubstitutionsConstraint(IProofState ps, TRS lctrs, EquivalenceProof proof) {
+        Term temp = ps.getS();
+        Term constraint = ps.getC();
         TreeSet<Variable> cVars = constraint.vars().getVars();
         ArrayList<Term> t_vars = new ArrayList<>();
         varsInFunctionalTerms(proof, temp, null, t_vars);
@@ -134,14 +135,14 @@ abstract class UserCommandInherit {
                         && !cVars.contains(t.queryImmediateSubterm(i)))) LVarCondition = false;
             }
             if (t.queryType().equals(intSort) && LVarCondition) {
-                eq = new FunctionalTerm(proof.getLcTrs().lookupSymbol("==i"),
+                eq = new FunctionalTerm(lctrs.lookupSymbol("==i"),
                         getFreshVar(proof, t.queryType()), t);
             } else if (t.queryType().equals(boolSort) && LVarCondition) {
-                eq = new FunctionalTerm(proof.getLcTrs().lookupSymbol("==b"),
+                eq = new FunctionalTerm(lctrs.lookupSymbol("==b"),
                         getFreshVar(proof, t.queryType()), t);
             }
             if (LVarCondition) {
-                constraint = new FunctionalTerm(proof.getLcTrs().lookupSymbol("/\\"),
+                constraint = new FunctionalTerm(lctrs.lookupSymbol("/\\"),
                         constraint, eq);
             }
         }
@@ -161,10 +162,10 @@ abstract class UserCommandInherit {
         }
     }
 
-    protected Term applyConstraintSubstitutions(EquivalenceProof proof, Term constraint) {
+    protected Term applyConstraintSubstitutions(IProofState p, Term c) {
         ArrayList<Term> c_eqs = new ArrayList<>();
-        getEqualities(constraint, c_eqs);
-        Term temp = proof.getLeft();
+        getEqualities(c, c_eqs);
+        Term temp = p.getS();
         if (!c_eqs.isEmpty()) {
             for (Term eq : c_eqs) {
                 Term eql = eq.queryImmediateSubterm(1);

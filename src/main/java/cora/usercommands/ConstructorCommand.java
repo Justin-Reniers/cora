@@ -1,5 +1,9 @@
 package cora.usercommands;
 
+import cora.exceptions.invalidruleapplications.InvalidConstructorApplicationException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
+import cora.interfaces.smt.IProofState;
+import cora.interfaces.smt.ProofEquation;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Position;
 import cora.interfaces.terms.Term;
@@ -24,21 +28,22 @@ public class ConstructorCommand extends UserCommandInherit implements UserComman
     }
 
     @Override
-    public boolean applicable() {
-        return (_proof.getLeft().queryRoot().equals(_proof.getRight().queryRoot()) &&
-                isConstructorTerm(_proof.getLeft(), _proof));
-    }
-
-    @Override
-    public void apply() {
-        ArrayList<Equation> eqs = new ArrayList<>();
-        for (int i = 1; i <= _proof.getLeft().numberImmediateSubterms(); i++) {
-            Term li = _proof.getLeft().queryImmediateSubterm(i);
-            Term ri = _proof.getRight().queryImmediateSubterm(i);
-            eqs.add(new Equation(li, ri, _proof.getConstraint()));
+    public IProofState apply(IProofState ps) throws InvalidRuleApplicationException {
+        if (!(_proof.getLeft().queryRoot().equals(_proof.getRight().queryRoot()))) {
+            throw new InvalidConstructorApplicationException(ps.getS() + " and " + ps.getT() + " do not share root");
+        } else if (!isConstructorTerm(ps.getS(), _proof)) {
+            throw new InvalidConstructorApplicationException(ps.getS() + " is not a constructor term");
         }
-        _proof.removeCurrentEquation();
-        _proof.addEquations(eqs);
+
+        ArrayList<ProofEquation> eqs = new ArrayList<>();
+        for (int i = 1; i <= ps.getS().numberImmediateSubterms(); i++) {
+            Term li = ps.getS().queryImmediateSubterm(i);
+            Term ri = ps.getT().queryImmediateSubterm(i);
+            eqs.add(new Equation(li, ri, ps.getC()));
+        }
+        ps.removeCurrentEquation();
+        ps.addEquations(eqs);
+        return ps;
     }
 
     @Override

@@ -1,6 +1,7 @@
 package smt;
 
 import cora.exceptions.ParserException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
@@ -47,7 +48,7 @@ public class UndoCommandSMTTest {
     }
 
     @Test
-    public void testSingleUndo() throws ParserException {
+    public void testSingleUndo() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(1 + 1)";
         String t2 = "f(z)";
         String c1 = "[z ==i x + 0]";
@@ -63,7 +64,7 @@ public class UndoCommandSMTTest {
     }
 
     @Test
-    public void testMultipleUndo() throws ParserException {
+    public void testMultipleUndo() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(z)";
         String t2 = "f(x + 0)";
         String c1 = "[z ==i x + 0]";

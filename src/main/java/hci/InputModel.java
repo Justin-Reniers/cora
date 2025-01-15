@@ -1,8 +1,10 @@
 package hci;
 
 import cora.exceptions.*;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.smt.Proof;
+import cora.interfaces.smt.ProofEquation;
 import cora.interfaces.terms.Position;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
@@ -14,7 +16,6 @@ import hci.interfaces.UserInputModel;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.TreeSet;
 
 public class InputModel implements UserInputModel {
@@ -120,9 +121,8 @@ public class InputModel implements UserInputModel {
         vars.addAll(r.vars().getVars());
         Term c = LcTrsInputReader.readLogicalTermFromStringWithEnv(cs, _lcTrs, vars);
         vars.addAll(c.vars().getVars());
-        Equation eq = new Equation(l, r, c);
+        ProofEquation eq = new Equation(l, r, c);
         _eqp.addEquation(eq);
-        _eqp.setCurrentEquation();
     }
 
     @Override
@@ -233,7 +233,7 @@ public class InputModel implements UserInputModel {
     @Override
     public String getEquations() {
         StringBuilder s = new StringBuilder();
-        for (Equation eq : _eqp.getEquations()) {
+        for (ProofEquation eq : _eqp.getEquations()) {
             s.append(" ").append(_eqp.getEquations().indexOf(eq)+1).append("\t: ")
                     .append(eq.toHTMLString()).append("<br>");
         }
@@ -243,7 +243,7 @@ public class InputModel implements UserInputModel {
     @Override
     public String getEquationsLeft() {
         StringBuilder s = new StringBuilder();
-        for (Equation eq : _eqp.getEquations()) {
+        for (ProofEquation eq : _eqp.getEquations()) {
             s.append(" ").append(_eqp.getEquations().indexOf(eq)+1).append("\t: ")
                     .append(eq.getLeft().toHTMLString()).append("<br>");
         }
@@ -253,7 +253,7 @@ public class InputModel implements UserInputModel {
     @Override
     public String getEquationsRight() {
         StringBuilder s = new StringBuilder();
-        for (Equation eq : _eqp.getEquations()) {
+        for (ProofEquation eq : _eqp.getEquations()) {
             s.append(" ").append(eq.getRight().toHTMLString()).append("<br>");
         }
         return s.toString();
@@ -262,7 +262,7 @@ public class InputModel implements UserInputModel {
     @Override
     public String getEquationsConstraint() {
         StringBuilder s = new StringBuilder();
-        for (Equation eq : _eqp.getEquations()) {
+        for (ProofEquation eq : _eqp.getEquations()) {
             s.append(" ").append(eq.getConstraint().toHTMLString()).append("<br>");
         }
         return s.toString();

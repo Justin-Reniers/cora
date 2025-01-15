@@ -1,6 +1,6 @@
 package smt;
 
-import cora.exceptions.InvalidRuleApplicationException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
 import cora.exceptions.ParserException;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
@@ -43,7 +43,7 @@ public class EQDeleteCommandSMTTest {
     }
 
     @Test
-    public void eqDeleteExampleTest() throws ParserException {
+    public void eqDeleteExampleTest() throws ParserException, InvalidRuleApplicationException {
         String t1 = "return(n*x)";
         String t2 = "return(x_1)";
         String c1 = "[n ==i y /\\ m ==i n - 1 /\\ y_1 ==i y + 1 /\\ x_1 ==i x * y]";
@@ -91,7 +91,7 @@ public class EQDeleteCommandSMTTest {
     }
 
     @Test (expected = InvalidRuleApplicationException.class)
-    public void toolCheck1() throws ParserException {
+    public void toolCheck1() throws ParserException, InvalidRuleApplicationException {
         String t1 = "fo(a)";
         String t2 = "fo(b)";
         String c1 = "[TRUE]";
@@ -107,7 +107,7 @@ public class EQDeleteCommandSMTTest {
     }
 
     @Test (expected = InvalidRuleApplicationException.class)
-    public void toolCheck2() throws ParserException {
+    public void toolCheck2() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(x)";
         String t2 = "f(y)";
         String c1 = "[x > 0]";
@@ -123,7 +123,7 @@ public class EQDeleteCommandSMTTest {
     }
 
     @Test
-    public void toolCheck3() throws ParserException {
+    public void toolCheck3() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(x+1)";
         String t2 = "f(1+x)";
         String c1 = "[x > 0]";
@@ -140,7 +140,7 @@ public class EQDeleteCommandSMTTest {
     }
 
     @Test (expected = InvalidRuleApplicationException.class)
-    public void toolCheck4() throws ParserException {
+    public void toolCheck4() throws ParserException, InvalidRuleApplicationException {
         String t1 = "fio(x, g(z))";
         String t2 = "fio(y, h(x))";
         String c1 = "[x > 0]";

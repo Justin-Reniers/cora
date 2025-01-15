@@ -1,11 +1,13 @@
 package cora.smt;
 
 import cora.exceptions.*;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
 import cora.interfaces.rewriting.Rule;
 import cora.interfaces.rewriting.TRS;
+import cora.interfaces.smt.IProofState;
 import cora.interfaces.smt.Proof;
+import cora.interfaces.smt.ProofEquation;
 import cora.interfaces.smt.UserCommand;
-import cora.interfaces.terms.FunctionSymbol;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
 import cora.interfaces.types.Type;
@@ -17,6 +19,7 @@ import cora.usercommands.UndoCommand;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.TreeSet;
 
 /**
@@ -26,9 +29,8 @@ import java.util.TreeSet;
  */
 public class EquivalenceProof implements Proof {
     private TRS _lcTrs;
+    private IProofState _ps;
     private boolean _completeness;
-    private ArrayList<Equation> _equations, _completenessEquations;
-    private Equation _cur_eq;
     private ArrayList<ProofHistory> _history;
     private TreeSet<Variable> _env;
     private int _varcounter, _proven;
@@ -38,16 +40,17 @@ public class EquivalenceProof implements Proof {
      * This constructor is used to create an equivalence proof. Keeps a list _history
      * of ProofHistory that can be used to access previous proof states.
      */
-    public EquivalenceProof(TRS lcTrs, Term left, Term right, Term constraint) {
+    /**public EquivalenceProof(TRS lcTrs, Term left, Term right, Term constraint) {
         _lcTrs = lcTrs;
         _completeness = true;
-        _equations = new ArrayList<Equation>();
-        _completenessEquations = new ArrayList<Equation>();
+        _equations = new ArrayList<ProofEquation>();
+        _completenessEquations = new ArrayList<ProofEquation>();
         _history = new ArrayList<ProofHistory>();
         if (!(left == null || right == null || constraint == null)) {
             Equation equation = new Equation(left, right, constraint);
             _cur_eq = equation;
             _equations.add(equation);
+            _ps = new ProofState(_equations, _completenessEquations, new ArrayList<>(), _completeness);
         }
         _varcounter = 0;
         _bottom = false;
@@ -58,17 +61,36 @@ public class EquivalenceProof implements Proof {
             _env.addAll(_cur_eq.getRight().vars().getVars());
             _env.addAll(_cur_eq.getConstraint().vars().getVars());
         } catch (NullPointerException ignored) {}
-    }
+    }**/
 
     public EquivalenceProof() {
         _lcTrs = null;
         _completeness = false;
-        _equations = new ArrayList<Equation>();
-        _completenessEquations = new ArrayList<Equation>();
-        _cur_eq = null;
+        ArrayList<ProofEquation> equations = new ArrayList<ProofEquation>();
+        ArrayList<ProofEquation> completenessEquations = new ArrayList<ProofEquation>();
+        _ps = new ProofState(equations, completenessEquations, new ArrayList<FirstOrderRule>(), _completeness);
         _history = new ArrayList<ProofHistory>();
         _varcounter = 0;
         _bottom = true;
+        _proven = 0;
+        _env = new TreeSet<Variable>();
+    }
+
+    public EquivalenceProof(TRS lctrs, Term s, Term t, Term c) {
+        _lcTrs = lctrs;
+        _completeness = true;
+        ArrayList<ProofEquation> equations = new ArrayList<ProofEquation>();
+        ArrayList<ProofEquation> completenessEquations = new ArrayList<ProofEquation>();
+        _history = new ArrayList<ProofHistory>();
+        if (!(s == null || t == null || c == null)) {
+            Equation equation = new Equation(s, t, c);
+            equations.add(equation);
+            _ps = new ProofState(equations, completenessEquations, new ArrayList<>(), _completeness);
+        } else {
+            _ps = new ProofState(new ArrayList<>(), _completeness);
+        }
+        _varcounter = 0;
+        _bottom = false;
         _proven = 0;
         _env = new TreeSet<Variable>();
     }
@@ -82,9 +104,7 @@ public class EquivalenceProof implements Proof {
                 _env.addAll(r.queryRightSide().vars().getVars());
                 _env.addAll(r.queryConstraint().vars().getVars());
             }
-            _env.addAll(_cur_eq.getLeft().vars().getVars());
-            _env.addAll(_cur_eq.getRight().vars().getVars());
-            _env.addAll(_cur_eq.getConstraint().vars().getVars());
+            _env.addAll(_ps.getCurrentEqVariables());
         } catch (NullPointerException ignored) {
 
         }
@@ -97,15 +117,7 @@ public class EquivalenceProof implements Proof {
 
     @Override
     public TreeSet<Variable> getCurrentEqVariables() {
-        TreeSet<Variable> vars = new TreeSet<>();
-        try {
-            vars.addAll(_cur_eq.getLeft().vars().getVars());
-            vars.addAll(_cur_eq.getRight().vars().getVars());
-            vars.addAll(_cur_eq.getConstraint().vars().getVars());
-        } catch (NullPointerException ignored) {
-
-        }
-        return vars;
+        return _ps.getCurrentEqVariables();
     }
 
     @Override
@@ -129,21 +141,20 @@ public class EquivalenceProof implements Proof {
      * Catches a Parser Exception and returns false if the user command is invalid.
      */
     @Override
-    public void applyNewUserCommand(String uCommand) {
+    public void applyNewUserCommand(String uCommand) throws InvalidRuleApplicationException {
         if (_bottom) throw new BottomException(uCommand);
         try {
             UserCommand uc = LcTrsInputReader.readUserInputFromString(uCommand, this);
             uc.setProof(this);
-            if (uc.applicable()) {
-                if (!(uc instanceof UndoCommand)) _history.add(new ProofHistory(_equations, uc, _completeness,
-                        _completenessEquations, _bottom, _lcTrs));
-                uc.apply();
+            try {
+                if (!(uc instanceof UndoCommand)) _history.add(new ProofHistory(_ps, uc, _bottom, _lcTrs));
+                _ps = uc.apply(_ps);
                 updateVariables();
-                if (_completeness && _equations.isEmpty() && _bottom) _proven = 2;
-                else if (_equations.isEmpty()) _proven = 1;
+                if (_completeness && _ps.getE().isEmpty() && _bottom) _proven = 2;
+                else if (_ps.getE().isEmpty()) _proven = 1;
                 else _proven = 0;
-            } else {
-                throw new InvalidRuleApplicationException(uCommand);
+            } catch (InvalidRuleApplicationException e) {
+                throw e;
             };
         } catch (ParserException e) {
             throw new InvalidRuleParseException(uCommand);
@@ -155,64 +166,16 @@ public class EquivalenceProof implements Proof {
     }
 
     @Override
-    public void removeCurrentEquation() {
-        _equations.remove(_cur_eq);
-        try {
-            _cur_eq = _equations.get(0);
-        } catch (IndexOutOfBoundsException e) {
-            _cur_eq = null;
-        }
-    }
-
-    @Override
-    public void clearEquations() {
-        _equations = new ArrayList<Equation>();
-        _cur_eq = null;
-    }
-
-    @Override
-    public void addEquations(ArrayList<Equation> eqs) {
-        _equations.addAll(eqs);
-        if (_cur_eq == null && !_equations.isEmpty()) _cur_eq = _equations.get(0);
-        if (_cur_eq == null) _cur_eq = _equations.get(0);
-    }
-
-    @Override
-    public void addEquation(Equation eq) { _equations.add(eq); }
+    public void addEquation(ProofEquation eq) { _ps.addEquations(new ArrayList<>(Collections.singleton(eq))); }
 
     @Override
     public boolean getCompleteness() {
-        return _completeness;
+        return false;
     }
 
     @Override
     public void setCompleteness(boolean c) {
-        _completeness = c;
-    }
 
-    @Override
-    public ArrayList<Equation> getCompletenessEquationSet() {
-        return _completenessEquations;
-    }
-
-    @Override
-    public void setCompletenessEquationSet() {
-        if (_completenessEquations.isEmpty()) _completenessEquations.addAll(_equations);
-    }
-
-    @Override
-    public void addCompletenessEquations(ArrayList<Equation> cEqs) {
-        _completenessEquations.addAll(cEqs);
-    }
-
-    @Override
-    public void addCompletenessEquation(Equation eq) {
-        _completenessEquations.add(eq);
-    }
-
-    @Override
-    public void emptyCompletenessEquationSet() {
-        _completenessEquations = new ArrayList<Equation>();
     }
 
     @Override
@@ -241,12 +204,6 @@ public class EquivalenceProof implements Proof {
     }
 
     @Override
-    public void recordHistory() {
-        _history.add(new ProofHistory(_equations, null, _completeness, _completenessEquations, _bottom,
-                _lcTrs));
-    }
-
-    @Override
     public boolean getBottom() {
         return _bottom;
     }
@@ -271,80 +228,49 @@ public class EquivalenceProof implements Proof {
         return _history.get(_history.size() - 1).getUserCommand();
     }
 
-    /**
-     * Returns the LCTRS with which the equivalence proof is done.
-     */
     @Override
     public TRS getLcTrs() {
         return _lcTrs;
     }
 
-    /**
-     * Returns the left hand side of the equivalence proof.
-     */
     @Override
     public Term getLeft() {
-        return _cur_eq.getLeft();
+        return _ps.getS();
     }
 
-    /**
-     * Sets the left hand side of the equivalence proof.
-     */
     @Override
-    public void setLeft(Term t) {
-        _cur_eq.setLeft(t);
+    public void setLeft(Term s) {
+        _ps.setS(s);
     }
 
-    /**
-     * Returns the right hand side of the equivalence proof.
-     */
     @Override
     public Term getRight() {
-        return _cur_eq.getRight();
+        return _ps.getT();
     }
 
-    /**
-     * Sets the right hand side of the equivalence proof.
-     */
     @Override
-    public void setRight(Term t) { _cur_eq.setRight(t); }
+    public void setRight(Term t) {
+        _ps.setT(t);
+    }
 
-    /**
-     * Returns the constraint side of the equivalence proof.
-     */
     @Override
     public Term getConstraint() {
-        return _cur_eq.getConstraint();
-    }
-
-    /**
-     * Sets the constraint side of the equivalence proof.
-     */
-    @Override
-    public void setConstraint(Term t) {
-        _cur_eq.setConstraint(t);
+        return _ps.getC();
     }
 
     @Override
-    public Equation getCurrentEquation() {
-        return _cur_eq;
+    public void setConstraint(Term c) {
+        _ps.setC(c);
     }
 
     @Override
-    public void setCurrentEquation() {
-        _cur_eq = _equations.get(0);
-        updateVariables();
+    public ProofEquation getCurrentEquation() {
+        return _ps.getCurrentEquation();
     }
 
     @Override
-    public void setCurrentEquation(Equation eq) {
-        _cur_eq = eq;
-        _equations.set(0, eq);
-    }
-
-    @Override
-    public ArrayList<Equation> getEquations() {
-        return _equations;
+    public ArrayList<ProofEquation> getEquations() {
+        return _ps.getE();
     }
 
     @Override
@@ -362,16 +288,6 @@ public class EquivalenceProof implements Proof {
         //return _lcTrs.toString() + "\n" + _left.toString() + "\t" + _right.toString() +
         //        "\t[" + _constraint.toString() + "]";
         return "";
-    }
-
-    /**
-     * This function gives a string representation of the current state of the
-     * equivalence proof.
-     */
-    @Override
-    public String currentState() {
-        return _cur_eq.getLeft().toString() + "\t" + _cur_eq.getRight().toString() +
-                "\t[" + _cur_eq.getConstraint().toString() + "]";
     }
 
     @Override

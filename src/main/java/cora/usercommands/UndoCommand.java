@@ -1,5 +1,9 @@
 package cora.usercommands;
 
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
+import cora.exceptions.invalidruleapplications.InvalidUndoApplicationException;
+import cora.interfaces.smt.IProofState;
+import cora.interfaces.smt.ProofEquation;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Position;
 import cora.interfaces.types.Type;
@@ -21,22 +25,15 @@ public class UndoCommand extends UserCommandInherit implements UserCommand {
     }
 
     @Override
-    public boolean applicable() {
-        return _proof.getLastCommand() != null;
-    }
-
-    @Override
-    public void apply() {
+    public IProofState apply(IProofState ps) throws InvalidRuleApplicationException {
+        if (_proof.getLastCommand() == null) throw new InvalidUndoApplicationException("No previous state to undo to");
         ProofHistory ph = _proof.getPreviousState();
-        _proof.clearEquations();
-        for (Equation eq : ph.getEquations()) _proof.addEquation(new Equation(eq));
-        if (_proof.getEquations().size() > 0) _proof.setCurrentEquation();
-        _proof.emptyCompletenessEquationSet();
-        for (Equation ceq : ph.getCompletenessEquations()) _proof.addCompletenessEquation(new Equation(ceq));
-        _proof.setCompleteness(ph.getCompleteness());
+
+        ps = ph.getProofState();
         _proof.setBottom(ph.getBottom());
         _proof.setLcTrs(ph.getLcTrs());
         _proof.deleteLastState();
+        return ps;
     }
 
     @Override

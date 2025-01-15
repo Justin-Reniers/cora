@@ -1,5 +1,9 @@
 package cora.usercommands;
 
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
+import cora.exceptions.invalidruleapplications.InvalidSwapApplicationException;
+import cora.interfaces.smt.IProofState;
+import cora.interfaces.smt.ProofEquation;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Position;
 import cora.interfaces.types.Type;
@@ -17,17 +21,20 @@ public class SwapCommand extends UserCommandInherit implements UserCommand {
 
     private EquivalenceProof _proof;
     private Integer _eq1, _eq2;
+    private boolean _stSwap;
 
     public SwapCommand() {
         super();
         _eq1 = null;
         _eq2 = null;
+        _stSwap = true;
     };
 
     public SwapCommand(int eq1, int eq2) {
         super();
         _eq1 = eq1 - 1;
         _eq2 = eq2 - 1;
+        _stSwap = false;
     }
 
     /**
@@ -39,28 +46,24 @@ public class SwapCommand extends UserCommandInherit implements UserCommand {
     }
 
     /**
-     * Swapping places is always a valid user command.
-     */
-    @Override
-    public boolean applicable() {
-        int numberEquations =  _proof.getEquations().size();
-        return (_eq1 == null && _eq2 == null) || (_eq1 >= 0 && _eq2 >= 0 &&
-                _eq1 < numberEquations && _eq2 < numberEquations);
-    }
-
-    /**
      * Swaps the places of the left hand side term and right side term
      * of the equivalence proof.
+     *
+     * @return
      */
     @Override
-    public void apply() {
-        if (_eq1 == null && _eq2 == null) {
-            Equation eq = new Equation(_proof.getRight(), _proof.getLeft(), _proof.getConstraint());
-            _proof.setCurrentEquation(eq);
-        } else if (_eq1 < _proof.getEquations().size() && _eq2 < _proof.getEquations().size()) {
-            Collections.swap(_proof.getEquations(), _eq1, _eq2);
-            _proof.setCurrentEquation();
+    public IProofState apply(IProofState ps) throws InvalidRuleApplicationException {
+        if (_stSwap && ps.getCurrentEquation() == null) {
+            throw new InvalidSwapApplicationException("No equation to swap s and t");
+        } else if (!_stSwap && (_eq1 < 0 || _eq2 < 0 || _eq1 >= ps.getE().size() || _eq2 >= ps.getE().size())) {
+            throw new InvalidSwapApplicationException("Equation indices out of bounds");
+        } else if (_eq1 == null && _eq2 == null) {
+            ProofEquation eq = new Equation(ps.getT(), ps.getS(), ps.getC());
+            ps.getE().set(0, eq);
+        } else if (_eq1 < ps.getE().size() && _eq2 < ps.getE().size()) {
+            Collections.swap(ps.getE(), _eq1, _eq2);
         }
+        return ps;
     }
 
     /**

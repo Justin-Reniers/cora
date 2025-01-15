@@ -1,6 +1,10 @@
 package cora.usercommands;
 
+import cora.exceptions.invalidruleapplications.InvalidConstraintRewritingException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
+import cora.exceptions.invalidruleapplications.InvalidSimplifyApplicationException;
 import cora.interfaces.rewriting.TRS;
+import cora.interfaces.smt.IProofState;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.*;
 import cora.interfaces.types.Type;
@@ -62,34 +66,6 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
     }
 
     /**
-     * Checks whether simplify command is applicable. If no arguments were given, simplify is always
-     * a valid user command. If position is null but arguments were given, simplify cannot be applied.
-     * If invalid rule index is given returns false. Returns true if rule constraint is met, returns
-     * false otherwise.
-     */
-    @Override
-    public boolean applicable() {
-        TRS lcTrs = _proof.getLcTrs();
-        Term t = _proof.getLeft();
-        if (_noArgs) return true;
-        Term subTerm;
-        if (_pos == null) return false;
-        subTerm = t.querySubterm(_pos);
-        if (_gamma != null && _ruleIndex >= 0) {
-            TreeSet<Variable> lvar = LVar(lcTrs.queryRule(_ruleIndex).queryLeftSide(),
-                    lcTrs.queryRule(_ruleIndex).queryRightSide(), lcTrs.queryRule(_ruleIndex).queryConstraint());
-            for (Variable v : _gamma.domain()) {
-                if (!lvar.contains(v)) return false;
-            }
-        }
-        if (!lcTrs.queryRule(_ruleIndex).applicable(subTerm)) {
-            return false;
-        }
-        _gamma = rewrittenConstraintValid(_proof, _ruleIndex, _pos, _gamma);
-        return _gamma != null;
-    }
-
-    /**
      * Applies the simplify command. If no arguments are given, simplify is applied to all terms and
      * the constraint, and applies calc-rewriting rules to all terms and the constraint. Also
      * substitutes assignments in equivalence proof terms with fresh variables if variable assignment
@@ -98,17 +74,49 @@ public class SimplifyCommand extends UserCommandInherit implements UserCommand {
      * If unconstrained rule is chosen with rule index, rule is applied to term at position of simplify
      * command. If constrained rule is chosen with rule index, rule is applied in the same way, as
      * applicability should have been checked already.
+     *
+     * @return
      */
     @Override
-    public void apply() {
-        //Case 3: Calculation rules
+    public IProofState apply(IProofState ps) throws InvalidRuleApplicationException {
+        //Case: Calculation rules
         if (_noArgs) {
-            rewriteConstraintCalc(_proof);
+            ps = rewriteConstraintCalc(ps, _proof);
+            return ps;
         }
+        else if (_pos == null) {
+            throw new InvalidSimplifyApplicationException("No position given for rewrite rule application");
+        }
+
+        TRS lcTrs = _proof.getLcTrs();
+        Term s = ps.getS();
+        Term sp = s.querySubterm(_pos);
+        if (_gamma != null && _ruleIndex >= 0) {
+            TreeSet<Variable> lvar = LVar(lcTrs.queryRule(_ruleIndex).queryLeftSide(),
+                    lcTrs.queryRule(_ruleIndex).queryRightSide(), lcTrs.queryRule(_ruleIndex).queryConstraint());
+            for (Variable v : _gamma.domain()) {
+                if (!lvar.contains(v)) {
+                    throw new InvalidSimplifyApplicationException("Variable " + v + " not in LVar(" +
+                            lcTrs.queryRule(_ruleIndex) + ")");
+                }
+            }
+        }
+        if (!lcTrs.queryRule(_ruleIndex).applicable(sp)) {
+            throw new InvalidSimplifyApplicationException("Rule " + lcTrs.queryRule(_ruleIndex) + " not applicable to "
+                    + sp);
+        }
+        try {
+            _gamma = rewrittenConstraintValid(ps, lcTrs, _ruleIndex, _pos, _gamma);
+            if (_gamma == null) throw new InvalidSimplifyApplicationException("No gamma found");
+        } catch (InvalidConstraintRewritingException e) {
+
+        }
+
         //Case 2: Constraint met
-        else if (_pos != null && _ruleIndex >= 0) {
-            rewriteConstraintConstrainedRule(_proof, _pos, _ruleIndex, _gamma);
+       if (_pos != null && _ruleIndex >= 0) {
+            ps = rewriteConstraintConstrainedRule(ps, _proof, _pos, _ruleIndex, _gamma);
         }
+        return ps;
     }
 
     @Override

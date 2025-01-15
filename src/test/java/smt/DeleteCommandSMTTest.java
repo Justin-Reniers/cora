@@ -1,12 +1,10 @@
 package smt;
 
-import cora.exceptions.InvalidRuleApplicationException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
 import cora.exceptions.ParserException;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
-import cora.loggers.ConsoleLogger;
-import cora.loggers.Logger;
 import cora.parsers.LcTrsInputReader;
 import cora.smt.EquivalenceProof;
 import org.junit.Test;
@@ -45,7 +43,7 @@ public class DeleteCommandSMTTest {
     }
 
     @Test
-    public void testDeleteEqualTermsConstants() throws ParserException {
+    public void testDeleteEqualTermsConstants() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(0)";
         String t2 = "f(0)";
         String c1 = "[z ==i x + 0]";
@@ -61,7 +59,7 @@ public class DeleteCommandSMTTest {
     }
 
     @Test
-    public void testDeleteEqualTermsVariables() throws ParserException {
+    public void testDeleteEqualTermsVariables() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(x)";
         String t2 = "f(x)";
         String c1 = "[z ==i x + 0]";
@@ -77,7 +75,7 @@ public class DeleteCommandSMTTest {
     }
 
     @Test
-    public void testDeleteUnsatConstraint() throws ParserException {
+    public void testDeleteUnsatConstraint() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(0)";
         String t2 = "f(1)";
         String c1 = "[z ==i 0 /\\ z ==i 2]";
@@ -93,7 +91,7 @@ public class DeleteCommandSMTTest {
     }
 
     @Test (expected = InvalidRuleApplicationException.class)
-    public void testDeleteUnequalTerms() throws ParserException {
+    public void testDeleteUnequalTerms() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(0)";
         String t2 = "f(x)";
         String c1 = "[z ==i x + 0]";
@@ -109,7 +107,7 @@ public class DeleteCommandSMTTest {
     }
 
     @Test
-    public void testDeleteVarReplacement() throws ParserException {
+    public void testDeleteVarReplacement() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(z)";
         String t2 = "f(x + 0)";
         String c1 = "[z ==i x + 0]";
@@ -127,7 +125,7 @@ public class DeleteCommandSMTTest {
     }
 
     @Test (expected = InvalidRuleApplicationException.class)
-    public void testDeleteVarUnequalReplacement() throws ParserException {
+    public void testDeleteVarUnequalReplacement() throws ParserException, InvalidRuleApplicationException {
         String t1 = "f(x + 0)";
         String t2 = "f(y)";
         String c1 = "[z ==i x + 0]";

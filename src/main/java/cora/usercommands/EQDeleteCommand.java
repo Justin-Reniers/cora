@@ -1,12 +1,16 @@
 package cora.usercommands;
 
-import com.microsoft.z3.IntSort;
+import cora.exceptions.invalidruleapplications.InvalidEQDeleteApplicationException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
+import cora.interfaces.smt.IProofState;
+import cora.interfaces.smt.ProofEquation;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.FunctionSymbol;
 import cora.interfaces.terms.Position;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
 import cora.interfaces.types.Type;
+import cora.smt.Equation;
 import cora.smt.EquivalenceProof;
 import cora.terms.FunctionalTerm;
 import cora.terms.Var;
@@ -32,44 +36,42 @@ public class EQDeleteCommand extends UserCommandInherit implements UserCommand {
     }
 
     @Override
-    public boolean applicable() {
-        Term l = _proof.getLeft();
-        Term r = _proof.getRight();
-        if (!l.queryRoot().equals(r.queryRoot())) return false;
-        ArrayList<FunctionSymbol> tSymbs = (ArrayList<FunctionSymbol>) _proof.getLcTrs().queryTheorySymbols();
-        TreeSet<Variable> vars = _proof.getConstraint().vars().getVars();
-        _ineqs = new ArrayList<>();
-        for (int i = 1; i <= l.numberImmediateSubterms(); i++) {
-            Term li = l.queryImmediateSubterm(i);
-            Term ri = r.queryImmediateSubterm(i);
-            if (li.isVariable() && !vars.contains(li)) return false;
-            if (ri.isVariable() && !vars.contains(ri)) return false;
-            if ((li.isVariable() && vars.contains(li) && tSymbs.contains(ri.queryRoot())) ||
-                    (ri.isVariable() && vars.contains(ri) && tSymbs.contains(li.queryRoot()))
-                    && li.queryType().equals(ri.queryType())) {
-                if (li.queryType().equals(intSort)) {
-                    _ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==i"), li, ri));
-                }
-                else if (li.queryType().equals(boolSort)) {
-                    _ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("<-->"), li, ri));
-                }
-            }
-            else if (tSymbs.contains(li.queryRoot()) && tSymbs.contains(ri.queryRoot())) {
-                if (li.queryRoot().equals(ri.queryRoot())) {
-                    if (li.queryType().equals(intSort)) {
-                        _ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==i"), li, ri));
-                    }
-                    if (li.queryType().equals(boolSort)) {
-                        _ineqs.add(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("<-->"), li, ri));
-                    }
-                }
-            } else return false;
+    public IProofState apply(IProofState ps) throws InvalidRuleApplicationException {
+        Term s = ps.getS();
+        Term t = ps.getT();
+        Term c = ps.getC();
+        try {
+            findConstraints(s, t, c);
+        } catch (InvalidRuleApplicationException e) {
+            throw e;
         }
-        return true;
+        Term newC = constructConstraintAddition(_ineqs);
+        ps.setC(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("/\\"), c, newC));
+        return ps;
     }
 
-    @Override
-    public void apply() {
+    private void findConstraints(Term s, Term t, Term c) throws InvalidRuleApplicationException {
+        if (s.isVariable() && t.isVariable() && s.equals(t)) ;
+        else if (s.isTheoryTerm(c) && t.isTheoryTerm(c)) {
+            Term comp;
+            if (s.queryType().equals(intSort)) comp = new FunctionalTerm(_proof.getLcTrs().lookupSymbol("==i"), s, t);
+            else comp = new FunctionalTerm(_proof.getLcTrs().lookupSymbol("<-->"), s, t);
+            if (!_ineqs.contains(comp)) _ineqs.add(comp);
+        } else if ((s.isVariable() && !s.isTheoryTerm(c)) || (t.isVariable() && !t.isTheoryTerm(c))) {
+            throw new InvalidEQDeleteApplicationException(s +  " or " + t + " is not a theory term");
+        }  else if (s.isFunctionalTerm() && t.isFunctionalTerm() && !s.queryRoot().equals(t.queryRoot())) {
+            throw new InvalidEQDeleteApplicationException(s +  " and " + t + " do not share root symbol");
+        }else if (s.isFunctionalTerm() && t.isFunctionalTerm() && (!s.isTheoryTerm(c) || !t.isTheoryTerm(c))) {
+            for (int i = 1; i <= s.numberImmediateSubterms(); i++) {
+                findConstraints(s.queryImmediateSubterm(i), t.queryImmediateSubterm(i), c);
+            }
+        } else {
+            throw new InvalidEQDeleteApplicationException("Could not apply, other reason");
+        }
+    }
+
+    //@Override
+    public void apply2() {
         Term ct = constructConstraintAddition(_ineqs);
         _proof.setConstraint(new FunctionalTerm(_proof.getLcTrs().lookupSymbol("/\\"),
                 _proof.getConstraint(), ct));

@@ -1,20 +1,16 @@
 package smt;
 
 import cora.exceptions.InvalidPositionException;
-import cora.exceptions.InvalidRuleApplicationException;
 import cora.exceptions.ParserException;
-import cora.interfaces.rewriting.Rule;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
 import cora.interfaces.rewriting.TRS;
 import cora.interfaces.terms.Term;
 import cora.interfaces.terms.Variable;
 import cora.parsers.LcTrsInputReader;
 import cora.rewriting.FirstOrderRule;
-import cora.smt.Equation;
 import cora.smt.EquivalenceProof;
 import org.junit.Test;
 
-import javax.naming.OperationNotSupportedException;
-import java.util.ArrayList;
 import java.util.TreeSet;
 
 import static org.junit.Assert.*;
@@ -49,7 +45,7 @@ public class ExpandCommandSMTTest {
     }
 
     @Test
-    public void expandExampleTest() throws ParserException {
+    public void expandExampleTest() throws ParserException, InvalidRuleApplicationException {
         String t1 = "sumrec(n)";
         String t2 = "iter(n, 1, 2)";
         String c1 = "[n >= 1]";
@@ -67,7 +63,7 @@ public class ExpandCommandSMTTest {
     }
 
     @Test
-    public void expandExampleTest2() throws ParserException {
+    public void expandExampleTest2() throws ParserException, InvalidRuleApplicationException {
         String t1 = "iter(n, a, b)";
         String t2 = "add(n, iter(m, x, y))";
         String c1 = "[n>=y/\\m==i n+-1/\\b==iy+1/\\a==ix*y]";
@@ -85,7 +81,7 @@ public class ExpandCommandSMTTest {
     }
 
     @Test
-    public void expandNonTerminatingTest() throws ParserException {
+    public void expandNonTerminatingTest() throws ParserException, InvalidRuleApplicationException {
         String t1 = "sumrec(n)";
         String t2 = "sumiter(n+1)";
         String c1 = "[n >= 1]";
@@ -103,7 +99,7 @@ public class ExpandCommandSMTTest {
     }
 
     @Test (expected = UnsupportedOperationException.class)
-    public void expandExampleTestTerminationNotSupported() throws ParserException {
+    public void expandExampleTestTerminationNotSupported() throws ParserException, InvalidRuleApplicationException {
         String t1 = "sumrec(n)";
         String t2 = "iter(n, 1, 2)";
         String c1 = "[n >= 1]";
@@ -121,7 +117,7 @@ public class ExpandCommandSMTTest {
     }
 
     @Test (expected = InvalidPositionException.class)
-    public void invalidExpandTest() throws ParserException {
+    public void invalidExpandTest() throws ParserException, InvalidRuleApplicationException {
         String t1 = "sumrec(n)";
         String t2 = "iter(n, 1, 2)";
         String c1 = "[n >= 1]";

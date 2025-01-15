@@ -1,5 +1,8 @@
 package cora.usercommands;
 
+import cora.exceptions.invalidruleapplications.InvalidDisproveApplicationException;
+import cora.exceptions.invalidruleapplications.InvalidRuleApplicationException;
+import cora.interfaces.smt.IProofState;
 import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.FunctionSymbol;
 import cora.interfaces.terms.Position;
@@ -14,7 +17,6 @@ import cora.z3.SatisfiabilityEnum;
 import cora.z3.Z3TermHandler;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import static cora.types.Sort.intSort;
 
@@ -30,8 +32,8 @@ public class DisproveCommand extends UserCommandInherit implements UserCommand {
     }
 
     @Override
-    public boolean applicable() {
-        if (!_proof.getCompleteness()) return false;
+    public IProofState apply(IProofState ps) throws InvalidRuleApplicationException {
+        if (!ps.getCompleteness()) throw new InvalidDisproveApplicationException("No completeness property");
         Term l = _proof.getLeft();
         Term r = _proof.getRight();
         Term c = _proof.getConstraint();
@@ -51,13 +53,17 @@ public class DisproveCommand extends UserCommandInherit implements UserCommand {
                     ineq = new FunctionalTerm(_proof.getLcTrs().lookupSymbol("!=b"), l, r);
                 }
             Term nc = new FunctionalTerm(_proof.getLcTrs().lookupSymbol("/\\"), c, ineq);
-            if (z3.satisfiable(nc) == SatisfiabilityEnum.SAT) return true;
+            if (z3.satisfiable(nc) == SatisfiabilityEnum.SAT) {
+                _proof.setBottom(true);
+                return ps;
+            }
         }
         //s = f(s->) and t = g(t->) with f, g distinct constructors and phi satisfiable
         if (l.isFunctionalTerm() && r.isFunctionalTerm() && !l.queryRoot().equals(r.queryRoot()) &&
             isConstructorTerm(l, _proof) && isConstructorTerm(r, _proof) &&
             z3.satisfiable(c) == SatisfiabilityEnum.SAT) {
-            return true;
+            _proof.setBottom(true);
+            return ps;
         }
 
         //s E V\Var(phi), phi satisfiable, at least two different constructors have output sort i,
@@ -68,8 +74,11 @@ public class DisproveCommand extends UserCommandInherit implements UserCommand {
         }
         if (l.isVariable() && !c.vars().getVars().contains((Variable) l) && counter >= 2 &&
                 (r.isVariable() && !l.equals(r)) || (r.isFunctionalTerm() && isConstructorTerm(r, _proof))
-                && z3.satisfiable(c) == SatisfiabilityEnum.SAT) return true;
-        return false;
+                && z3.satisfiable(c) == SatisfiabilityEnum.SAT) {
+            _proof.setBottom(true);
+            return ps;
+        }
+        throw new InvalidDisproveApplicationException("No disprove cases apply");
     }
 
     private static boolean isNumeric(String str) {
@@ -79,11 +88,6 @@ public class DisproveCommand extends UserCommandInherit implements UserCommand {
         } catch (NumberFormatException e) {
             return false;
         }
-    }
-
-    @Override
-    public void apply() {
-        _proof.setBottom(true);
     }
 
     @Override
