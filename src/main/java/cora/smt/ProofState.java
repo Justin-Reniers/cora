@@ -44,7 +44,6 @@ public class ProofState implements IProofState {
         for (FirstOrderRule r : ps.getH()) _H.add(new FirstOrderRule(r));
         _completeness = ps.getCompleteness();
     }
-
     public ArrayList<ProofEquation> getE() {
         return _E;
     }

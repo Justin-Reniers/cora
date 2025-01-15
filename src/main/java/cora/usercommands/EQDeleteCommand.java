@@ -7,6 +7,7 @@ import cora.interfaces.smt.UserCommand;
 import cora.interfaces.terms.Position;
 import cora.interfaces.terms.Term;
 import cora.interfaces.types.Type;
+import cora.smt.Equation;
 import cora.smt.EquivalenceProof;
 import cora.terms.FunctionalTerm;
 import cora.terms.Var;
